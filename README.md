@@ -62,14 +62,19 @@ World Filler mirrors the WorldForge compiler doctrine:
 
 ## Repository status
 
-**F0 complete (2026-07-28).** The clean-room pack reader, walkability ladder,
-flood, and parity suite are implemented and green: derived walkability grids
-are bit-identical to the reference grids of all committed fixture packs
-(spawn and flood counts equal), canonical-JSON serialization round-trips
-upstream bytes exactly, and every refusal gate has a named test. Verified at
-full scale against the canonical 256² world (65,536 cells bit-identical,
-flood 33893, all 15 ladder rungs exercised). Next: F1 (deterministic
-kernel).
+**F0 + F1 complete (2026-07-28).** The clean-room pack reader, walkability
+ladder, flood, and parity suite are green: derived walkability grids are
+bit-identical to the reference grids of all committed fixture packs (spawn
+and flood counts equal), canonical-JSON serialization round-trips upstream
+bytes exactly, and every refusal gate has a named test. Verified at full
+scale against the canonical 256² world (65,536 cells bit-identical, flood
+33893, all 15 ladder rungs exercised). The deterministic kernel is in:
+uint32 hash primitives and hierarchical seed channels with committed golden
+vectors (`fixtures/golden/kernel.json`, re-recorded only via
+`node dist/tools/updateGolden.js` as an explicit decision), stateless
+indexed draws, weighted selection, shuffling, channel-independence tests,
+a hygiene test banning hidden nondeterminism from the source tree, and a
+three-OS CI workflow. Next: F2 (spatial analysis).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

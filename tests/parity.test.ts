@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { readGamePack } from "../src/pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS, type LadderRung } from "../src/world/model.js";
 import { checkParity } from "../src/parity.js";
@@ -40,7 +40,7 @@ describe("walkability parity", () => {
   ) as Record<string, Record<LadderRung, number>>;
 
   for (const dir of committed) {
-    const name = dir.split("/").pop() as string;
+    const name = basename(dir);
     it(`matches the reference grid bit-for-bit: ${name}`, () => {
       const pack = readGamePack(dir);
       const model = new WorldModel(pack.artifact);
@@ -64,7 +64,7 @@ describe("walkability parity", () => {
     ) as { __documentedGaps?: string[] }).__documentedGaps ?? [];
     const union = new Set<string>(documentedGaps);
     for (const dir of committed) {
-      const name = dir.split("/").pop() as string;
+      const name = basename(dir);
       const counts = expectedCoverage[name];
       if (counts === undefined) continue;
       for (const rung of ALL_LADDER_RUNGS) {
@@ -80,7 +80,7 @@ describe("walkability parity", () => {
   });
 
   for (const dir of packDirs(localPacksDir)) {
-    const name = dir.split("/").pop() as string;
+    const name = basename(dir);
     it(`local pack parity (regenerated, not committed): ${name}`, () => {
       const pack = readGamePack(dir);
       const model = new WorldModel(pack.artifact);

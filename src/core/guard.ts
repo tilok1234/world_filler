@@ -1,16 +1,16 @@
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 /**
  * Output-path guard: World Filler writes only inside roots it owns.
  * Allowed: `<repoRoot>/outputs` (plus roots listed in the
- * WORLD_FILLER_EXTRA_OUT_ROOTS environment variable, path-separated).
+ * WORLD_FILLER_EXTRA_OUT_ROOTS environment variable, delimiter-separated).
  * Any path that resolves into an upstream checkout (a directory owned by
  * a `worldforge` package) or into this repository's source/fixture/doc
  * trees is refused with a named error.
  */
 
-const PROTECTED_SUBDIRS = ["src", "tests", "docs", "fixtures", "schemas", ".git", "vendor"];
+const PROTECTED_SUBDIRS = ["src", "tests", "tools", "docs", "fixtures", "schemas", ".git", "vendor"];
 
 export function repoRoot(): string {
   let dir = resolve(import.meta.dirname ?? ".");
@@ -52,7 +52,13 @@ function ancestorPackageNames(path: string): string[] {
 export function extraOutRoots(): string[] {
   const raw = process.env["WORLD_FILLER_EXTRA_OUT_ROOTS"];
   if (raw === undefined || raw === "") return [];
-  return raw.split(":").filter((entry) => entry !== "").map((entry) => resolve(entry));
+  return raw.split(delimiter).filter((entry) => entry !== "").map((entry) => resolve(entry));
+}
+
+/** True when `candidate` is inside `root` (strictly; not the root itself). */
+function isInside(root: string, candidate: string): boolean {
+  const rel = relative(root, candidate);
+  return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
 }
 
 /**
@@ -74,9 +80,8 @@ export function assertOutputRoot(requested: string): string {
   if (absolute === root) {
     throw new Error(`guard: refusing output root ${absolute}: the repository root itself is not writable output`);
   }
-  if (absolute.startsWith(root + "/")) {
-    const relative = absolute.slice(root.length + 1);
-    const first = relative.split("/")[0] as string;
+  if (isInside(root, absolute)) {
+    const first = relative(root, absolute).split(sep)[0] as string;
     if (PROTECTED_SUBDIRS.includes(first)) {
       throw new Error(
         `guard: refusing output root ${absolute}: ${first}/ is a protected repository tree, use outputs/`,
@@ -86,7 +91,7 @@ export function assertOutputRoot(requested: string): string {
   }
 
   for (const extra of extraOutRoots()) {
-    if (absolute === extra || absolute.startsWith(extra + "/")) return absolute;
+    if (absolute === extra || isInside(extra, absolute)) return absolute;
   }
 
   throw new Error(

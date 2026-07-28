@@ -1,9 +1,11 @@
 # World Filler Roadmap
 
-Status: **F0 complete and green (2026-07-28)** — clean-room reader, ladder,
-flood, and parity suite implemented; all exit criteria below verified,
-including bit-for-bit reference-grid parity on the three committed fixtures
-and (locally) the canonical 256² world at flood 33893. F1 is next.
+Status: **F0 + F1 complete and green (2026-07-28)** — clean-room reader,
+ladder, flood, and parity suite verified (bit-for-bit reference-grid parity
+on the three committed fixtures and, locally, the canonical 256² world at
+flood 33893); deterministic kernel landed with committed golden vectors,
+hierarchical channels, independence proofs, hygiene bans, and a three-OS CI
+workflow (first cross-platform run pending on GitHub). F2 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
