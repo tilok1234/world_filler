@@ -17,6 +17,11 @@ export interface DangerOverride {
   readonly band: number;
 }
 
+export interface RegionReroll {
+  readonly regionId: string;
+  readonly iteration: number;
+}
+
 export interface DirectorRecipe {
   readonly recipeFormat: number;
   readonly name: string;
@@ -42,6 +47,20 @@ export interface DirectorRecipe {
   readonly dungeonAnchors: {
     readonly poiTypes: readonly string[];
   };
+  readonly worldBossRule: {
+    readonly minClearance: number;
+    readonly minSettlementPathDistance: number;
+    readonly minPeerPathDistance: number;
+    readonly exclusionRadius: number;
+    readonly clearancePermille: number;
+    readonly settlementFarPermille: number;
+    readonly roadFarPermille: number;
+  };
+  readonly dungeonRule: {
+    readonly exclusionRadius: number;
+    readonly settlementFarPermille: number;
+  };
+  readonly rerolls: readonly RegionReroll[];
 }
 
 const DEFAULT_DUNGEON_POI_TYPES = [
@@ -64,6 +83,21 @@ const DANGER_FIELDS: Readonly<Record<string, FieldSpec>> = {
   bandCount: { min: 2, max: 16, fallback: 5 },
   maxBandJump: { min: 1, max: 8, fallback: 2 },
   safeZoneShareForBand0Permille: { min: 0, max: 1000, fallback: 300 },
+};
+
+const WORLD_BOSS_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  minClearance: { min: 2, max: 21, fallback: 6 },
+  minSettlementPathDistance: { min: 0, max: 10000, fallback: 20 },
+  minPeerPathDistance: { min: 0, max: 100000, fallback: 80 },
+  exclusionRadius: { min: 1, max: 128, fallback: 16 },
+  clearancePermille: { min: 0, max: 1000, fallback: 600 },
+  settlementFarPermille: { min: 0, max: 1000, fallback: 800 },
+  roadFarPermille: { min: 0, max: 1000, fallback: 500 },
+};
+
+const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  exclusionRadius: { min: 1, max: 128, fallback: 8 },
+  settlementFarPermille: { min: 0, max: 1000, fallback: 1000 },
 };
 
 const BUDGET_FIELDS: Readonly<Record<string, FieldSpec>> = {
@@ -120,7 +154,11 @@ function sectionOf(
 /** Validate and normalize a raw recipe object into explicit form. */
 export function normalizeRecipe(input: unknown): DirectorRecipe {
   const raw = requireObject(input, "$");
-  rejectUnknownKeys(raw, ["recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors"], "$");
+  rejectUnknownKeys(
+    raw,
+    ["recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors", "worldBossRule", "dungeonRule", "rerolls"],
+    "$",
+  );
 
   if (raw["recipeFormat"] !== RECIPE_FORMAT) {
     throw new RecipeError(
@@ -182,6 +220,31 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   }
   const poiTypes = [...new Set(poiTypesRaw as string[])].sort();
 
+  const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
+  const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
+
+  const rerollsRaw = raw["rerolls"] === undefined ? [] : raw["rerolls"];
+  if (!Array.isArray(rerollsRaw)) throw new RecipeError("recipe: $.rerolls must be an array");
+  const rerolls: RegionReroll[] = rerollsRaw.map((entry, i) => {
+    const record = requireObject(entry, `$.rerolls[${i}]`);
+    rejectUnknownKeys(record, ["regionId", "iteration"], `$.rerolls[${i}]`);
+    const regionId = record["regionId"];
+    const iteration = record["iteration"];
+    if (typeof regionId !== "string" || regionId === "") {
+      throw new RecipeError(`recipe: $.rerolls[${i}].regionId must be a region id`);
+    }
+    if (!Number.isInteger(iteration) || (iteration as number) < 0 || (iteration as number) > 1000) {
+      throw new RecipeError(`recipe: $.rerolls[${i}].iteration must be an integer in [0, 1000]`);
+    }
+    return { regionId, iteration: iteration as number };
+  });
+  rerolls.sort((a, b) => (a.regionId < b.regionId ? -1 : a.regionId > b.regionId ? 1 : 0));
+  for (let i = 1; i < rerolls.length; i += 1) {
+    if ((rerolls[i] as RegionReroll).regionId === (rerolls[i - 1] as RegionReroll).regionId) {
+      throw new RecipeError(`recipe: duplicate reroll for ${(rerolls[i] as RegionReroll).regionId}`);
+    }
+  }
+
   return {
     recipeFormat: RECIPE_FORMAT,
     name,
@@ -205,6 +268,20 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       minWorldBossBand: budgets["minWorldBossBand"] as number,
     },
     dungeonAnchors: { poiTypes },
+    worldBossRule: {
+      minClearance: worldBossRule["minClearance"] as number,
+      minSettlementPathDistance: worldBossRule["minSettlementPathDistance"] as number,
+      minPeerPathDistance: worldBossRule["minPeerPathDistance"] as number,
+      exclusionRadius: worldBossRule["exclusionRadius"] as number,
+      clearancePermille: worldBossRule["clearancePermille"] as number,
+      settlementFarPermille: worldBossRule["settlementFarPermille"] as number,
+      roadFarPermille: worldBossRule["roadFarPermille"] as number,
+    },
+    dungeonRule: {
+      exclusionRadius: dungeonRule["exclusionRadius"] as number,
+      settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
+    },
+    rerolls,
   };
 }
 

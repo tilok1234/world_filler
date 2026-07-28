@@ -6,8 +6,10 @@ import { checkParity } from "./parity.js";
 import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary } from "./analysis/analyze.js";
 import { renderAnalysis } from "./render/heatmaps.js";
 import { renderDanger } from "./render/planRender.js";
+import { renderPlacements } from "./render/placeRender.js";
 import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
 import { compilePlan } from "./plan/plan.js";
+import { solvePlacements, type PlacementsDoc, type Placement } from "./place/solver.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
 
@@ -22,6 +24,10 @@ function usage(): void {
       "  wf-fill analyze <pack-dir> [out-dir]  spatial analysis bundle + heatmap renders",
       "  wf-fill plan <pack-dir> <recipe.json> [out-dir]",
       "                                        compile the regional content plan + danger render",
+      "  wf-fill place <pack-dir> <recipe.json> [out-dir]",
+      "                                        solve placements (bosses + dungeon bindings) + render",
+      "  wf-fill explain <placements.json> <placement-id>",
+      "                                        why a placement landed where it did",
       "",
       "inspect and parity are read-only. analyze writes under outputs/ (or the",
       "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -193,6 +199,79 @@ function runPlan(dir: string, recipePath: string, outArg: string | undefined): n
   return 0;
 }
 
+function runPlace(dir: string, recipePath: string, outArg: string | undefined): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("place: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(`place: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256}`);
+    return 1;
+  }
+  const bundle = analyzeWorld(model);
+  const plan = compilePlan(model, bundle, recipe);
+  const doc = solvePlacements(model, bundle, plan, recipe);
+
+  const outDir = assertOutputRoot(
+    outArg ?? join(repoRoot(), "outputs", "place", `${basename(dir)}-${recipe.name}`),
+  );
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  writeFileSync(join(outDir, "placements.json"), canonicalJson(doc));
+  writeFileSync(join(outDir, "renders", "placements.png"), renderPlacements(model, bundle, doc));
+
+  console.log(`placements: ${doc.placements.length} placed, ${doc.failures.length} failures, ${doc.unboundAnchors.length} unbound anchors`);
+  for (const placement of doc.placements) {
+    console.log(
+      `  ${placement.id}: (${placement.cell[0]}, ${placement.cell[1]}) score ${placement.score}` +
+        (placement.anchorPoiType !== null ? ` on ${placement.anchorPoiType} #${placement.anchorPoiId}` : "") +
+        (placement.inSafeZone ? " [in safe zone]" : ""),
+    );
+  }
+  for (const failure of doc.failures) console.log(`  FAILURE ${failure.rule} in ${failure.regionId}: ${failure.message}`);
+  const unboundByReason = new Map<string, number>();
+  for (const anchor of doc.unboundAnchors) {
+    unboundByReason.set(anchor.reason, (unboundByReason.get(anchor.reason) ?? 0) + 1);
+  }
+  for (const [reason, count] of [...unboundByReason.entries()].sort()) {
+    console.log(`  unbound anchors (${reason}): ${count}`);
+  }
+  console.log(`wrote ${outDir}`);
+  return doc.failures.length > 0 ? 2 : 0;
+}
+
+function runExplain(placementsPath: string, placementId: string): number {
+  const doc = JSON.parse(readFileSync(placementsPath, "utf8")) as PlacementsDoc;
+  const placement = doc.placements.find((entry: Placement) => entry.id === placementId);
+  if (placement === undefined) {
+    console.error(`explain: no placement ${placementId} (have: ${doc.placements.map((entry) => entry.id).join(", ")})`);
+    return 1;
+  }
+  console.log(`${placement.id} — ${placement.rule} in ${placement.regionId}`);
+  console.log(`cell (${placement.cell[0]}, ${placement.cell[1]}), access (${placement.accessCell[0]}, ${placement.accessCell[1]})`);
+  if (placement.anchorPoiType !== null) {
+    console.log(`bound anchor: ${placement.anchorPoiType} #${placement.anchorPoiId}${placement.inSafeZone ? " (inside a safe zone)" : ""}`);
+  }
+  if (placement.arenaSide !== null) console.log(`arena: ${placement.arenaSide}x${placement.arenaSide} reserved`);
+  console.log(`exclusion radius: ${placement.exclusionRadius}`);
+  console.log(`seed channel: ${placement.channel} (picked index ${placement.draw} of the top window)`);
+  console.log("candidate funnel:");
+  for (const step of placement.candidateFunnel) console.log(`  ${step.stage}: ${step.remaining}`);
+  console.log(`score ${placement.score} =`);
+  for (const term of placement.scoreTerms) {
+    console.log(`  ${term.term}: value ${term.value}/1000 x weight ${term.weightPermille}/1000 -> ${term.contribution}`);
+  }
+  console.log("top candidates considered:");
+  for (const candidate of placement.topCandidates) {
+    const marker = candidate.cell[0] === placement.cell[0] && candidate.cell[1] === placement.cell[1] ? "  <- chosen" : "";
+    console.log(`  (${candidate.cell[0]}, ${candidate.cell[1]}) score ${candidate.score}${marker}`);
+  }
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
   const [command, target, extra, extra2] = argv;
   if (command === undefined || command === "help" || command === "--help") {
@@ -213,6 +292,20 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runPlan(target, extra, extra2);
+    }
+    if (command === "place") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runPlace(target, extra, extra2);
+    }
+    if (command === "explain") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runExplain(target, extra);
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
