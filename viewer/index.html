@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>wf-fill viewer — read-only content pack inspector</title>
+<!--
+  World Filler F8 viewer: a single-file, no-build, READ-ONLY inspector
+  for worldfiller outputs. Open this file directly (file://) and drop a
+  content-pack directory (and optionally an analysis output directory)
+  onto the page. Nothing is uploaded, fetched, or written: the page has
+  no network access and no persistence — it only reads the files you
+  hand it via the browser's file APIs. See docs/WORKFLOW.md.
+
+  Contract: this file references no external resources (no script src,
+  no stylesheets, no fonts, no fetch/XHR) — pinned by tests/viewer.test.ts.
+-->
+<style>
+  :root {
+    --bg: #14161a; --panel: #1d2026; --edge: #2c313a; --text: #d6dae2;
+    --dim: #8b93a1; --accent: #5cc8ff; --warn: #ffb454; --bad: #ff6b6b; --ok: #7bd88f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.45 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; }
+  #app { display: flex; height: 100%; }
+  #side { width: 340px; min-width: 340px; overflow-y: auto; background: var(--panel);
+    border-right: 1px solid var(--edge); padding: 10px 12px; }
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #canvasWrap { flex: 1; overflow: auto; display: grid; place-items: center; }
+  canvas { image-rendering: pixelated; background: #000; border: 1px solid var(--edge); }
+  h1 { font-size: 14px; margin: 0 0 2px; color: var(--accent); }
+  h2 { font-size: 12px; margin: 14px 0 4px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .tag { color: var(--dim); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  #drop { border: 2px dashed var(--edge); border-radius: 6px; padding: 14px; margin: 10px 0;
+    text-align: center; color: var(--dim); }
+  #drop.hot { border-color: var(--accent); color: var(--accent); }
+  label { display: block; margin: 2px 0; cursor: pointer; }
+  select, input[type="range"] { width: 100%; margin: 2px 0 6px; background: var(--bg);
+    color: var(--text); border: 1px solid var(--edge); border-radius: 4px; padding: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 4px 0; }
+  td, th { border: 1px solid var(--edge); padding: 2px 5px; text-align: left; font-size: 12px; }
+  th { color: var(--dim); font-weight: normal; }
+  td.num { text-align: right; }
+  #hover { min-height: 120px; }
+  #status { padding: 6px 12px; border-top: 1px solid var(--edge); color: var(--dim);
+    display: flex; gap: 16px; }
+  details { margin: 4px 0; } summary { cursor: pointer; color: var(--dim); }
+  .banner { background: #10331c; color: var(--ok); border: 1px solid #1d5731;
+    border-radius: 4px; padding: 4px 8px; margin: 6px 0; font-size: 12px; }
+  button { background: var(--bg); color: var(--text); border: 1px solid var(--edge);
+    border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+  .mono { white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <h1>wf-fill viewer</h1>
+    <div class="banner">read-only inspector — nothing is written, uploaded, or fetched</div>
+    <div id="drop">drop a content-pack directory here<br>(optionally also an <span class="tag">analyze</span> output dir for heatmap backdrops)<br><br>
+      <button id="pickBtn">or pick a directory…</button>
+      <input id="pickDir" type="file" webkitdirectory multiple style="display:none">
+    </div>
+
+    <h2>backdrop</h2>
+    <select id="backdrop"><option value="">(none — flat grid)</option></select>
+
+    <h2>overlays</h2>
+    <div id="overlayBoxes">
+      <label><input type="checkbox" id="ovTerr" checked> territories (from territories.json)</label>
+      <label><input type="checkbox" id="ovPlace" checked> placements (from placements.json)</label>
+      <label><input type="checkbox" id="ovExcl"> exclusion radii</label>
+      <label><input type="checkbox" id="ovArena" checked> boss arenas</label>
+    </div>
+    <label class="tag">overlay opacity <input type="range" id="ovAlpha" min="10" max="100" value="55"></label>
+
+    <h2>hover</h2>
+    <div id="hover" class="tag">load a pack, then move the mouse over the map.</div>
+
+    <div id="packInfo"></div>
+  </div>
+  <div id="main">
+    <div id="canvasWrap"><canvas id="map" width="64" height="64"></canvas></div>
+    <div id="status"><span id="statCell">cell —</span><span id="statPack">no pack loaded</span></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ---------- state ----------
+const state = {
+  files: new Map(),        // relative-ish path -> File
+  images: new Map(),       // render name -> ImageBitmap
+  placements: null, territories: null, plan: null, manifest: null, report: null,
+  width: 0, height: 0, scale: 8,
+  cellTerritory: null,     // Int32Array cell -> territory index or -1
+  planByRegion: new Map(),
+  notes: [],               // honest loading notes (malformed data etc.)
+};
+
+const $ = (id) => document.getElementById(id);
+const canvas = $("map"), ctx = canvas.getContext("2d");
+
+// ---------- file intake (drag-drop + picker; read-only) ----------
+function entryFiles(entry, prefix, out) {
+  return new Promise((resolve) => {
+    if (entry.isFile) {
+      entry.file((file) => { out.push([prefix + entry.name, file]); resolve(); }, () => resolve());
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      const all = [];
+      const readMore = () => reader.readEntries(async (entries) => {
+        if (entries.length === 0) {
+          for (const child of all) await entryFiles(child, prefix + entry.name + "/", out);
+          resolve();
+        } else { all.push(...entries); readMore(); }
+      }, () => resolve());
+      readMore();
+    } else resolve();
+  });
+}
+
+const drop = $("drop");
+window.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("hot"); });
+window.addEventListener("dragleave", () => drop.classList.remove("hot"));
+window.addEventListener("drop", async (event) => {
+  event.preventDefault(); drop.classList.remove("hot");
+  const out = [];
+  const items = [...event.dataTransfer.items];
+  for (const item of items) {
+    const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
+    if (entry) await entryFiles(entry, "", out);
+    else { const f = item.getAsFile(); if (f) out.push([f.name, f]); }
+  }
+  await ingest(out);
+});
+$("pickBtn").addEventListener("click", () => $("pickDir").click());
+$("pickDir").addEventListener("change", async (event) => {
+  const out = [...event.target.files].map((f) => [f.webkitRelativePath || f.name, f]);
+  await ingest(out);
+});
+
+async function ingest(pairs) {
+  for (const [path, file] of pairs) state.files.set(path, file);
+  state.notes = [];
+  const readJson = async (name) => {
+    const hit = findFile(name);
+    if (!hit) return null;
+    try { return JSON.parse(await hit.text()); }
+    catch { state.notes.push(name + " is not valid JSON"); return null; }
+  };
+  state.manifest = await readJson("manifest.json");
+  state.placements = await readJson("placements.json");
+  state.territories = await readJson("territories.json");
+  state.plan = await readJson("content-plan.json");
+  state.report = await readJson("report.json");
+
+  // Backdrop images: any dropped PNG becomes a selectable layer.
+  state.images.clear();
+  for (const [path, file] of state.files) {
+    if (!path.toLowerCase().endsWith(".png")) continue;
+    const name = path.split("/").pop().replace(/\.png$/i, "");
+    try { state.images.set(name, await createImageBitmap(file)); }
+    catch { state.notes.push(path + " could not be decoded as an image"); }
+  }
+
+  const base = (state.placements && state.placements.base) || (state.territories && state.territories.base)
+    || (state.manifest && state.manifest.base) || null;
+  if (base) { state.width = base.width; state.height = base.height; }
+  else if (state.images.size > 0) {
+    const first = state.images.values().next().value;
+    state.width = first.width; state.height = first.height;
+    state.notes.push("no JSON base dims found; using first image's pixel size");
+  }
+  if (!state.width) { state.notes.push("nothing loadable found — drop a content pack directory"); render(); return; }
+
+  state.scale = Math.max(2, Math.min(16, Math.floor(896 / Math.max(state.width, state.height))));
+  buildIndexes();
+  rebuildBackdropList();
+  renderPackInfo();
+  render();
+}
+
+function findFile(name) {
+  for (const [path, file] of state.files) {
+    if (path === name || path.endsWith("/" + name)) return file;
+  }
+  return null;
+}
+
+// ---------- data indexes ----------
+// Same run rule as the reference verifiers: a malformed run (row-crossing,
+// non-positive length, negative coords) is reported, never wrapped.
+function decodeRuns(runs, width) {
+  const cells = [];
+  for (const run of runs) {
+    const [x, y, length] = run;
+    if (!(Number.isInteger(x) && Number.isInteger(y) && Number.isInteger(length))
+        || x < 0 || y < 0 || length < 1 || x + length > width) {
+      return { error: "malformed run [" + run + "] (row-crossing or non-positive)", cells: [] };
+    }
+    for (let i = 0; i < length; i += 1) cells.push(y * width + x + i);
+  }
+  return { error: null, cells };
+}
+
+function buildIndexes() {
+  const { width, height } = state;
+  state.cellTerritory = new Int32Array(width * height).fill(-1);
+  if (state.territories && Array.isArray(state.territories.territories)) {
+    state.territories.territories.forEach((territory, index) => {
+      const decoded = decodeRuns(territory.cells && territory.cells.runs || [], width);
+      territory._error = decoded.error;
+      if (decoded.error) state.notes.push(territory.id + ": " + decoded.error);
+      territory._cells = decoded.cells;
+      for (const cell of decoded.cells) if (cell < width * height) state.cellTerritory[cell] = index;
+    });
+  }
+  state.planByRegion.clear();
+  if (state.plan && Array.isArray(state.plan.regions)) {
+    for (const region of state.plan.regions) state.planByRegion.set(region.id, region);
+  }
+}
+
+// Stable, distinct-ish color per territory id.
+function idColor(id, alpha) {
+  let hash = 2166136261;
+  for (let i = 0; i < id.length; i += 1) { hash ^= id.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+  const hue = ((hash >>> 0) % 360);
+  return "hsla(" + hue + ", 65%, 60%, " + alpha + ")";
+}
+
+// ---------- rendering ----------
+function rebuildBackdropList() {
+  const select = $("backdrop");
+  const preferred = ["terrain", "danger", "placements", "territories"];
+  const names = [...state.images.keys()].sort((a, b) => {
+    const pa = preferred.indexOf(a), pb = preferred.indexOf(b);
+    return (pa === -1 ? 99 : pa) - (pb === -1 ? 99 : pb) || (a < b ? -1 : 1);
+  });
+  const current = select.value;
+  select.innerHTML = "<option value=\"\">(none — flat grid)</option>";
+  for (const name of names) {
+    const option = document.createElement("option");
+    option.value = name; option.textContent = name;
+    select.appendChild(option);
+  }
+  select.value = names.includes(current) ? current : (names[0] || "");
+}
+
+function render() {
+  const { width, height, scale } = state;
+  canvas.width = Math.max(64, width * scale);
+  canvas.height = Math.max(64, height * scale);
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = "#0a0c0f";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const backdrop = $("backdrop").value;
+  if (backdrop && state.images.has(backdrop)) {
+    ctx.drawImage(state.images.get(backdrop), 0, 0, canvas.width, canvas.height);
+  }
+
+  const alpha = Number($("ovAlpha").value) / 100;
+  if ($("ovTerr").checked && state.territories) {
+    for (const territory of state.territories.territories || []) {
+      ctx.fillStyle = idColor(territory.id, alpha);
+      for (const cell of territory._cells || []) {
+        ctx.fillRect((cell % width) * scale, Math.floor(cell / width) * scale, scale, scale);
+      }
+    }
+  }
+  if (state.placements) {
+    for (const placement of state.placements.placements || []) {
+      const [cx, cy] = placement.cell;
+      if ($("ovArena").checked && placement.arenaOrigin && placement.arenaSide) {
+        ctx.strokeStyle = "rgba(255, 107, 107, 0.9)";
+        ctx.lineWidth = Math.max(1, scale / 4);
+        ctx.strokeRect(placement.arenaOrigin[0] * scale, placement.arenaOrigin[1] * scale,
+          placement.arenaSide * scale, placement.arenaSide * scale);
+      }
+      if ($("ovExcl").checked) {
+        ctx.strokeStyle = placement.rule === "world_boss.v1" ? "rgba(255,107,107,0.6)" : "rgba(92,200,255,0.6)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc((cx + 0.5) * scale, (cy + 0.5) * scale, placement.exclusionRadius * scale, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if ($("ovPlace").checked) {
+        const size = Math.max(3, scale);
+        ctx.fillStyle = placement.rule === "world_boss.v1" ? "#ff6b6b" : "#5cc8ff";
+        ctx.fillRect((cx + 0.5) * scale - size / 2, (cy + 0.5) * scale - size / 6, size, size / 3);
+        ctx.fillRect((cx + 0.5) * scale - size / 6, (cy + 0.5) * scale - size / 2, size / 3, size);
+        if (placement.locked) {
+          ctx.strokeStyle = "#ffe66b"; ctx.lineWidth = 1;
+          ctx.strokeRect((cx + 0.5) * scale - size / 2 - 2, (cy + 0.5) * scale - size / 2 - 2, size + 4, size + 4);
+        }
+      }
+    }
+  }
+  $("statPack").textContent = state.manifest
+    ? state.manifest.world + " · " + state.manifest.recipeName + " · behavior " + state.manifest.directorBehaviorVersion
+      + " · " + (state.manifest.directorRecipeSha256 || "").slice(0, 12) + "…"
+    : (state.width ? state.width + "x" + state.height + " (no manifest loaded)" : "no pack loaded");
+}
+
+for (const id of ["backdrop", "ovTerr", "ovPlace", "ovExcl", "ovArena", "ovAlpha"]) {
+  $(id).addEventListener("input", render);
+}
+
+// ---------- hover inspection ----------
+canvas.addEventListener("mousemove", (event) => {
+  if (!state.width) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / rect.width * state.width);
+  const y = Math.floor((event.clientY - rect.top) / rect.height * state.height);
+  if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
+  $("statCell").textContent = "cell (" + x + ", " + y + ")";
+  $("hover").innerHTML = describeCell(x, y);
+});
+
+function esc(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function regionBrief(regionId) {
+  const region = state.planByRegion.get(regionId);
+  if (!region) return "";
+  return "<div class=\"tag\">region " + esc(region.id) + " — " + esc(region.biome)
+    + ", band " + esc(region.dangerBand === null ? "—" : region.dangerBand)
+    + ", class " + esc(region.regionClass)
+    + (region.waivers && region.waivers.length ? ", waivers: " + esc(region.waivers.join("; ")) : "")
+    + "</div>";
+}
+
+function describeCell(x, y) {
+  const parts = [];
+  // Placement under (or near) the cursor wins: exact cell, arena, or within 1 cell.
+  if (state.placements) {
+    for (const placement of state.placements.placements || []) {
+      const inArena = placement.arenaOrigin && placement.arenaSide
+        && x >= placement.arenaOrigin[0] && x < placement.arenaOrigin[0] + placement.arenaSide
+        && y >= placement.arenaOrigin[1] && y < placement.arenaOrigin[1] + placement.arenaSide;
+      const near = Math.abs(placement.cell[0] - x) <= 1 && Math.abs(placement.cell[1] - y) <= 1;
+      if (inArena || near) parts.push(describePlacement(placement));
+    }
+  }
+  const territoryIndex = state.cellTerritory ? state.cellTerritory[y * state.width + x] : -1;
+  if (territoryIndex >= 0) parts.push(describeTerritory(state.territories.territories[territoryIndex]));
+  if (parts.length === 0) return "<span class=\"tag\">cell (" + x + ", " + y + ") — no content here</span>";
+  return parts.join("<hr style=\"border-color:var(--edge)\">");
+}
+
+function describePlacement(placement) {
+  let html = "<b>" + esc(placement.id) + "</b>"
+    + (placement.locked ? " <span class=\"warn\">[locked]</span>" : "")
+    + "<br><span class=\"tag\">" + esc(placement.rule) + " · cell (" + placement.cell + ") · access ("
+    + placement.accessCell + ") · exclusion " + placement.exclusionRadius + "</span>";
+  if (placement.anchorPoiId !== null && placement.anchorPoiId !== undefined) {
+    html += "<br><span class=\"tag\">anchor " + esc(placement.anchorPoiType) + " #" + esc(placement.anchorPoiId)
+      + (placement.inSafeZone ? " (in safe zone)" : "") + "</span>";
+  }
+  html += regionBrief(placement.regionId);
+  if (placement.locked) {
+    html += "<div class=\"tag\">held by a recipe lock — explanation fields are sentinels</div>";
+    return html;
+  }
+  html += "<div class=\"tag\">channel " + esc(placement.channel) + " · draw " + esc(placement.draw) + "</div>";
+  if (Array.isArray(placement.scoreTerms) && placement.scoreTerms.length) {
+    html += "<table><tr><th>term</th><th>value</th><th>weight</th><th>&rarr;</th></tr>";
+    for (const term of placement.scoreTerms) {
+      html += "<tr><td>" + esc(term.term) + "</td><td class=\"num\">" + esc(term.value)
+        + "</td><td class=\"num\">" + esc(term.weightPermille) + "</td><td class=\"num\">" + esc(term.contribution) + "</td></tr>";
+    }
+    html += "<tr><td colspan=\"3\">score</td><td class=\"num\"><b>" + esc(placement.score) + "</b></td></tr></table>";
+  }
+  if (Array.isArray(placement.candidateFunnel) && placement.candidateFunnel.length) {
+    html += "<div class=\"tag\">funnel: " + placement.candidateFunnel.map((step) => esc(step.stage) + "=" + esc(step.remaining)).join(" &rarr; ") + "</div>";
+  }
+  if (Array.isArray(placement.topCandidates) && placement.topCandidates.length) {
+    html += "<div class=\"tag\">top candidates: " + placement.topCandidates.map((candidate) =>
+      "(" + candidate.cell + "):" + candidate.score).join("  ") + "</div>";
+  }
+  return html;
+}
+
+function describeTerritory(territory) {
+  let html = "<b>" + esc(territory.id) + "</b><br><span class=\"tag\">band " + esc(territory.dangerBand)
+    + " · " + esc(territory.cellCount) + " cells · packSize [" + territory.packSize + "] · maxActive "
+    + esc(territory.maxActive) + " · respawn " + esc(territory.respawnPressure)
+    + " · elite " + esc(territory.elitePermille) + "&permil;</span>";
+  if (territory._error) html += "<div class=\"bad\">" + esc(territory._error) + "</div>";
+  html += regionBrief(territory.regionId);
+  if (Array.isArray(territory.roster) && territory.roster.length) {
+    html += "<table><tr><th>enemy</th><th>weight%</th><th>night</th></tr>";
+    for (const entry of territory.roster) {
+      html += "<tr><td>" + esc(entry.enemyId) + "</td><td class=\"num\">" + esc(entry.weightPercent)
+        + "</td><td>" + (entry.nightOnly ? "yes" : "") + "</td></tr>";
+    }
+    html += "</table>";
+  }
+  html += "<div class=\"tag\">channel " + esc(territory.channel) + " · draw " + esc(territory.draw) + "</div>";
+  return html;
+}
+
+// ---------- pack info panel ----------
+function renderPackInfo() {
+  const parts = [];
+  if (state.notes.length) {
+    parts.push("<h2>loading notes</h2>" + state.notes.map((note) => "<div class=\"warn\">" + esc(note) + "</div>").join(""));
+  }
+  if (state.manifest) {
+    parts.push("<h2>identity</h2><div class=\"mono tag\">"
+      + "pack " + esc(state.manifest.pack) + " format " + esc(state.manifest.packFormat)
+      + "<br>recipe " + esc(state.manifest.recipeName) + " seed " + esc(state.manifest.directorSeed)
+      + "<br>recipe sha " + esc((state.manifest.directorRecipeSha256 || "").slice(0, 16)) + "…"
+      + "<br>base " + esc((state.manifest.base && state.manifest.base.generationIdentitySha256 || "").slice(0, 16)) + "…"
+      + " (" + esc(state.manifest.base && state.manifest.base.width) + "x" + esc(state.manifest.base && state.manifest.base.height) + ")"
+      + "</div>");
+  }
+  if (state.report && Array.isArray(state.report.gates)) {
+    let rows = "";
+    for (const gate of state.report.gates) {
+      const cls = gate.status === "pass" ? "ok" : gate.status === "warn" ? "warn" : "bad";
+      rows += "<tr><td>" + esc(gate.id) + "</td><td class=\"" + cls + "\">" + esc(gate.status) + "</td><td>" + esc(gate.name) + "</td></tr>";
+    }
+    parts.push("<h2>audit (" + (state.report.ok ? "<span class=\"ok\">PASS</span>" : "<span class=\"bad\">FAIL</span>")
+      + ", strict " + (state.report.strict ? "on" : "off") + ")</h2><details open><summary>gates</summary><table>" + rows + "</table></details>");
+  }
+  if (state.territories && state.territories.coverage) {
+    const coverage = state.territories.coverage;
+    let rows = "";
+    for (const region of coverage.regions || []) {
+      rows += "<tr><td>" + esc(region.regionId) + "</td><td class=\"num\">" + esc(region.emitted) + "/" + esc(region.budget)
+        + "</td><td class=\"num\">" + esc(region.covered) + "/" + esc(region.hostileWalkable)
+        + "</td><td class=\"num\">" + esc((region.coveragePermille / 10).toFixed(1)) + "%</td></tr>";
+    }
+    parts.push("<h2>territory coverage <span class=\"tag\">(budgeted regions only)</span></h2>"
+      + "<details><summary>" + esc(coverage.totalCovered) + "/" + esc(coverage.totalHostileWalkable)
+      + " hostile cells covered</summary><table><tr><th>region</th><th>emitted</th><th>covered</th><th>%</th></tr>" + rows + "</table></details>");
+  }
+  if (state.placements) {
+    const failures = (state.placements.failures || []).length + ((state.territories || {}).failures || []).length;
+    const locks = state.placements.lockReport || [];
+    const invalid = locks.filter((entry) => entry.status === "invalid");
+    parts.push("<h2>solver</h2><div class=\"tag\">"
+      + (state.placements.placements || []).length + " placements, "
+      + ((state.territories || {}).territories || []).length + " territories, "
+      + failures + " named failures, "
+      + (state.placements.unboundAnchors || []).length + " unbound anchors"
+      + "<br>locks: " + locks.length + " (" + invalid.length + " invalid"
+      + (invalid.length ? ": " + invalid.map((entry) => esc(entry.id) + " [" + esc((entry.reasons || []).join(", ")) + "]").join("; ") : "")
+      + ")</div>");
+  }
+  $("packInfo").innerHTML = parts.join("");
+}
+
+render();
+</script>
+</body>
+</html>

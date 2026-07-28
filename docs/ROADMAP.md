@@ -33,8 +33,16 @@ the canonical world. The F7 adversarial freeze review was resolved
 GDScript parity, export identity cross-checks, staged writes, lock id
 grammar, golden pack fixture — docs/FREEZE_REVIEW_FINDINGS.md), with
 zero exportable-pack byte changes; **content pack format 1 is FINAL**.
-**Visual verdicts on the F2–F5 renders pending user review.** F8 is
-next.
+F8 landed (same day): the single-file read-only viewer
+(`viewer/index.html` — drop outputs onto it, layer toggles, hover
+explanations; contract pinned by tests, behavior proven by a headless
+Chromium smoke run), `reroll`/`unlock` iteration verbs (print-pattern,
+never writing user recipes), `docs/WORKFLOW.md`, and a CLI test running
+the full direct→lock→reroll→export cycle with a lock surviving a reroll
+byte-stably. **Two F8 exit items remain user-side: running the loop on
+the canonical 256² world (not regenerable in the review container) and
+the design verdict. Visual verdicts on the F2–F5 renders also pending
+user review.**
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

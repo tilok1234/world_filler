@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-28, F0–F7 complete, freeze review RESOLVED)
+# World Filler — handoff (2026-07-28, F0–F8 complete, freeze review RESOLVED)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -7,7 +7,7 @@ Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 **F0–F7 complete AND the F7 freeze review resolved**, committed and pushed
 to `tilok1234/world_filler`, branch `claude/freeze-review-resolution-tf6bkf`
-(branched from `claude/world-director-planning-vvvudl`). **134 tests green**
+(branched from `claude/world-director-planning-vvvudl`). **140 tests green**
 (`npm test`). WorldForge checkout untouched throughout — verified clean
 after every milestone; it is READ-ONLY upstream, forever (AGENTS.md
 isolation contract; the user has re-confirmed this twice).
@@ -42,12 +42,30 @@ Both proof worlds pass the nine-gate audit and export content packs that
 verify in the TypeScript lane AND inside headless Godot 4.6.2
 (`consumers/godot-proof/verify_content_pack.gd`), strict mode included.
 
-## 1. Next: F8
+## 1. F8 landed; what remains is user-side
 
-**F8** — single-file read-only browser viewer (layer toggles, hover
-explanations), iteration-verb polish, workflow docs — per
-`docs/ROADMAP.md`. Then the first-arc close-out (deferred list stays
-deferred). No blockers.
+**F8 shipped in the same session**: `viewer/index.html` (single-file,
+no-build, READ-ONLY inspector — drop a content-pack dir + optionally an
+analyze dir onto it; backdrop select over any dropped render, JSON-driven
+overlays for territories/placements/exclusions/arenas, hover shows the
+full explanation: score terms, funnel, top candidates, roster, region
+brief, gates, coverage; contract pinned by `tests/viewer.test.ts`,
+behavior proven by a headless-Chromium Playwright smoke over real
+fen-hollow outputs). New verbs `wf-fill reroll <recipe> <region-id>` and
+`wf-fill unlock <recipe> <placement-id>` follow the `lock` print-pattern
+(recipes are user-authored; the CLI never writes them).
+`docs/WORKFLOW.md` documents the direct→review→lock→reroll→export loop
+and the regenerated-world (staleness) workflow.
+`tests/workflow.test.ts` runs the full cycle through documented CLI
+commands: lock a boss, reroll another region, strict-export, and the
+locked placement survives byte-stably (lockReport "held").
+
+**Remaining F8 exit items (user-side, per ROADMAP):** (1) run the loop
+on the canonical 256² world — not regenerable here, needs a WorldForge
+checkout; (2) the design verdict on the result. **Visual verdicts on
+F2–F5 renders also still PENDING** (8x renders for both fixture worlds
+were delivered in-session). Then the first-arc close-out (deferred list
+stays deferred).
 
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
@@ -138,10 +156,13 @@ fixes required no bumps: pre-fix and post-fix exports are byte-identical.
 ## 6. Commands
 
     source /opt/nvm/nvm.sh && nvm use 24
-    npm test                                   # build + 134 tests
+    npm test                                   # build + 140 tests
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js verify-pack fixtures/packs/fen-hollow outputs/export/fen-hollow-basic-direction-content
     godot --headless --script consumers/godot-proof/verify_content_pack.gd -- <world-pack> <content-pack>
     node dist/tools/recordGoldenPack.js        # re-record frozen pack fixture (logged decision only)
+    # F8 loop: docs/WORKFLOW.md; viewer: open viewer/index.html, drop outputs onto it
+    node dist/src/cli.js reroll fixtures/recipes/basic-direction.json <region-id>
+    node dist/src/cli.js unlock <recipe.json> <placement-id>

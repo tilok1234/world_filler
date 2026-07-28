@@ -40,6 +40,10 @@ function usage(): void {
       "                                        run the full gate battery + audit report",
       "  wf-fill lock <placements.json> <placement-id>",
       "                                        print the recipe lock entry for a placement",
+      "  wf-fill unlock <recipe.json> <placement-id>",
+      "                                        print the recipe's locks with a placement released",
+      "  wf-fill reroll <recipe.json> <region-id>",
+      "                                        print the reroll entry that re-seeds one region",
       "  wf-fill export <pack-dir> <recipe.json> [out-dir] [--strict]",
       "                                        full pipeline -> audited content pack (refuses on failed gates)",
       "  wf-fill verify-pack <world-pack-dir> <content-pack-dir>",
@@ -410,6 +414,46 @@ function runLock(placementsPath: string, placementId: string): number {
   return 0;
 }
 
+/**
+ * Iteration verbs: like `lock`, these PRINT recipe edits instead of
+ * writing them — recipes are user-authored files this tool never
+ * overwrites (safe write rules). The loop is documented in
+ * docs/WORKFLOW.md: direct -> review -> lock -> reroll -> export.
+ */
+function runReroll(recipePath: string, regionId: string): number {
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const current = recipe.rerolls.find((entry) => entry.regionId === regionId)?.iteration ?? 0;
+  const entry = { iteration: current + 1, regionId };
+  console.log(
+    `set under rerolls (replacing any existing ${regionId} entry) to re-seed only that region's draw streams:`,
+  );
+  process.stdout.write(canonicalJson(entry));
+  console.log(
+    "\nregion ids come from `wf-fill plan`; an unknown region is refused at solve time. " +
+      "Locked placements ignore rerolls; spatially uncoupled regions stay byte-identical.",
+  );
+  return 0;
+}
+
+function runUnlock(recipePath: string, placementId: string): number {
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const held = recipe.locks.placements.find((entry) => entry.id === placementId);
+  if (held === undefined) {
+    console.error(
+      `unlock: no lock ${placementId} in ${recipePath}` +
+        (recipe.locks.placements.length > 0
+          ? ` (have: ${recipe.locks.placements.map((entry) => entry.id).join(", ")})`
+          : " (the recipe holds no locks)"),
+    );
+    return 1;
+  }
+  const remaining = recipe.locks.placements.filter((entry) => entry.id !== placementId);
+  console.log(`replace locks.placements with (releases ${placementId}; its slot re-solves fresh):`);
+  process.stdout.write(canonicalJson(remaining));
+  console.log("");
+  return 0;
+}
+
 function runExport(dir: string, recipePath: string, outArg: string | undefined, strict: boolean): number {
   const { pack, model } = loadModel(dir);
   const parity = checkParity(pack, model);
@@ -542,6 +586,20 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runLock(target, extra);
+    }
+    if (command === "unlock") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runUnlock(target, extra);
+    }
+    if (command === "reroll") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runReroll(target, extra);
     }
     if (command === "export") {
       if (extra === undefined) {

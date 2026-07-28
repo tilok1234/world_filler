@@ -11,7 +11,7 @@ import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "no
  */
 
 const PROTECTED_SUBDIRS = [
-  "src", "tests", "tools", "docs", "fixtures", "consumers", "dist", "node_modules", "schemas", ".git", "vendor",
+  "src", "tests", "tools", "docs", "fixtures", "consumers", "viewer", "dist", "node_modules", "schemas", ".git", "vendor",
 ];
 
 export function repoRoot(): string {
