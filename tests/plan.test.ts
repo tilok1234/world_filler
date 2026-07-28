@@ -78,6 +78,54 @@ describe("regional content plan", () => {
     assert.equal(canonicalJson(first), canonicalJson(second));
   });
 
+  it("validates bandSharesPermille shape, count, and sum", () => {
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { bandSharesPermille: [500, 500] } }),
+      /must list exactly 4 shares/,
+    );
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { bandSharesPermille: [300, 300, 300, 200] } }),
+      /must sum to 1000 \(got 1100\)/,
+    );
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { bandSharesPermille: [999.5, 0.5, 0, 0] } }),
+      /entries must be integers in \[1, 1000\]/,
+    );
+    // bandCount scales the expected share count.
+    const three = normalizeRecipe({ ...MINIMAL, danger: { bandCount: 4, bandSharesPermille: [400, 400, 200] } });
+    assert.deepEqual(three.danger.bandSharesPermille, [400, 400, 200]);
+  });
+
+  it("area-share banding populates every wilderness band and stays distance-monotone", () => {
+    const shared = normalizeRecipe({ ...MINIMAL, danger: { bandSharesPermille: [320, 280, 250, 150] } });
+    const plan = compilePlan(model, bundle, shared);
+
+    const cellsPerBand = new Map<number, number>();
+    for (const region of plan.regions) {
+      if (region.dangerBand === null || region.dangerBand === 0) continue;
+      cellsPerBand.set(region.dangerBand, (cellsPerBand.get(region.dangerBand) ?? 0) + region.cellCount);
+    }
+    for (let band = 1; band < shared.danger.bandCount; band += 1) {
+      assert.ok((cellsPerBand.get(band) ?? 0) > 0, `band ${band} has no ground`);
+    }
+
+    // Sorted by median spawn distance, assigned bands never decrease.
+    const banded = plan.regions
+      .filter((region) => region.dangerBand !== null && region.dangerBand >= 1 && region.medianSpawnDistance !== null)
+      .sort((a, b) => (a.medianSpawnDistance as number) - (b.medianSpawnDistance as number));
+    for (let i = 1; i < banded.length; i += 1) {
+      if (banded[i]!.medianSpawnDistance === banded[i - 1]!.medianSpawnDistance) continue;
+      assert.ok(
+        (banded[i]!.dangerBand as number) >= (banded[i - 1]!.dangerBand as number),
+        `${banded[i]!.id} band decreased along distance`,
+      );
+    }
+
+    // The knob is part of recipe identity, and its absence is the linear cut.
+    assert.notEqual(recipeSha256(shared), recipeSha256(recipe));
+    assert.equal(recipe.danger.bandSharesPermille, null);
+  });
+
   it("produces sane bands, budgets, and waivers on a real world", () => {
     const plan = compilePlan(model, bundle, recipe);
     assert.equal(plan.regions.length, bundle.regions.length);

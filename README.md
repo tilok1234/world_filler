@@ -129,9 +129,13 @@ with the TS one (12 tampered packs refuse identically in both lanes),
 export gained identity cross-checks, staged atomic writes, and an
 unconditional stale-pin refusal, and a committed golden content pack
 pins the frozen serialization byte-for-byte. **Content pack format 1 is
-final.** Render **visual verdicts pending user review** (F2 heatmaps,
-F3 danger bands, F4 placements, F5 territories). Next: F8 (viewer +
-director UX loop).
+final.** The visual verdict loop is underway: **F2 analysis and F3
+danger are design-approved** — the F3 verdict adopted area-share danger
+banding (`danger.bandSharesPermille`, behavior 6): bands cut by target
+shares of wilderness ground instead of distance fractions, so every
+band including endgame purple has guaranteed presence. **F4 placements
+and F5 territories verdicts pending.** Next: F8 (viewer + director UX
+loop).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

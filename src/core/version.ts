@@ -5,11 +5,13 @@
  */
 
 export const DIRECTOR_VERSION = "0.1.0";
-export const DIRECTOR_BEHAVIOR_VERSION = 5;
+// 6: danger.bandSharesPermille area-share banding (F3 design verdict);
+//    linear banding unchanged when the knob is absent.
+export const DIRECTOR_BEHAVIOR_VERSION = 6;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
-  plan: 1,
+  plan: 2,
   placement: 2,
   territory: 2,
   validate: 1,

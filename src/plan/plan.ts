@@ -150,9 +150,15 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     else anchorCandidates[label] = (anchorCandidates[label] as number) + 1;
   }
 
-  // Band assignment.
+  // Band assignment. Wilderness bands come from the linear distance cut
+  // by default; when the recipe sets danger.bandSharesPermille, regions
+  // sorted by median spawn walk-distance receive bands so each band
+  // covers roughly its share of banded wilderness ground (nearest share
+  // first) — every band is guaranteed real presence regardless of how
+  // the world's distances are distributed (F3 design-verdict adoption).
   const bands = new Array<number | null>(regionCount).fill(null);
   const overridden = new Array<boolean>(regionCount).fill(false);
+  const wilderness: number[] = [];
   for (let i = 0; i < regionCount; i += 1) {
     const region = bundle.regions[i] as (typeof bundle.regions)[number];
     const override = overrideByRegion.get(region.id);
@@ -168,9 +174,41 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
       bands[i] = 0;
       continue;
     }
-    const median = medianOfSorted(reachable);
-    const band = 1 + Math.floor((median * (danger.bandCount - 1)) / (maxSpawnDistance + 1));
-    bands[i] = Math.min(band, danger.bandCount - 1);
+    if (danger.bandSharesPermille === null) {
+      const median = medianOfSorted(reachable);
+      const band = 1 + Math.floor((median * (danger.bandCount - 1)) / (maxSpawnDistance + 1));
+      bands[i] = Math.min(band, danger.bandCount - 1);
+    } else {
+      wilderness.push(i);
+    }
+  }
+  if (danger.bandSharesPermille !== null) {
+    const shares = danger.bandSharesPermille;
+    const idOf = (label: number): string => (bundle.regions[label] as (typeof bundle.regions)[number]).id;
+    wilderness.sort((a, b) => {
+      const da = medianOfSorted(distances[a] as number[]);
+      const db = medianOfSorted(distances[b] as number[]);
+      if (da !== db) return da - db;
+      return idOf(a) < idOf(b) ? -1 : 1;
+    });
+    const massOf = (label: number): number => (bundle.regions[label] as (typeof bundle.regions)[number]).cellCount;
+    const totalMass = wilderness.reduce((sum, label) => sum + massOf(label), 0);
+    let accumulated = 0;
+    for (const label of wilderness) {
+      // The region's mass midpoint decides its band; all integer math.
+      const midpointTimes2 = accumulated * 2 + massOf(label);
+      let cumulativeShare = 0;
+      let band = shares.length;
+      for (let b = 0; b < shares.length; b += 1) {
+        cumulativeShare += shares[b] as number;
+        if (midpointTimes2 * 1000 <= 2 * cumulativeShare * totalMass) {
+          band = b + 1;
+          break;
+        }
+      }
+      bands[label] = band;
+      accumulated += massOf(label);
+    }
   }
 
   // Spawn region.

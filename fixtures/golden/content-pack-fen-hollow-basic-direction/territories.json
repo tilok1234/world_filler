@@ -60,8 +60,8 @@
     "totalCovered": 527,
     "totalHostileWalkable": 1649
   },
-  "directorBehaviorVersion": 5,
-  "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+  "directorBehaviorVersion": 6,
+  "directorRecipeSha256": "64d557cdb432ab5addf33d3673f8ef6be54e31cb0acb296f294d93d0e8e06734",
   "directorSeed": 103991,
   "failures": [],
   "recipeName": "basic-direction",
@@ -69,7 +69,7 @@
     "analysis": 1,
     "export": 1,
     "placement": 2,
-    "plan": 1,
+    "plan": 2,
     "territory": 2,
     "validate": 1
   },
@@ -934,7 +934,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/0",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.0",
@@ -1005,7 +1005,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/1",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 4,
       "elitePermille": 30,
       "id": "territory.region.mud.43.1",
@@ -1091,7 +1091,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/2",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.2",

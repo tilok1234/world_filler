@@ -106,13 +106,18 @@ first-arc close-out per ROADMAP (deferred list stays deferred).
 - Verdict loop: send upscaled renders (terrain/danger/placements/
   territories) for visual approval; scratch script pattern lives in the
   session log — re-render via the render modules at scale 3x (256²) or
-  8x (64²). **Visual verdicts on F2–F5 renders are still PENDING** —
+  8x (64²). **Verdict status: F2 analysis APPROVED; F3 danger APPROVED
+  after adopting area-share banding (bandSharesPermille 320/280/250/150
+  in basic-direction; the "too little green / no purple" note drove
+  behavior 6). F4 placements and F5 territories still PENDING** —
   structural success ≠ design approval (AGENTS.md).
 
 ## 5. Versions at handoff
 
-director behavior **5** · rule packs: analysis 1, plan 1, placement 2,
-territory 2, validate 1, export 1 · recipe format 1 · plan/placements/
+director behavior **6** (danger.bandSharesPermille area-share banding,
+F3 design verdict; linear cut unchanged when absent) · rule packs:
+analysis 1, plan 2, placement 2, territory 2, validate 1, export 1 ·
+recipe format 1 · plan/placements/
 territories/report formats 1 · content pack format 1 (frozen, pending
 review outcome) · supported upstream: artifact format 8, game pack 1,
 walkability 1. Bump doctrine in `src/core/version.ts` + AGENTS.md

@@ -31,6 +31,15 @@ export interface DirectorRecipe {
     readonly bandCount: number;
     readonly maxBandJump: number;
     readonly safeZoneShareForBand0Permille: number;
+    /**
+     * Optional area-share banding (adopted from the F3 design verdict):
+     * bandCount-1 permille values summing to 1000, one per wilderness
+     * band nearest-first. Regions sorted by median spawn walk-distance
+     * receive bands so each band covers roughly its share of banded
+     * wilderness ground — every band is guaranteed real presence. null
+     * = the original linear distance cut.
+     */
+    readonly bandSharesPermille: readonly number[] | null;
     readonly overrides: readonly DangerOverride[];
   };
   readonly budgets: {
@@ -276,7 +285,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     throw new RecipeError("recipe: base.generationIdentitySha256 must be a 64-hex sha256");
   }
 
-  const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides"]);
+  const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides", "bandSharesPermille"]);
   const dangerRecord = raw["danger"] === undefined ? {} : requireObject(raw["danger"], "$.danger");
   const overridesRaw = dangerRecord["overrides"] === undefined ? [] : dangerRecord["overrides"];
   if (!Array.isArray(overridesRaw)) throw new RecipeError("recipe: $.danger.overrides must be an array");
@@ -300,6 +309,28 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     if ((overrides[i] as DangerOverride).regionId === (overrides[i - 1] as DangerOverride).regionId) {
       throw new RecipeError(`recipe: duplicate danger override for ${(overrides[i] as DangerOverride).regionId}`);
     }
+  }
+
+  const sharesRaw = dangerRecord["bandSharesPermille"] === undefined ? null : dangerRecord["bandSharesPermille"];
+  let bandSharesPermille: number[] | null = null;
+  if (sharesRaw !== null) {
+    const bandCount = danger["bandCount"] as number;
+    if (!Array.isArray(sharesRaw) || sharesRaw.length !== bandCount - 1) {
+      throw new RecipeError(
+        `recipe: $.danger.bandSharesPermille must list exactly ${bandCount - 1} shares (bands 1..${bandCount - 1}, nearest first)`,
+      );
+    }
+    let sum = 0;
+    for (const share of sharesRaw) {
+      if (!Number.isInteger(share) || (share as number) < 1 || (share as number) > 1000) {
+        throw new RecipeError("recipe: $.danger.bandSharesPermille entries must be integers in [1, 1000]");
+      }
+      sum += share as number;
+    }
+    if (sum !== 1000) {
+      throw new RecipeError(`recipe: $.danger.bandSharesPermille must sum to 1000 (got ${sum})`);
+    }
+    bandSharesPermille = sharesRaw as number[];
   }
 
   const budgets = sectionOf(raw, "budgets", BUDGET_FIELDS);
@@ -517,6 +548,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       bandCount: danger["bandCount"] as number,
       maxBandJump: danger["maxBandJump"] as number,
       safeZoneShareForBand0Permille: danger["safeZoneShareForBand0Permille"] as number,
+      bandSharesPermille,
       overrides,
     },
     budgets: {

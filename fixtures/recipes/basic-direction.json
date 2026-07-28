@@ -1,5 +1,6 @@
 {
   "recipeFormat": 1,
   "name": "basic-direction",
-  "directorSeed": 103991
+  "directorSeed": 103991,
+  "danger": { "bandSharesPermille": [320, 280, 250, 150] }
 }
