@@ -6,7 +6,7 @@
     "height": 64,
     "width": 64
   },
-  "directorBehaviorVersion": 8,
+  "directorBehaviorVersion": 9,
   "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "failures": [],
@@ -215,7 +215,7 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 3,
+    "plan": 4,
     "territory": 4,
     "validate": 2
   },

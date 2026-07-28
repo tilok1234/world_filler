@@ -47,7 +47,7 @@ Pipeline (all deterministic, explained, rendered):
 `inspect | parity | analyze | plan | place | explain | territories |
 validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
 
-## 1. Visual verdict loop — rounds 1-2 done, round 3 pending
+## 1. Visual verdict loop — rounds 1-3 done, round 4 pending
 
 Round-1 verdicts (user, this session, on the canonical 256² world at ×3
 and the three fixtures at ×8; gallery artifact
@@ -76,7 +76,7 @@ and the three fixtures at ×8; gallery artifact
    (terrain base was the 4th); heatmaps live in the artifact's analysis
    section — clarified, verified correct.
 
-Versions: behavior **7**, plan 2, placement 4 (see version.ts comment).
+Versions after round 1: behavior 7, plan 2, placement 4.
 Golden content pack re-recorded for the retuned recipe (kernel golden
 byte-identical). The canonical 256² world regenerates ONLY from
 WorldForge pinned commit `bb7832f` (behavior 47) — the checkout's HEAD
@@ -108,10 +108,27 @@ spread territories out; **heatmaps APPROVED**. Round-2 changes
   4 honest X's (two are the top-left ruins pair that previously bound
   right next to the outpost settlements).
 
-**Round 3 pending: user judges V3** (pockets, spacing, floor 320) — and
-still open: territory density (~27%, `targetHostileCoveragePermille`)
-and whether 4 X's is acceptable or those regions should not budget a
-dungeon.
+Round-3 verdicts (user): pockets "didn't change at all — try 3";
+**4 X's APPROVED** ("i think 4 is acceptable ye"); floated that boss and
+dungeon placement should stay separate systems (they are — independent
+rule blocks + floors; open question whether a boss-to-dungeon minimum
+distance knob is wanted); asked for a fuller territories explanation.
+Round-3 change (behavior **9**, plan 4): endgamePockets REWORKED from
+demote-only watershed (which could not create a pocket where the
+quantile put none — the canonical far side has only 2 substantial deep
+regions) to island carving over the TWO deepest bands: K farthest-point
+seeds (substantial regions only), every crescent region joins its
+nearest seed's pocket in increasing anchor-distance order until the
+pocket reaches its share of the original deep-band area; members take
+the deep band (promoting near-band ground), the rest of the crescent
+takes the second-deepest. Canonical K=3 now: mid-left island,
+bottom-right island (NEW — opposite side of the map), top outpost
+cluster. Placements render byte-identical v3->v4 (boss undisturbed);
+territories recolor to match the new endgame geography.
+
+**Round 4 pending: user judges V4 danger/territories.** Still open:
+territory density (~27%, `targetHostileCoveragePermille`), boss-to-
+dungeon distance knob (only if the user wants it).
 
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
@@ -186,7 +203,7 @@ close-out per ROADMAP (deferred list stays deferred).
 
 ## 6. Versions
 
-director behavior **8** · rule packs: analysis 1, plan 3, placement 4,
+director behavior **9** · rule packs: analysis 1, plan 4, placement 4,
 territory 4, validate 2, export 2 · recipe format 1 · plan/placements/
 territories/report formats 1 · content pack format 1 (**frozen, FINAL**)
 · supported upstream: artifact format 8, game pack 1, walkability 1.

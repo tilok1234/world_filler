@@ -194,29 +194,41 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     }
   }
 
-  // Endgame pockets: reshape the deepest band into K separated pockets
-  // so endgame zones read as distinct destinations instead of one far
-  // crescent (distance from spawn is radial — the far side of a world is
-  // inherently one side; this pass carves places within it). Seeds are
-  // chosen by farthest-point sampling over region anchor cells, starting
-  // from the deepest region, and must be substantial regions (at least
-  // budgets.minRegionCells of reachable ground) so a speck cannot anchor
-  // an endgame zone. Each deep region then keeps the deep band only if
-  // it clearly belongs to one pocket — its second-nearest seed at least
-  // 1.5x farther than its nearest. The watershed regions between pockets
-  // demote one band, opening visible gaps exactly where pockets would
-  // otherwise merge.
-  if (danger.endgamePockets >= 2) {
+  // Endgame pockets: carve the deepest band into K compact islands
+  // spread across the far crescent, so endgame zones read as distinct
+  // destinations. Distance from spawn is radial — the far side of a
+  // world is inherently one side, and merely demoting bridges cannot
+  // create a pocket where the quantile put none — so this pass works on
+  // the two deepest wilderness bands together: K seeds are chosen by
+  // farthest-point sampling (substantial regions only, so a speck
+  // cannot anchor an endgame zone), then every crescent region joins
+  // its nearest seed's pocket in increasing anchor-distance order until
+  // that pocket reaches its share of the original deep-band area.
+  // Pocket members take the deepest band (promoting near-band ground
+  // beside a seed); everything else in the crescent takes the
+  // second-deepest band (demoting stray deep ground). Total deep area
+  // stays roughly the quantile share; it just lands in K places.
+  if (danger.endgamePockets >= 2 && danger.bandCount >= 3) {
     const deepBand = danger.bandCount - 1;
-    const demoteTo = Math.max(1, deepBand - 1);
-    const deep: Array<{ index: number; median: number; weight: number }> = [];
+    const nearBand = deepBand - 1;
+    interface CrescentEntry {
+      readonly index: number;
+      readonly median: number;
+      readonly weight: number;
+      readonly band: number;
+    }
+    const crescent: CrescentEntry[] = [];
+    let deepWeight = 0;
     for (let i = 0; i < regionCount; i += 1) {
-      if (overridden[i] || bands[i] !== deepBand) continue;
+      if (overridden[i]) continue;
+      const band = bands[i];
+      if (band !== deepBand && band !== nearBand) continue;
       const reachable = distances[i] as number[];
       if (reachable.length === 0) continue;
-      deep.push({ index: i, median: medianOfSorted(reachable), weight: reachable.length });
+      crescent.push({ index: i, median: medianOfSorted(reachable), weight: reachable.length, band });
+      if (band === deepBand) deepWeight += reachable.length;
     }
-    if (deep.length > 1) {
+    if (crescent.length > 1 && deepWeight > 0) {
       const anchorOf = (index: number): readonly [number, number] => {
         const anchor = (bundle.regions[index] as (typeof bundle.regions)[number]).anchorIndex;
         return [anchor % width, Math.floor(anchor / width)];
@@ -226,10 +238,10 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
         const [bx, by] = anchorOf(b);
         return (ax - bx) * (ax - bx) + (ay - by) * (ay - by);
       };
-      const substantial = deep.filter((entry) => entry.weight >= recipe.budgets.minRegionCells);
-      const seedPool = substantial.length > 0 ? substantial : deep;
+      const substantial = crescent.filter((entry) => entry.weight >= recipe.budgets.minRegionCells);
+      const seedPool = substantial.length > 0 ? substantial : crescent;
       const sortedPool = [...seedPool].sort((a, b) => (a.median !== b.median ? b.median - a.median : a.index - b.index));
-      const seeds: number[] = [(sortedPool[0] as { index: number }).index];
+      const seeds: number[] = [(sortedPool[0] as CrescentEntry).index];
       while (seeds.length < Math.min(danger.endgamePockets, sortedPool.length)) {
         let best = -1;
         let bestScore = -1;
@@ -244,14 +256,28 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
         if (best === -1) break;
         seeds.push(best);
       }
-      if (seeds.length >= 2) {
-        for (const entry of deep) {
-          const toSeeds = seeds.map((seed) => d2(entry.index, seed)).sort((a, b) => a - b);
-          const nearest = toSeeds[0] as number;
-          const second = toSeeds[1] as number;
-          // Keep only clear pocket membership: second >= 1.5 * nearest
-          // (integer form 9*nearest^2-metric <= 4*second^2-metric).
-          if (9 * nearest > 4 * second) bands[entry.index] = demoteTo;
+      const target = Math.ceil(deepWeight / seeds.length);
+      const pocketWeight = new Array<number>(seeds.length).fill(0);
+      const assigned = crescent
+        .map((entry) => {
+          let seat = 0;
+          let seatDistance = d2(entry.index, seeds[0] as number);
+          for (let s = 1; s < seeds.length; s += 1) {
+            const distance = d2(entry.index, seeds[s] as number);
+            if (distance < seatDistance) {
+              seatDistance = distance;
+              seat = s;
+            }
+          }
+          return { entry, seat, seatDistance };
+        })
+        .sort((a, b) => (a.seatDistance !== b.seatDistance ? a.seatDistance - b.seatDistance : a.entry.index - b.entry.index));
+      for (const { entry, seat } of assigned) {
+        if ((pocketWeight[seat] as number) < target) {
+          pocketWeight[seat] = (pocketWeight[seat] as number) + entry.weight;
+          bands[entry.index] = deepBand;
+        } else {
+          bands[entry.index] = nearBand;
         }
       }
     }

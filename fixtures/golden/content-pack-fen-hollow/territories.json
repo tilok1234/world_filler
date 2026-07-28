@@ -1052,7 +1052,7 @@
     "totalCovered": 514,
     "totalHostileWalkable": 1960
   },
-  "directorBehaviorVersion": 8,
+  "directorBehaviorVersion": 9,
   "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "failures": [],
@@ -1061,7 +1061,7 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 3,
+    "plan": 4,
     "territory": 4,
     "validate": 2
   },
@@ -1134,7 +1134,7 @@
         ]
       },
       "channel": "world/region.mud.0/reroll.0/territory/0",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 4,
       "elitePermille": 30,
       "id": "territory.region.mud.0.0",
@@ -2411,7 +2411,7 @@
         ]
       },
       "channel": "world/region.packed_road.1129/reroll.0/territory/0",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 3,
       "elitePermille": 30,
       "id": "territory.region.packed_road.1129.0",

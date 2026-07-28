@@ -18,14 +18,14 @@
     "territoryFailures": 0,
     "unboundAnchors": 3
   },
-  "directorBehaviorVersion": 8,
+  "directorBehaviorVersion": 9,
   "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "15963fa5b80ac5036515e4d3dd64c54450d1d395ccf7535bdf45816754e29258",
-    "placements.json": "7d8002bc091dd52e390a01e07abaa9c576b8e5dc0f30d06d06a1ca38f85a01d6",
-    "report.json": "6838ff798512c1ac80b5c8bcd3a7b0a5fbb1899dbccafa146b28b3f6c06f6a80",
-    "territories.json": "e225c96b70e674c72085985fb6653fc2d462668b032ac5453fb73e36fc5ecdfe"
+    "content-plan.json": "12a99dec43310d2e7750249b6cc98e476220bf08fe944a991ba7988c640c9d98",
+    "placements.json": "afabfb3ba574298ec057894f649d4068ed09ee763e077aab2c637a6fc749f1fb",
+    "report.json": "6d977323e5c61197658fb32ec86d01d7272c3781e6a83b91ac7bb4babc35cf1f",
+    "territories.json": "3e5f43312682abdf747152c5f671f96d7db129979b83880effd79e1afe3f28c8"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 1,
@@ -34,7 +34,7 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 3,
+    "plan": 4,
     "territory": 4,
     "validate": 2
   },

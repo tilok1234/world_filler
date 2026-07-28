@@ -113,7 +113,7 @@ describe("regional content plan", () => {
     }
   });
 
-  it("endgame pockets only ever demote deep regions by exactly one band, deterministically", () => {
+  it("endgame pockets reshape only the two deepest bands, keep the deep area share, and stay deterministic", () => {
     const base = normalizeRecipe({ ...MINIMAL, danger: { assignment: "quantile" } });
     const pocketed = normalizeRecipe({ ...MINIMAL, danger: { assignment: "quantile", endgamePockets: 2 } });
     const withoutPlan = compilePlan(model, bundle, base);
@@ -121,18 +121,25 @@ describe("regional content plan", () => {
     assert.equal(canonicalJson(compilePlan(model, bundle, pocketed)), canonicalJson(withPlan));
 
     const deepBand = base.danger.bandCount - 1;
+    const nearBand = deepBand - 1;
     const withoutBands = new Map(withoutPlan.regions.map((region) => [region.id, region.dangerBand]));
-    let demoted = 0;
     for (const region of withPlan.regions) {
       const before = withoutBands.get(region.id);
       if (region.dangerBand === before) continue;
-      assert.equal(before, deepBand, "only deep regions are reshaped");
-      assert.equal(region.dangerBand, deepBand - 1, "watershed regions demote exactly one band");
-      demoted += 1;
+      assert.ok(before === deepBand || before === nearBand, `${region.id} was in the far crescent before reshaping`);
+      assert.ok(
+        region.dangerBand === deepBand || region.dangerBand === nearBand,
+        `${region.id} stays inside the far crescent after reshaping`,
+      );
     }
-    const deepAfter = withPlan.regions.filter((region) => region.dangerBand === deepBand).length;
-    assert.ok(deepAfter > 0, "the deep band survives the pocket pass");
-    assert.ok(demoted >= 0);
+    const deepWeight = (plan: typeof withPlan): number =>
+      plan.regions.filter((region) => region.dangerBand === deepBand).reduce((sum, region) => sum + region.reachableCells, 0);
+    const before = deepWeight(withoutPlan);
+    const after = deepWeight(withPlan);
+    assert.ok(after > 0, "the deep band survives the pocket pass");
+    // Area is conserved up to region granularity: pockets stop admitting
+    // once they reach their share, so the deep band cannot balloon.
+    assert.ok(after <= before * 2, `deep area stays in the quantile's neighborhood (${before} -> ${after})`);
   });
 
   it("produces sane bands, budgets, and waivers on a real world", () => {

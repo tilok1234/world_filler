@@ -13,11 +13,14 @@ export const DIRECTOR_VERSION = "0.1.0";
 // anchors (opt-in, new unbound reason below_distance_floor).
 // 8: second round — endgame pockets (deepest band reshaped into K
 // separated pockets, opt-in) and territory spacing halos (opt-in).
-export const DIRECTOR_BEHAVIOR_VERSION = 8;
+// 9: third round — endgame pockets carve K islands out of the two
+// deepest bands (promote around seeds, capped by the deep area share)
+// instead of only demoting bridges.
+export const DIRECTOR_BEHAVIOR_VERSION = 9;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
-  plan: 3,
+  plan: 4,
   placement: 4,
   territory: 4,
   validate: 2,
