@@ -87,9 +87,20 @@ per-region median path-distance with overrides, region classes and budgets
 candidates counted from the world's own POIs; world bosses allocated to the
 largest eligible high-band regions), named waivers everywhere something is
 impossible, a minimax progression-trap check over the region graph, and the
-danger-band render (`wf-fill plan <pack> <recipe>`). Render **visual
-verdicts pending user review** (F2 heatmaps + F3 danger bands). Next: F4
-(placement solver: bosses + dungeon bindings).
+danger-band render (`wf-fill plan <pack> <recipe>`). F4 is implemented,
+adversarially reviewed, and green: the placement solver (world bosses on
+clearance-proven arena squares, dungeon bindings on the world's own anchor
+POIs) with hierarchical reroll channels, symmetric physical/buffer
+reservation semantics, named located failures with candidate funnels, full
+unbound-anchor accounting, `wf-fill place` + `wf-fill explain`, and a
+placement render with failure markers. A six-lens ultracode review (22
+agents) confirmed and forced fixes for three critical defects — even-side
+arena misalignment, one-directional exclusion checks, and an overstated
+reroll-isolation claim, now an honest documented contract (uncoupled
+regions byte-identical; coupled regions re-solve deterministically; hard
+pinning arrives with F6 locks). Render **visual verdicts pending user
+review** (F2 heatmaps, F3 danger bands, F4 placements). Next: F5 (spawn
+territories).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

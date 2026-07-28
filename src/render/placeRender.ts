@@ -58,13 +58,26 @@ export function renderPlacements(
         }
       }
     }
-    if (placement.arenaSide !== null) {
-      const half = Math.floor(placement.arenaSide / 2);
-      for (let y = cy - half; y <= cy - half + placement.arenaSide - 1; y += 1) {
-        for (let x = cx - half; x <= cx - half + placement.arenaSide - 1; x += 1) {
+    if (placement.arenaSide !== null && placement.arenaOrigin !== null) {
+      const [ox, oy] = placement.arenaOrigin;
+      for (let y = oy; y <= oy + placement.arenaSide - 1; y += 1) {
+        for (let x = ox; x <= ox + placement.arenaSide - 1; x += 1) {
           put(rgba, width, height, x, y, 200, 60, 60);
         }
       }
+    }
+  }
+
+  // Located failure markers: a red X on the failing region's anchor cell,
+  // so exhaustion is visible on the map, not only in the report.
+  for (const failure of doc.failures) {
+    const region = bundle.regions.find((entry) => entry.id === failure.regionId);
+    if (region === undefined) continue;
+    const fx = region.anchorIndex % width;
+    const fy = (region.anchorIndex - fx) / width;
+    for (let d = -3; d <= 3; d += 1) {
+      put(rgba, width, height, fx + d, fy + d, 255, 40, 40);
+      put(rgba, width, height, fx + d, fy - d, 255, 40, 40);
     }
   }
 

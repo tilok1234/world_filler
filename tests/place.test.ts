@@ -84,9 +84,11 @@ describe("placement solver", () => {
         assert.equal(bundle.bits[cellIndex], 1, `${placement.id} boss cell walkable`);
         assert.notEqual(bundle.distanceFromSpawn[cellIndex], UNREACHABLE, `${placement.id} boss cell reachable`);
         const side = placement.arenaSide as number;
-        const half = Math.floor(side / 2);
-        for (let y = placement.cell[1] - half; y < placement.cell[1] - half + side; y += 1) {
-          for (let x = placement.cell[0] - half; x < placement.cell[0] - half + side; x += 1) {
+        const [ox, oy] = placement.arenaOrigin as readonly [number, number];
+        const centerOffset = Math.floor((side - 1) / 2);
+        assert.deepEqual(placement.cell, [ox + centerOffset, oy + centerOffset], `${placement.id} cell is the arena center`);
+        for (let y = oy; y < oy + side; y += 1) {
+          for (let x = ox; x < ox + side; x += 1) {
             const index = y * width + x;
             assert.equal(bundle.bits[index], 1, `${placement.id} arena cell (${x}, ${y}) walkable`);
             assert.equal(bundle.safeZone[index], 0, `${placement.id} arena cell (${x}, ${y}) outside safe zones`);
@@ -96,33 +98,145 @@ describe("placement solver", () => {
         }
       }
     }
-  });
 
-  it("reroll of one region changes only that region's placements", () => {
-    const base = solveFor("fen-hollow", { ...MINIMAL, name: "reroll-base" }).doc;
-    assert.ok(base.placements.length >= 2, "need at least two placements for a scoping proof");
-    const targetRegion = (base.placements[0] as PlacementsDoc["placements"][number]).regionId;
-
-    const rerolled = solveFor("fen-hollow", {
-      ...MINIMAL,
-      name: "reroll-base",
-      rerolls: [{ regionId: targetRegion, iteration: 1 }],
-    }).doc;
-
-    const byId = new Map(rerolled.placements.map((placement) => [placement.id, placement]));
-    for (const placement of base.placements) {
-      const after = byId.get(placement.id);
-      if (placement.regionId === targetRegion) {
-        assert.ok(after === undefined || canonicalJson(after) !== canonicalJson(placement) || after.channel !== placement.channel,
-          `${placement.id} in the rerolled region must draw from a different channel`);
-        if (after !== undefined) {
-          assert.notEqual(after.channel, placement.channel, `${placement.id} channel path must change on reroll`);
+    // Symmetric exclusion: no placement's physical cells may sit inside
+    // any other placement's exclusion disc.
+    for (const a of doc.placements) {
+      for (const b of doc.placements) {
+        if (a.id === b.id) continue;
+        const physical: Array<readonly [number, number]> = [];
+        if (a.rule === "world_boss.v1") {
+          const [ox, oy] = a.arenaOrigin as readonly [number, number];
+          for (let y = oy; y < oy + (a.arenaSide as number); y += 1) {
+            for (let x = ox; x < ox + (a.arenaSide as number); x += 1) physical.push([x, y]);
+          }
+        } else {
+          physical.push(a.cell);
         }
-      } else {
-        assert.ok(after !== undefined, `${placement.id} outside the rerolled region must survive`);
-        assert.equal(canonicalJson(after), canonicalJson(placement), `${placement.id} outside the rerolled region must be unchanged`);
+        const r2 = b.exclusionRadius * b.exclusionRadius;
+        for (const [px, py] of physical) {
+          const dx = px - b.cell[0];
+          const dy = py - b.cell[1];
+          assert.ok(
+            dx * dx + dy * dy > r2,
+            `${a.id} physical cell (${px}, ${py}) sits inside the exclusion disc of ${b.id}`,
+          );
+        }
       }
     }
+  });
+
+  /**
+   * The reroll contract adopted after adversarial review: rerolling a
+   * region re-seeds only that region's channels; SPATIALLY UNCOUPLED
+   * regions are byte-identical; coupled regions (buffers crossing borders,
+   * peer distance) re-solve deterministically. This test builds two grass
+   * regions far apart with no cross-region constraints, so the strong
+   * byte-identity claim must hold.
+   */
+  function twoRegionWorld(): { model: WorldModel; bundle: ReturnType<typeof analyzeWorld> } {
+    const artifact = makeArtifact(24);
+    for (let y = 0; y < 24; y += 1) {
+      for (let x = 10; x < 14; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    const model = new WorldModel(artifact);
+    return { model, bundle: analyzeWorld(model) };
+  }
+
+  const TWO_BOSS_RECIPE = {
+    recipeFormat: 1,
+    name: "two-region-scoping",
+    directorSeed: 7,
+    budgets: { minRegionCells: 32, majorRegionCells: 4096, worldBossCount: 2, minWorldBossBand: 0 },
+    worldBossRule: { minClearance: 3, minSettlementPathDistance: 0, minPeerPathDistance: 0, exclusionRadius: 2 },
+  };
+
+  it("places two bosses in separate regions and keeps peer/reservation invariants", () => {
+    const { model, bundle } = twoRegionWorld();
+    const recipe = normalizeRecipe(TWO_BOSS_RECIPE);
+    const plan = compilePlan(model, bundle, recipe);
+    const doc = solvePlacements(model, bundle, plan, recipe);
+    const bosses = doc.placements.filter((placement) => placement.rule === "world_boss.v1");
+    assert.equal(bosses.length, 2, "both grass regions receive a boss");
+    const regions = new Set(bosses.map((boss) => boss.regionId));
+    assert.equal(regions.size, 2, "bosses land in distinct regions");
+  });
+
+  it("rerolling one uncoupled region leaves the other region byte-identical", () => {
+    const { model, bundle } = twoRegionWorld();
+    const base = solvePlacements(model, bundle, compilePlan(model, bundle, normalizeRecipe(TWO_BOSS_RECIPE)), normalizeRecipe(TWO_BOSS_RECIPE));
+    const bosses = base.placements.filter((placement) => placement.rule === "world_boss.v1");
+    assert.equal(bosses.length, 2);
+    const [first, second] = bosses as [PlacementsDoc["placements"][number], PlacementsDoc["placements"][number]];
+
+    const rerolledRecipe = normalizeRecipe({ ...TWO_BOSS_RECIPE, rerolls: [{ regionId: first.regionId, iteration: 3 }] });
+    const rerolled = solvePlacements(model, bundle, compilePlan(model, bundle, rerolledRecipe), rerolledRecipe);
+
+    const firstAfter = rerolled.placements.find((placement) => placement.id === first.id);
+    const secondAfter = rerolled.placements.find((placement) => placement.id === second.id);
+    assert.ok(firstAfter !== undefined && secondAfter !== undefined);
+    assert.notEqual(firstAfter.channel, first.channel, "rerolled region draws from a new channel subtree");
+    assert.ok(firstAfter.channel.includes("reroll.3"));
+    assert.equal(
+      canonicalJson(secondAfter),
+      canonicalJson(second),
+      "the uncoupled region's placement must be byte-identical across the reroll",
+    );
+  });
+
+  it("tags dungeons whose access cell lies inside a safe zone", () => {
+    const artifact = makeArtifact();
+    artifact.settlements.push({
+      id: 0,
+      kind: "outpost",
+      purpose: "waypoint",
+      anchor: [2, 2],
+      radius: 2,
+      structures: [],
+    });
+    artifact.pois.push({
+      id: 0,
+      type: "poi.cave",
+      cell: [3, 3],
+      structure: { type: "structure.cave_mouth", x: 3, y: 3, w: 2, h: 1 },
+    });
+    artifact.destinations.push({ id: 1, kind: "landmark_candidate", cell: [7, 7] });
+    const model = new WorldModel(artifact);
+    const bundle = analyzeWorld(model);
+    const recipe = normalizeRecipe({
+      recipeFormat: 1,
+      name: "safe-dungeon",
+      directorSeed: 1,
+      budgets: { minRegionCells: 4, worldBossCount: 0 },
+    });
+    const plan = compilePlan(model, bundle, recipe);
+    const doc = solvePlacements(model, bundle, plan, recipe);
+    const dungeon = doc.placements.find((placement) => placement.rule === "dungeon_binding.v1");
+    assert.ok(dungeon !== undefined, "the cave binds");
+    assert.equal(dungeon.inSafeZone, true, "access inside the settlement disc is tagged");
+  });
+
+  it("reports anchors in zero-budget regions instead of dropping them", () => {
+    const artifact = makeArtifact();
+    // Region too small for any budget (minRegionCells default 64 > 8x8 patches).
+    for (let y = 0; y < 8; y += 1) {
+      for (let x = 4; x < 8; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    artifact.pois.push({
+      id: 0,
+      type: "poi.cave",
+      cell: [6, 6],
+      structure: { type: "structure.cave_mouth", x: 6, y: 6, w: 2, h: 1 },
+    });
+    const model = new WorldModel(artifact);
+    const bundle = analyzeWorld(model);
+    const recipe = normalizeRecipe({ recipeFormat: 1, name: "zero-budget", directorSeed: 1, budgets: { worldBossCount: 0 } });
+    const plan = compilePlan(model, bundle, recipe);
+    const doc = solvePlacements(model, bundle, plan, recipe);
+    assert.equal(doc.placements.length, 0);
+    const anchor = doc.unboundAnchors.find((entry) => entry.poiId === 0);
+    assert.ok(anchor !== undefined, "the anchor appears in the report");
+    assert.equal(anchor.reason, "region_zero_budget");
   });
 
   it("explanations carry channel, funnel, score terms, and the chosen candidate", () => {

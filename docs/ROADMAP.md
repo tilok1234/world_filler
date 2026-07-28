@@ -147,11 +147,14 @@ Deliverables:
 
 - candidate enumeration + hard filters + integer soft scoring + seeded
   selection + reservations (arena/exclusion) + explanations;
-- world-boss placement rule v1 (clearance, distances, danger band, dead-end
-  preference);
-- dungeon-binding rule v1 over existing structure-bearing anchors (caves,
-  crypts, mines, ruins, portals), including reachability verification and
-  unbound-anchor reporting;
+- world-boss placement rule v1 (clearance, distances, danger band;
+  seclusion is expressed through the road-far and settlement-far terms —
+  cell-level dead-end preference is deferred to placement-rule tuning,
+  since region-level dead-end scoring already steers the plan);
+- dungeon-binding rule v1 over existing structure-bearing anchor POIs
+  (caves, crypts, mines, ruins, dens; portal structures arrive via
+  landmarks and join through a future landmark-binding rule), including
+  reachability verification and unbound-anchor reporting;
 - named, located, rendered failures on exhaustion;
 - `wf-fill place <pack> <recipe>` producing `placements.json` + placement
   render.
@@ -161,9 +164,15 @@ Exit criteria:
 - all fixture budgets place or explain; zero placements on unwalkable or
   spawn-unreachable cells (when required); reservations never overlap safe
   zones or each other;
-- determinism: identical inputs → identical placements; changing one
-  region's seed changes only that region's placements (channel-scoping
-  proof test);
+- determinism: identical inputs → identical placements; rerolling a region
+  re-seeds only that region's channel subtree, and spatially UNCOUPLED
+  regions stay byte-identical (channel-scoping proof test on a two-region
+  world). Regions coupled through explicit cross-region constraints
+  (exclusion buffers crossing a border, world-boss peer distance) re-solve
+  deterministically — hard pinning of individual placements is the F6 lock
+  feature. This honest contract was adopted after the F4 adversarial
+  review proved strict placement-level isolation impossible with shared
+  spatial constraints;
 - every placement carries a human-readable explanation retrievable via
   `wf-fill explain <placement-id>`.
 

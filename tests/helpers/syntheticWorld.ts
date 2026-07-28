@@ -69,8 +69,7 @@ const LAYER_NAMES = [
   "moss", "tallgrass", "decal", "crop", "fence", "pier",
 ];
 
-export function makeArtifact(): SyntheticArtifact {
-  const size = 8;
+export function makeArtifact(size: number = 8): SyntheticArtifact {
   const layers: Record<string, number[][]> = {};
   for (const name of LAYER_NAMES) {
     layers[name] = Array.from({ length: size }, () => Array.from({ length: size }, () => 0));

@@ -102,8 +102,9 @@ export function clearanceField(bits: Readonly<Uint8Array>, width: number, height
 /**
  * Corridor cells — the v1 chokepoint heuristic: walkable cells with exactly
  * two walkable neighbors that lie opposite each other (a one-cell-wide
- * passage). Severing one severs a path; placement rules treat them as
- * reserved ground.
+ * passage). Severing one severs a path; the field is analysis data for
+ * renders, reports, and future validation gates (F6) — the F4 solver does
+ * not consume it, since placements never change walkability.
  */
 export function corridorCells(bits: Readonly<Uint8Array>, width: number, height: number): Uint8Array {
   const corridor = new Uint8Array(width * height);

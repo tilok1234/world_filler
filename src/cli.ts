@@ -10,6 +10,7 @@ import { renderPlacements } from "./render/placeRender.js";
 import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
 import { compilePlan } from "./plan/plan.js";
 import { solvePlacements, type PlacementsDoc, type Placement } from "./place/solver.js";
+import { PLACEMENTS_FORMAT } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
 
@@ -245,6 +246,13 @@ function runPlace(dir: string, recipePath: string, outArg: string | undefined): 
 
 function runExplain(placementsPath: string, placementId: string): number {
   const doc = JSON.parse(readFileSync(placementsPath, "utf8")) as PlacementsDoc;
+  if (doc.placementsFormat !== PLACEMENTS_FORMAT || !Array.isArray(doc.placements)) {
+    console.error(
+      `explain: ${placementsPath} is not a supported placements file ` +
+        `(placementsFormat ${String(doc.placementsFormat)}; this build reads format ${PLACEMENTS_FORMAT})`,
+    );
+    return 1;
+  }
   const placement = doc.placements.find((entry: Placement) => entry.id === placementId);
   if (placement === undefined) {
     console.error(`explain: no placement ${placementId} (have: ${doc.placements.map((entry) => entry.id).join(", ")})`);
@@ -255,7 +263,11 @@ function runExplain(placementsPath: string, placementId: string): number {
   if (placement.anchorPoiType !== null) {
     console.log(`bound anchor: ${placement.anchorPoiType} #${placement.anchorPoiId}${placement.inSafeZone ? " (inside a safe zone)" : ""}`);
   }
-  if (placement.arenaSide !== null) console.log(`arena: ${placement.arenaSide}x${placement.arenaSide} reserved`);
+  if (placement.arenaSide !== null && placement.arenaOrigin !== null) {
+    console.log(
+      `arena: ${placement.arenaSide}x${placement.arenaSide} reserved from (${placement.arenaOrigin[0]}, ${placement.arenaOrigin[1]})`,
+    );
+  }
   console.log(`exclusion radius: ${placement.exclusionRadius}`);
   console.log(`seed channel: ${placement.channel} (picked index ${placement.draw} of the top window)`);
   console.log("candidate funnel:");
