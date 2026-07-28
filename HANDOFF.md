@@ -1,208 +1,183 @@
-# World Filler — handoff (2026-07-28, F0–F8 complete, freeze review RESOLVED)
+# World Filler — handoff (2026-07-28, format 1 FINAL, studio live, F9 in flight)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 ## 0. State right now
 
-**F0–F7 complete AND the F7 freeze review resolved**, committed and pushed
-to `tilok1234/world_filler`, branch `claude/freeze-review-resolution-tf6bkf`
-(branched from `claude/world-director-planning-vvvudl`). **140 tests green**
-(`npm test`). WorldForge checkout untouched throughout — verified clean
-after every milestone; it is READ-ONLY upstream, forever (AGENTS.md
-isolation contract; the user has re-confirmed this twice).
+Everything below is committed and pushed to `tilok1234/world_filler`,
+branch `claude/freeze-review-resolution-tf6bkf` (the session's designated
+branch; the repo default branch is still the older
+`claude/world-director-planning-vvvudl` — the user downloads branch ZIPs,
+so keep pushing here unless they ask to merge). **149 tests green**
+(`npm test`). WorldForge remains READ-ONLY upstream, forever; no
+WorldForge checkout exists in this container.
 
-**Content pack format 1 is FINAL.** The interrupted F7 adversarial review
-was resolved: all 38 salvaged findings were verified empirically (tamper
-experiments in both verifier lanes) and **all 38 confirmed, zero refuted**;
-every fix landed; the missing fifth lens (importer buildability) ran
-against the rewritten doc. See `docs/FREEZE_REVIEW_FINDINGS.md` for the
-cluster-by-cluster resolution. Key facts:
+Arc so far, in order, all complete:
 
-- Both reference verifiers now enforce the full blessed-check battery
-  (report.ok, exact-four files table, payload format pins, closed enums,
-  manifest self-consistency, run-shape refusals) and agree
-  refusal-for-refusal — a 20-case cross-verifier battery proved alignment,
-  no hangs, in TS and headless Godot 4.6.2.
-- A pre-fix export is byte-identical to a post-fix export (compared
-  directly), so no behavior/rule-pack version bump was needed: every fix
-  is refusal-side, verifier-side, or documentation.
-- The frozen serialization is pinned by `fixtures/golden/content-pack/`
-  (five files, byte-asserted in tests). Re-record ONLY via
-  `node dist/tools/recordGoldenPack.js` — an explicit, logged decision.
-- `wf-fill export`/`validate` now refuse stale base pins pre-flight
-  (unconditionally, like plan/place/territories); unknown CLI flags are
-  refusals; consumers/, dist/, node_modules/ are guard-protected;
-  exports are staged with manifest.json as the commit record.
+1. **F7 freeze review RESOLVED — content pack format 1 is FINAL.** All
+   38 salvaged findings verified empirically and confirmed (zero
+   refuted), all fixed with zero exportable-byte changes; golden pack
+   fixture pins the serialization; both reference verifiers agree
+   refusal-for-refusal (20-case cross-lane battery, headless Godot
+   4.6.2 included). Record: `docs/FREEZE_REVIEW_FINDINGS.md`.
+2. **F8 landed**: read-only viewer (`viewer/index.html`), `reroll`/
+   `unlock` print-pattern verbs, `docs/WORKFLOW.md`, full
+   direct→lock→reroll→export cycle in tests.
+3. **User-driven usability layer** (the user is non-terminal; friction
+   findings drove all of this): **dist/ is COMMITTED** (zero runtime
+   deps → a plain ZIP download runs with only Node; **every commit
+   touching src/ must rebuild and include dist/**), `START-HERE.bat`
+   (one-click: exports examples + every world in `worlds\`, opens the
+   newest map), `setup.bat` (installs to the real Documents, OneDrive
+   aware), `open-viewer.bat`, exports bake a self-contained
+   **view.html** per pack, `worlds\` drop-folder with
+   `recipes\<world>.json` overrides.
+4. **Godot game-side importer**:
+   `consumers/godot_addon/worldfiller_importer/` — copy the folder into
+   a Godot 4 project; full blessed verification, decoded territories,
+   walkable/territory_at/placement_by_id helpers; headless-proven via
+   `consumers/godot_addon/test_importer.gd`.
+5. **Director Studio live** (`wf-fill serve`, `STUDIO.bat`, port 8787,
+   127.0.0.1 only): JSON API over the unchanged pipeline; the DESIGNED
+   front-end (produced by the user's external claude-design session
+   from `docs/DESIGN_BRIEF.md` + `docs/sample-api.json`) is installed
+   at `src/serve/ui.html` and headless-proven (live-mode, direct, map,
+   region→placement→lock, strict re-direct holds the lock). The
+   load-bearing invariant is tested: a server-directed pack is
+   BYTE-IDENTICAL to `wf-fill export`.
 
-Pipeline unchanged end to end, all deterministic, explained, rendered:
-`inspect | parity | analyze | plan | place | explain | territories |
-validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
-Both proof worlds pass the nine-gate audit and export content packs that
-verify in the TypeScript lane AND inside headless Godot 4.6.2
-(`consumers/godot-proof/verify_content_pack.gd`), strict mode included.
+## 1. IN FLIGHT: F9 — manual intent in the studio
 
-## 1. F8 landed; what remains is user-side
+Full plan: `docs/ROADMAP.md` Milestone F9. Status:
 
-**F8 shipped in the same session**: `viewer/index.html` (single-file,
-no-build, READ-ONLY inspector — drop a content-pack dir + optionally an
-analyze dir onto it; backdrop select over any dropped render, JSON-driven
-overlays for territories/placements/exclusions/arenas, hover shows the
-full explanation: score terms, funnel, top candidates, roster, region
-brief, gates, coverage; contract pinned by `tests/viewer.test.ts`,
-behavior proven by a headless-Chromium Playwright smoke over real
-fen-hollow outputs). New verbs `wf-fill reroll <recipe> <region-id>` and
-`wf-fill unlock <recipe> <placement-id>` follow the `lock` print-pattern
-(recipes are user-authored; the CLI never writes them).
-`docs/WORKFLOW.md` documents the direct→review→lock→reroll→export loop
-and the regenerated-world (staleness) workflow.
-`tests/workflow.test.ts` runs the full cycle through documented CLI
-commands: lock a boss, reroll another region, strict-export, and the
-locked placement survives byte-stably (lockReport "held").
+- **Phase A DONE** (server foundations, all tested in
+  `tests/serve.test.ts`): `GET /api/analysis` (region-label +
+  clearance grids run-length encoded, safe-zone + walkable bitpacks —
+  walkable asserted byte-equal to the reference grid; cached per world
+  identity); recipe history (every save snapshots the previous recipe
+  to `recipes/.history/<world>/NNNN.json`, sequence numbers only;
+  `GET /api/history`, `POST /api/restore` — restore snapshots first,
+  so undo is itself undoable); pack diff (`direct()` keeps the
+  outgoing export under `outputs/export/.previous/<world>/`;
+  `GET /api/diff` reports placements added/moved/unchanged with exact
+  accounting, territory resize/coverage deltas, gate changes).
+- **Phase B DONE**: `docs/DESIGN_BRIEF_2.md` (zone painting, pin/bind
+  with advisory valid-site glow — formula and lock id-minting grammar
+  spelled out in the brief — danger overrides, intent layer + pending
+  revert, diff panel, undo, enemy-library editor, seed control) +
+  `docs/sample-api-2.json` (real captured responses incl. a real
+  diff). Handoff zip delivered to the user.
+- **Phase C PENDING (user-side)**: the user runs their external design
+  session to EXTEND the current `src/serve/ui.html` per brief 2 and
+  brings back one updated file. Priority order if the session trims
+  scope: zones → pins → intent layer + diff → undo → rest.
+- **Phase D (next session's work when the file arrives)**: install at
+  `src/serve/ui.html`, wire against the real server, extend the
+  headless studio smoke (scratch pattern: a Playwright script driving
+  `createStudioServer` + chromium at
+  `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`; prior smokes
+  in the session scratchpad). Must prove: zone painted over the boss →
+  boss moves and the diff names it; pin at a valid cell → held there;
+  pin at an invalid cell → named lockReport reason shown; danger
+  override round-trips; **restore + direct reproduces the prior pack
+  byte-for-byte**. Then full suite, dist rebuild, push.
+- **Phase E**: user drives it and issues design verdicts — the
+  **still-pending F2–F5 visual verdicts fold in here**.
 
-**Remaining F8 exit items (user-side, per ROADMAP):** (1) run the loop
-on the canonical 256² world — not regenerable here, needs a WorldForge
-checkout; (2) the design verdict on the result. **Visual verdicts on
-F2–F5 renders also still PENDING** (8x renders for both fixture worlds
-were delivered in-session). Then the first-arc close-out (deferred list
-stays deferred).
+Parked as F10 (schema decisions, NOT free): per-region budget
+overrides; named recipe variants.
 
-## 1b. Post-F8 user-driven additions (same day)
-
-The user tested the flow on Windows; the friction findings drove these
-(all pushed, all covered by tests, dist committed pre-built):
-
-- **START-HERE.bat** one-click flow; **worlds\** drop-folder (auto-
-  directed with recipes\<name>.json overrides); export bakes a
-  self-contained **view.html** per pack; open-viewer.bat opens the
-  newest one. dist/ is committed — see §3 doctrine.
-- **consumers/godot_addon/worldfiller_importer/** — the game-side
-  importer (copy folder into a Godot 4 project; full blessed
-  verification; decoded territories; walkable/territory_at/
-  placement_by_id). Headless-proven via consumers/godot_addon/
-  test_importer.gd.
-- **Director Studio phase 1** (`wf-fill serve`, STUDIO.bat, port 8787,
-  127.0.0.1 only): JSON API over the unchanged pipeline — worlds /
-  recipe get+put (validated, writes recipes/<world>.json only) /
-  direct / pack / render / view / lock / unlock / reroll.
-  tests/serve.test.ts pins server-direct BYTE-IDENTICAL to CLI export.
-  src/serve/ui.html is a deliberate placeholder: the designed front-end
-  is produced externally from **docs/DESIGN_BRIEF.md** +
-  **docs/sample-api.json** and swaps that one file (phase 2, pending).
-
-## 1c. NEXT: F9 — manual intent in the studio (planned with the user)
-
-The designed studio UI landed (phase 2) and the user green-lit planning
-the manual-editability milestone. **The full F9 plan lives in
-docs/ROADMAP.md (Milestone F9)** — phases A (server: analysis endpoint,
-recipe history, pack diff), B (DESIGN_BRIEF_2 addendum + samples),
-C (user's external design session), D (integration + extended headless
-proof), E (user acceptance + the standing design verdicts). Zero format
-changes; per-region budget overrides parked as an F10 schema decision.
+**Standing ultracode offer (user-approved pattern):** when the user
+says "ultracode", run an adversarial review swarm (max 8 concurrent)
+over the studio server surface (`src/serve/server.ts` — the one
+component that writes user files: `recipes/<world>.json` and history)
+and/or the Phase D result. The F7 review precedent: verify claims
+empirically, fix what survives.
 
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
-- F0 clean-room reader + walkability ladder + flood; bit-for-bit parity
-  vs reference grids (fixtures committed; canonical world flood 33893).
-- F1 kernel: uint32 mixers, hierarchical channels
-  (`world/<regionId>/reroll.<n>/<system>/<slot>`), golden vectors
-  (`fixtures/golden/kernel.json`, re-record ONLY via
-  `node dist/tools/updateGolden.js`), hygiene bans, 3-OS CI.
-- F2 analysis: components, BFS distance fields, clearance, corridors,
-  safe zones, region segmentation + adjacency, hashed cached summaries,
-  11 heatmap renders (`analyze`).
-- F3 DirectorRecipe (strict vocabulary, defaults, identity hash), danger
-  bands from median spawn path-distance, budgets on hostile-walkable
-  ground, named waivers, minimax progression-trap check (`plan`).
-- F4 placement solver (bosses on clearance-proven arenas via arenaOrigin,
-  dungeon bindings on the world's own anchor POIs), symmetric
-  physical/buffer reservation semantics, funnels + explanations
-  (`place`/`explain`). Survived a 22-agent ultracode review — 3 criticals
-  fixed; **the honest reroll contract** is documented in ROADMAP F4 exit
-  criteria: rerolls re-seed only that region's channels; spatially
-  UNCOUPLED regions byte-identical; coupled regions re-solve
-  deterministically; hard pinning = locks.
-- F5 territories: content library (placeholder enemy defaults — game
-  supplies real ones), pocket-aware growth, run-encoded cells, rosters by
-  biome x band, coverage metrics (`territories`).
-- F6 nine-gate audit (`validate`, report.json/txt), locks (`lock` prints
-  recipe entries; held locks byte-stable + reroll-immune; per-lock
-  invalidity diagnosis; `--strict`), painted noContent/preferContent.
-- F7 export (`export` refuses on failed gates; staged writes; byte-stable)
-  + frozen format doc `docs/CONTENT_PACK_FORMAT.md` + dual verifiers.
-  **Freeze review resolved 2026-07-28; format 1 FINAL** — 38/38 findings
-  confirmed and fixed (`docs/FREEZE_REVIEW_FINDINGS.md`), lock id grammar
-  enforced, fresh-boss slots consult held locks, export cross-checks the
-  identity of every payload it is handed.
+- F0 clean-room reader + walkability parity (flood 33893 canonical).
+- F1 deterministic kernel + golden vectors + hygiene bans + 3-OS CI.
+- F2 analysis (components, fields, clearance, regions, 11 heatmaps).
+- F3 DirectorRecipe + danger bands + budgets + waivers (`plan`).
+- F4 placement solver + honest reroll contract (22-agent review
+  survived; contract in ROADMAP F4).
+- F5 territories (library, pocket growth, run-encoded cells, coverage).
+- F6 nine-gate audit + locks + painted zones (`validate`, `--strict`).
+- F7 export + frozen format + dual verifiers; **freeze review resolved,
+  format 1 FINAL** (38/38 confirmed+fixed; golden pack fixture;
+  `tools/recordGoldenPack.js` re-record = logged decision).
+- F8 director UX loop + user usability layer + Godot addon + studio.
+- F9 manual intent (phases A+B done; C user-side; D+E remain).
 
 ## 3. Toolchain and environment gotchas
 
-- **dist/ is COMMITTED** (user-facing decision, 2026-07-28): the project
-  has zero runtime deps, so a plain ZIP download runs with nothing but
-  Node — `START-HERE.bat` exports the fixture worlds and opens the
-  viewer with no npm install and no build. **Every commit that touches
-  src/ must rebuild and include dist/** or the shipped program drifts
-  from the source. setup.bat / open-viewer.bat support the same flow.
-
-- Node **>= 24.15 required** (engines pin, matches upstream). Container
-  default node is 22 — `source /opt/nvm/nvm.sh && nvm install 24` (the
-  bare `/opt/nvm` tree may not have 24 preinstalled).
-- `npm install && npm test` from a clean clone works offline with no
-  WorldForge checkout present — that is a tested isolation invariant.
+- Node **>= 24.15** (engines pin). Container default is 22:
+  `source /opt/nvm/nvm.sh && nvm install 24` (24 is NOT preinstalled).
+  Shell state does not persist between commands — re-export PATH.
+- **dist/ is committed**: rebuild + include dist/ in every commit that
+  touches src/ (`npm run build`; `npm test` also builds). `.gitignore`
+  documents the doctrine.
+- `npm install && npm test` works offline from a clean clone with no
+  WorldForge checkout — tested isolation invariant.
 - CLI writes only under `outputs/` unless
-  `WORLD_FILLER_EXTRA_OUT_ROOTS=<dir>` whitelists more (path guard;
-  scratch dirs need it).
-- **Never build inside the WorldForge checkout.** To regenerate worlds:
-  copy WorldForge (minus .git) to scratch, `npm install && npm run build`
-  there, then `node dist/src/cli.js export-game-pack
-  fixtures/recipes/<name>.json --out <scratch>` and copy the pack over.
-  Committed fixtures: fen-hollow, dust-hollow, tiny-temperate (64²,
-  WorldForge commit `bb7832f`, behavior 47 — provenance sidecars in
-  fixtures/provenance/). The canonical 256² `small-cold-coastal` pack is
-  NOT committed (31 MB): regenerate per `fixtures/README.md` into
-  `outputs/local-packs/` (parity tests auto-pick it up).
-- Official Godot 4.6.2 Linux zip downloads and runs headless in this
-  container (godotengine GitHub releases) — used for the GDScript
-  consumption proof. The GDScript lane is a manual proof step, not in CI.
-- Upstream behavior bumps move walkable cells (flood history 33845→33893).
-  The parity suite + pinned `fixtures/expected-coverage.json` are the
-  tripwires; adopting a new upstream base = regenerate fixtures +
-  re-record coverage + note it in the commit, an explicit logged decision.
+  `WORLD_FILLER_EXTRA_OUT_ROOTS=<dir>` whitelists more. Protected
+  trees include consumers/, viewer/, worlds/, recipes/, dist/.
+- Committed fixture worlds: fen-hollow, dust-hollow, tiny-temperate
+  (64², WorldForge `bb7832f`, behavior 47; provenance sidecars). The
+  canonical 256² world is NOT committed and NOT regenerable here (needs
+  a WorldForge checkout — user-side only, per fixtures/README.md).
+- Official Godot 4.6.2 Linux zip downloads and runs headless here
+  (godotengine GitHub releases) — used for both GDScript proofs
+  (verify_content_pack.gd and the addon's test_importer.gd). Manual
+  step, not in CI.
+- Playwright: use `playwright-core` npm-installed in the session
+  scratchpad + `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`
+  (never `playwright install`).
+- Upstream behavior bumps move walkable cells; parity suite +
+  `fixtures/expected-coverage.json` are the tripwires; adopting a new
+  base = regenerate fixtures + re-record + log it.
+- The user's machine is Windows + OneDrive; they use branch ZIP
+  downloads, not git. Batch files are the UX surface — keep them
+  working (`START-HERE.bat`, `STUDIO.bat`, `setup.bat`,
+  `open-viewer.bat`).
 
 ## 4. Standing user preferences (confirmed in-session)
 
-- world_filler is a separate isolated repo; WorldForge is read-only
-  reference. Never mix.
-- Standing permission to commit and push to world_filler (current branch).
-- Ultracode swarms: user opts in per-turn, wants them for hard
-  review/audit milestones, **max 8 agents concurrent**. (The freeze-review
-  resolution was done solo with empirical tamper experiments instead — the
-  user's message said to ask first, so no swarm was spawned.)
-- Verdict loop: send upscaled renders (terrain/danger/placements/
-  territories) for visual approval; re-render via the render modules at
-  scale 3x (256²) or 8x (64²). **Visual verdicts on F2–F5 renders are
-  still PENDING** — structural success ≠ design approval (AGENTS.md).
+- world_filler is isolated; WorldForge read-only reference. Never mix.
+- Standing permission to commit and push to THIS branch. Do not merge
+  to the default branch without an explicit ask (offered, not yet
+  taken).
+- Ultracode swarms: opt-in per turn by the user saying so; for
+  review/audit work, **max 8 concurrent**. Building solo is fine.
+- The user is not a terminal person: every capability must end as a
+  double-clickable .bat or a studio interaction. Explain in plain
+  words; short messages land better than walls of text.
+- The external claude-design session is the UI production pipeline:
+  ship it a self-contained brief + captured sample data + the current
+  ui.html; it returns one file; verify headless before pushing.
+- Verdict loop: renders/screenshots for visual approval; **F2–F5
+  design verdicts still PENDING** (8x renders for both fixture worlds
+  were delivered; verdicts fold into F9 Phase E).
 
-## 5. Versions at handoff
+## 5. Versions
 
 director behavior **5** · rule packs: analysis 1, plan 1, placement 2,
 territory 2, validate 1, export 1 · recipe format 1 · plan/placements/
 territories/report formats 1 · **content pack format 1 (FINAL)** ·
 supported upstream: artifact format 8, game pack 1, walkability 1.
-Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
-vocabularies; sequential bumps; stamp everything). The freeze-review
-fixes required no bumps: pre-fix and post-fix exports are byte-identical.
+The freeze resolution and everything since required NO bumps (all
+refusal-side/verifier-side/serve-side; server-vs-CLI byte equality is
+tested). Bump doctrine: `src/core/version.ts` + AGENTS.md.
 
 ## 6. Commands
 
     source /opt/nvm/nvm.sh && nvm use 24
-    npm test                                   # build + 140 tests
-    node dist/src/cli.js help                  # all verbs
-    node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
-    node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
-    node dist/src/cli.js verify-pack fixtures/packs/fen-hollow outputs/export/fen-hollow-basic-direction-content
+    npm test                                   # build + 149 tests
+    node dist/src/cli.js help                  # all verbs (incl. serve, reroll, unlock)
+    node dist/src/cli.js serve 8787            # Director Studio (STUDIO.bat on Windows)
+    node dist/src/cli.js export fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     godot --headless --script consumers/godot-proof/verify_content_pack.gd -- <world-pack> <content-pack>
+    godot --headless --script consumers/godot_addon/test_importer.gd -- <world-pack> <content-pack> <wrong-world-pack>
     node dist/tools/recordGoldenPack.js        # re-record frozen pack fixture (logged decision only)
-    # F8 loop: docs/WORKFLOW.md; viewer: open viewer/index.html, drop outputs onto it
-    node dist/src/cli.js reroll fixtures/recipes/basic-direction.json <region-id>
-    node dist/src/cli.js unlock <recipe.json> <placement-id>
