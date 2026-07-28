@@ -98,9 +98,16 @@ agents) confirmed and forced fixes for three critical defects — even-side
 arena misalignment, one-directional exclusion checks, and an overstated
 reroll-isolation claim, now an honest documented contract (uncoupled
 regions byte-identical; coupled regions re-solve deterministically; hard
-pinning arrives with F6 locks). Render **visual verdicts pending user
-review** (F2 heatmaps, F3 danger bands, F4 placements). Next: F5 (spawn
-territories).
+pinning arrives with F6 locks). F5 is implemented and green: the recipe
+gains a content library (enemy definitions with biome/band ranges,
+weights, night flags — placeholder defaults, game-supplied in production)
+and a territory rule; territories grow as run-encoded, non-overlapping
+cell sets over hostile walkable ground (never safe zones or F4 claims),
+seeded from viable pockets only, rostered by biome × danger band, with
+coverage metrics and named failures (`wf-fill territories`). Render
+**visual verdicts pending user review** (F2 heatmaps, F3 danger bands,
+F4 placements, F5 territories). Next: F6 (validation gates, audit report,
+locks and rerolls).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

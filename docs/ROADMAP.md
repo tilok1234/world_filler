@@ -15,8 +15,12 @@ bands + overrides, hostile-walkable-scaled budgets with named waivers,
 world-boss allocation, the minimax progression-trap check (proven on a
 synthetic override trap), and the danger render (`wf-fill plan`). Verified
 on fixtures and the canonical 256² world (3/3 bosses to the largest
-eligible high-band regions, zero progression warnings). **Visual verdicts
-on the F2/F3 renders pending user review.** F4 is next.
+eligible high-band regions, zero progression warnings). F4 landed
+(placement solver, adversarially reviewed — see the F4 exit-criteria
+notes for the honest reroll contract) and F5 landed (spawn territories
+with content library, pocket-aware growth, coverage metrics; canonical
+world: 51 territories, 9 honestly-fragmented failures). **Visual
+verdicts on the F2–F5 renders pending user review.** F6 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

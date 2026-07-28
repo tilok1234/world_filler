@@ -60,8 +60,61 @@ export interface DirectorRecipe {
     readonly exclusionRadius: number;
     readonly settlementFarPermille: number;
   };
+  readonly territoryRule: {
+    readonly targetHostileCoveragePermille: number;
+    readonly minCells: number;
+    readonly maxCells: number;
+    readonly packSizeMin: number;
+    readonly packSizeMax: number;
+    readonly maxActivePer100Cells: number;
+    readonly elitePermille: number;
+    readonly respawnPressure: "low" | "medium" | "high";
+  };
+  readonly contentLibrary: {
+    readonly enemies: readonly EnemyDef[];
+  };
   readonly rerolls: readonly RegionReroll[];
 }
+
+export interface EnemyDef {
+  readonly id: string;
+  readonly biomes: readonly string[];
+  readonly minBand: number;
+  readonly maxBand: number;
+  readonly weightPercent: number;
+  readonly nightOnly: boolean;
+}
+
+/**
+ * Placeholder roster vocabulary so the pipeline demonstrates end-to-end on
+ * fixture worlds. A real game supplies its own library; these ids are
+ * deliberately generic and carry no upstream meaning.
+ */
+const DEFAULT_ENEMIES: readonly EnemyDef[] = [
+  { id: "enemy.prowler", biomes: ["terrain.grass", "terrain.dry_grass"], minBand: 0, maxBand: 5, weightPercent: 40, nightOnly: false },
+  { id: "enemy.mire_creeper", biomes: ["terrain.mud", "terrain.swamp"], minBand: 0, maxBand: 8, weightPercent: 35, nightOnly: false },
+  { id: "enemy.gravel_lurker", biomes: ["terrain.gravel", "terrain.sand"], minBand: 0, maxBand: 8, weightPercent: 30, nightOnly: false },
+  { id: "enemy.frost_wraith", biomes: ["terrain.snow"], minBand: 0, maxBand: 12, weightPercent: 30, nightOnly: false },
+  {
+    id: "enemy.marauder",
+    biomes: [
+      "terrain.grass", "terrain.dry_grass", "terrain.mud", "terrain.gravel",
+      "terrain.snow", "terrain.sand", "terrain.cobble", "terrain.packed_road",
+    ],
+    minBand: 1,
+    maxBand: 15,
+    weightPercent: 20,
+    nightOnly: false,
+  },
+  {
+    id: "enemy.night_shade",
+    biomes: ["terrain.grass", "terrain.dry_grass", "terrain.mud", "terrain.snow"],
+    minBand: 2,
+    maxBand: 15,
+    weightPercent: 15,
+    nightOnly: true,
+  },
+];
 
 const DEFAULT_DUNGEON_POI_TYPES = [
   "poi.cave",
@@ -99,6 +152,18 @@ const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   exclusionRadius: { min: 1, max: 128, fallback: 8 },
   settlementFarPermille: { min: 0, max: 1000, fallback: 1000 },
 };
+
+const TERRITORY_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  targetHostileCoveragePermille: { min: 0, max: 1000, fallback: 350 },
+  minCells: { min: 1, max: 10000, fallback: 24 },
+  maxCells: { min: 1, max: 100000, fallback: 400 },
+  packSizeMin: { min: 1, max: 64, fallback: 2 },
+  packSizeMax: { min: 1, max: 64, fallback: 6 },
+  maxActivePer100Cells: { min: 1, max: 1000, fallback: 8 },
+  elitePermille: { min: 0, max: 1000, fallback: 30 },
+};
+
+const RESPAWN_PRESSURES = ["low", "medium", "high"] as const;
 
 const BUDGET_FIELDS: Readonly<Record<string, FieldSpec>> = {
   minRegionCells: { min: 1, max: 1_000_000, fallback: 64 },
@@ -156,7 +221,10 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   const raw = requireObject(input, "$");
   rejectUnknownKeys(
     raw,
-    ["recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors", "worldBossRule", "dungeonRule", "rerolls"],
+    [
+      "recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors",
+      "worldBossRule", "dungeonRule", "territoryRule", "contentLibrary", "rerolls",
+    ],
     "$",
   );
 
@@ -223,6 +291,65 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
   const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
 
+  const territoryRule = sectionOf(raw, "territoryRule", TERRITORY_RULE_FIELDS, ["respawnPressure"]);
+  const territoryRecord = raw["territoryRule"] === undefined ? {} : requireObject(raw["territoryRule"], "$.territoryRule");
+  const respawnRaw = territoryRecord["respawnPressure"] === undefined ? "medium" : territoryRecord["respawnPressure"];
+  if (typeof respawnRaw !== "string" || !RESPAWN_PRESSURES.includes(respawnRaw as (typeof RESPAWN_PRESSURES)[number])) {
+    throw new RecipeError(`recipe: $.territoryRule.respawnPressure must be one of ${RESPAWN_PRESSURES.join(", ")}`);
+  }
+  if ((territoryRule["packSizeMax"] as number) < (territoryRule["packSizeMin"] as number)) {
+    throw new RecipeError("recipe: territoryRule.packSizeMax must be >= packSizeMin");
+  }
+  if ((territoryRule["maxCells"] as number) < (territoryRule["minCells"] as number)) {
+    throw new RecipeError("recipe: territoryRule.maxCells must be >= minCells");
+  }
+
+  const libraryRecord = raw["contentLibrary"] === undefined ? {} : requireObject(raw["contentLibrary"], "$.contentLibrary");
+  rejectUnknownKeys(libraryRecord, ["enemies"], "$.contentLibrary");
+  const enemiesRaw = libraryRecord["enemies"] === undefined ? DEFAULT_ENEMIES : libraryRecord["enemies"];
+  if (!Array.isArray(enemiesRaw) || enemiesRaw.length === 0) {
+    throw new RecipeError("recipe: $.contentLibrary.enemies must be a non-empty array");
+  }
+  const enemies: EnemyDef[] = enemiesRaw.map((entry, i) => {
+    const record = requireObject(entry, `$.contentLibrary.enemies[${i}]`);
+    rejectUnknownKeys(record, ["id", "biomes", "minBand", "maxBand", "weightPercent", "nightOnly"], `$.contentLibrary.enemies[${i}]`);
+    const id = record["id"];
+    if (typeof id !== "string" || !/^enemy\.[a-z][a-z0-9_]*$/.test(id)) {
+      throw new RecipeError(`recipe: $.contentLibrary.enemies[${i}].id must match enemy.<lower_snake>`);
+    }
+    const biomes = record["biomes"];
+    if (!Array.isArray(biomes) || biomes.length === 0 || biomes.some((b) => typeof b !== "string" || !/^(terrain|water)\./.test(b))) {
+      throw new RecipeError(`recipe: $.contentLibrary.enemies[${i}].biomes must be terrain.*/water.* names`);
+    }
+    const minBand = record["minBand"] ?? 0;
+    const maxBand = record["maxBand"] ?? 15;
+    if (!Number.isInteger(minBand) || !Number.isInteger(maxBand) || (minBand as number) < 0 || (maxBand as number) > 15 || (maxBand as number) < (minBand as number)) {
+      throw new RecipeError(`recipe: $.contentLibrary.enemies[${i}] band range must satisfy 0 <= minBand <= maxBand <= 15`);
+    }
+    const weight = record["weightPercent"];
+    if (!Number.isInteger(weight) || (weight as number) < 1 || (weight as number) > 100) {
+      throw new RecipeError(`recipe: $.contentLibrary.enemies[${i}].weightPercent must be an integer in [1, 100]`);
+    }
+    const nightOnly = record["nightOnly"] ?? false;
+    if (typeof nightOnly !== "boolean") {
+      throw new RecipeError(`recipe: $.contentLibrary.enemies[${i}].nightOnly must be a boolean`);
+    }
+    return {
+      id,
+      biomes: [...new Set(biomes as string[])].sort(),
+      minBand: minBand as number,
+      maxBand: maxBand as number,
+      weightPercent: weight as number,
+      nightOnly,
+    };
+  });
+  enemies.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  for (let i = 1; i < enemies.length; i += 1) {
+    if ((enemies[i] as EnemyDef).id === (enemies[i - 1] as EnemyDef).id) {
+      throw new RecipeError(`recipe: duplicate enemy id ${(enemies[i] as EnemyDef).id}`);
+    }
+  }
+
   const rerollsRaw = raw["rerolls"] === undefined ? [] : raw["rerolls"];
   if (!Array.isArray(rerollsRaw)) throw new RecipeError("recipe: $.rerolls must be an array");
   const rerolls: RegionReroll[] = rerollsRaw.map((entry, i) => {
@@ -281,6 +408,17 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       exclusionRadius: dungeonRule["exclusionRadius"] as number,
       settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
     },
+    territoryRule: {
+      targetHostileCoveragePermille: territoryRule["targetHostileCoveragePermille"] as number,
+      minCells: territoryRule["minCells"] as number,
+      maxCells: territoryRule["maxCells"] as number,
+      packSizeMin: territoryRule["packSizeMin"] as number,
+      packSizeMax: territoryRule["packSizeMax"] as number,
+      maxActivePer100Cells: territoryRule["maxActivePer100Cells"] as number,
+      elitePermille: territoryRule["elitePermille"] as number,
+      respawnPressure: respawnRaw as "low" | "medium" | "high",
+    },
+    contentLibrary: { enemies },
     rerolls,
   };
 }

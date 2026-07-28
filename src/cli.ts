@@ -10,6 +10,8 @@ import { renderPlacements } from "./render/placeRender.js";
 import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
 import { compilePlan } from "./plan/plan.js";
 import { solvePlacements, type PlacementsDoc, type Placement } from "./place/solver.js";
+import { growTerritories } from "./territory/territory.js";
+import { renderTerritories } from "./render/territoryRender.js";
 import { PLACEMENTS_FORMAT } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
@@ -29,6 +31,8 @@ function usage(): void {
       "                                        solve placements (bosses + dungeon bindings) + render",
       "  wf-fill explain <placements.json> <placement-id>",
       "                                        why a placement landed where it did",
+      "  wf-fill territories <pack-dir> <recipe.json> [out-dir]",
+      "                                        grow spawn territories + render",
       "",
       "inspect and parity are read-only. analyze writes under outputs/ (or the",
       "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -284,6 +288,47 @@ function runExplain(placementsPath: string, placementId: string): number {
   return 0;
 }
 
+function runTerritories(dir: string, recipePath: string, outArg: string | undefined): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("territories: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(`territories: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256}`);
+    return 1;
+  }
+  const bundle = analyzeWorld(model);
+  const plan = compilePlan(model, bundle, recipe);
+  const placements = solvePlacements(model, bundle, plan, recipe);
+  const doc = growTerritories(model, bundle, plan, placements, recipe);
+
+  const outDir = assertOutputRoot(
+    outArg ?? join(repoRoot(), "outputs", "territories", `${basename(dir)}-${recipe.name}`),
+  );
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  writeFileSync(join(outDir, "territories.json"), canonicalJson(doc));
+  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, doc, placements));
+
+  console.log(
+    `territories: ${doc.territories.length} grown, ${doc.failures.length} failures; ` +
+      `covered ${doc.coverage.totalCovered}/${doc.coverage.totalHostileWalkable} hostile cells`,
+  );
+  for (const territory of doc.territories.slice(0, 14)) {
+    console.log(
+      `  ${territory.id}: ${territory.cellCount} cells, band ${territory.dangerBand}, ` +
+        `${territory.roster.length} roster entries, maxActive ${territory.maxActive}`,
+    );
+  }
+  if (doc.territories.length > 14) console.log(`  ... and ${doc.territories.length - 14} more`);
+  for (const failure of doc.failures) console.log(`  FAILURE ${failure.regionId} slot ${failure.slot}: ${failure.reason}`);
+  console.log(`wrote ${outDir}`);
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
   const [command, target, extra, extra2] = argv;
   if (command === undefined || command === "help" || command === "--help") {
@@ -318,6 +363,13 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runExplain(target, extra);
+    }
+    if (command === "territories") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runTerritories(target, extra, extra2);
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
