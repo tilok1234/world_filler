@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { readGamePack } from "./pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
@@ -496,10 +496,39 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     outArg ?? join(repoRoot(), "outputs", "export", `${basename(dir)}-${recipe.name}-content`),
   );
   writeContentPack(built, outDir);
+  const dangerPng = renderDanger(model, bundle, plan, recipe.danger.bandCount);
+  const placementsPng = renderPlacements(model, bundle, placements);
+  const territoriesPng = renderTerritories(model, bundle, territories, placements);
   mkdirSync(join(outDir, "renders"), { recursive: true });
-  writeFileSync(join(outDir, "renders", "danger.png"), renderDanger(model, bundle, plan, recipe.danger.bandCount));
-  writeFileSync(join(outDir, "renders", "placements.png"), renderPlacements(model, bundle, placements));
-  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, territories, placements));
+  writeFileSync(join(outDir, "renders", "danger.png"), dangerPng);
+  writeFileSync(join(outDir, "renders", "placements.png"), placementsPng);
+  writeFileSync(join(outDir, "renders", "territories.png"), territoriesPng);
+
+  // Bake a self-contained inspector beside the pack: viewer/index.html
+  // with the payloads and renders embedded, so reviewing an export is
+  // "double-click view.html" — no dragging, no picking. Like renders/,
+  // view.html is inspection evidence, never hashed payload.
+  const viewerTemplate = join(repoRoot(), "viewer", "index.html");
+  let viewHint = "";
+  if (existsSync(viewerTemplate)) {
+    const terrain = renderAnalysis(model, bundle).find((map) => map.name === "terrain");
+    const embedded = {
+      jsons: {
+        "manifest.json": canonicalJson(built.manifest),
+        ...Object.fromEntries(built.files.entries()),
+      },
+      images: {
+        ...(terrain !== undefined ? { terrain: Buffer.from(terrain.png).toString("base64") } : {}),
+        danger: Buffer.from(dangerPng).toString("base64"),
+        placements: Buffer.from(placementsPng).toString("base64"),
+        territories: Buffer.from(territoriesPng).toString("base64"),
+      },
+    };
+    const payload = JSON.stringify(embedded).replace(/</g, "\\u003c");
+    const html = readFileSync(viewerTemplate, "utf8").replace("/* WF_EMBED_SLOT */", `window.WF_EMBEDDED = ${payload};`);
+    writeFileSync(join(outDir, "view.html"), html);
+    viewHint = "; double-click view.html in there to inspect";
+  }
 
   console.log(
     `content pack: ${built.manifest.counts.placements} placements, ${built.manifest.counts.territories} territories, ` +
@@ -507,7 +536,7 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
   );
   console.log(`base: ${built.manifest.base.generationIdentitySha256.slice(0, 12)}… (world.json ${built.manifest.base.artifactSha256.slice(0, 12)}…)`);
   console.log(`recipe: ${built.manifest.recipeName} (${built.manifest.directorRecipeSha256.slice(0, 12)}…)`);
-  console.log(`wrote ${outDir} (renders are inspection copies, not hashed payload)`);
+  console.log(`wrote ${outDir} (renders + view.html are inspection copies, not hashed payload${viewHint})`);
   return 0;
 }
 

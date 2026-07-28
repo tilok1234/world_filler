@@ -61,6 +61,7 @@
     <div id="drop">drop a content-pack directory here<br>(optionally also an <span class="tag">analyze</span> output dir for heatmap backdrops)<br><br>
       <button id="pickBtn">or pick a directory…</button>
       <input id="pickDir" type="file" webkitdirectory multiple style="display:none">
+      <div id="dropStatus"></div>
     </div>
 
     <h2>backdrop</h2>
@@ -86,6 +87,7 @@
   </div>
 </div>
 
+<script id="wf-embed">/* WF_EMBED_SLOT */</script>
 <script>
 "use strict";
 // ---------- state ----------
@@ -122,16 +124,25 @@ function entryFiles(entry, prefix, out) {
 }
 
 const drop = $("drop");
+window.addEventListener("dragenter", (event) => { event.preventDefault(); drop.classList.add("hot"); });
 window.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("hot"); });
 window.addEventListener("dragleave", () => drop.classList.remove("hot"));
 window.addEventListener("drop", async (event) => {
   event.preventDefault(); drop.classList.remove("hot");
+  // Grab every entry SYNCHRONOUSLY: the DataTransfer store is cleared as
+  // soon as the handler yields, so webkitGetAsEntry after an await returns
+  // nothing and multi-item drops silently vanish.
+  const entries = [];
   const out = [];
-  const items = [...event.dataTransfer.items];
-  for (const item of items) {
+  for (const item of [...event.dataTransfer.items]) {
     const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
-    if (entry) await entryFiles(entry, "", out);
+    if (entry) entries.push(entry);
     else { const f = item.getAsFile(); if (f) out.push([f.name, f]); }
+  }
+  for (const entry of entries) await entryFiles(entry, "", out);
+  if (out.length === 0) {
+    $("dropStatus").textContent = "that drop carried no readable files (an elevated browser blocks Explorer drags) — use the pick button instead";
+    return;
   }
   await ingest(out);
 });
@@ -173,13 +184,19 @@ async function ingest(pairs) {
     state.width = first.width; state.height = first.height;
     state.notes.push("no JSON base dims found; using first image's pixel size");
   }
-  if (!state.width) { state.notes.push("nothing loadable found — drop a content pack directory"); render(); return; }
+  if (!state.width) {
+    state.notes.push("nothing loadable found — drop (or pick) a content pack directory");
+    renderPackInfo();
+    render();
+    return;
+  }
 
   state.scale = Math.max(2, Math.min(16, Math.floor(896 / Math.max(state.width, state.height))));
   buildIndexes();
   rebuildBackdropList();
   renderPackInfo();
   render();
+  $("dropStatus").textContent = "loaded " + state.files.size + " file(s) — drop or pick more (e.g. an analyze dir) to add layers";
 }
 
 function findFile(name) {
@@ -456,7 +473,27 @@ function renderPackInfo() {
   $("packInfo").innerHTML = parts.join("");
 }
 
+// ---------- embedded packs (view.html emitted by `wf-fill export`) ----------
+// The exporter can inject the pack's JSON payloads and renders into the
+// embed slot script above, producing a self-contained view.html inside
+// the output directory: double-click it and everything is already loaded.
+// Still read-only — the data rides inside the file, nothing is fetched.
+async function ingestEmbedded(embedded) {
+  const pairs = [];
+  for (const [name, text] of Object.entries(embedded.jsons || {})) {
+    pairs.push([name, new File([text], name, { type: "application/json" })]);
+  }
+  for (const [name, base64] of Object.entries(embedded.images || {})) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    pairs.push([name + ".png", new File([bytes], name + ".png", { type: "image/png" })]);
+  }
+  await ingest(pairs);
+}
+
 render();
+if (window.WF_EMBEDDED) ingestEmbedded(window.WF_EMBEDDED);
 </script>
 </body>
 </html>

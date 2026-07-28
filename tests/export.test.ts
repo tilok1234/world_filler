@@ -42,13 +42,19 @@ describe("content pack export", () => {
       const runB = runCli(["export", FEN, RECIPE, outB], base);
       assert.equal(runB.status, 0, runB.stderr);
 
-      for (const name of ["manifest.json", "content-plan.json", "placements.json", "territories.json", "report.json"]) {
+      for (const name of ["manifest.json", "content-plan.json", "placements.json", "territories.json", "report.json", "view.html"]) {
         assert.equal(
           readFileSync(join(outA, name), "utf8"),
           readFileSync(join(outB, name), "utf8"),
           `${name} byte-identical across exports`,
         );
       }
+
+      // The baked inspector is self-contained: data embedded, slot filled.
+      const view = readFileSync(join(outA, "view.html"), "utf8");
+      assert.ok(view.includes("window.WF_EMBEDDED = "), "view.html embeds the pack data");
+      assert.ok(!view.includes("WF_EMBED_SLOT"), "the embed slot was replaced");
+      assert.ok(view.includes("basic-direction"), "embedded data carries the recipe identity");
 
       const manifest = JSON.parse(readFileSync(join(outA, "manifest.json"), "utf8")) as {
         packFormat: number;
