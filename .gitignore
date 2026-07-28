@@ -1,6 +1,9 @@
 node_modules/
 outputs/
 *.log
+# user-dropped worlds are data, not source (recipes\ IS tracked)
+worlds/*
+!worlds/README.txt
 # dist/ is deliberately COMMITTED (pre-built, zero runtime deps): a plain
 # ZIP download runs with nothing but Node — no npm install, no build.
 # Rebuild and include dist/ in every commit that touches src/ (HANDOFF.md).

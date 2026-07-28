@@ -297,8 +297,8 @@ describe("freeze review: recipe lock id grammar", () => {
 });
 
 describe("freeze review: output guard and CLI flags", () => {
-  it("refuses consumers/, dist/, and node_modules/ as output roots", () => {
-    for (const dir of ["consumers", "dist", "node_modules"]) {
+  it("refuses consumers/, dist/, node_modules/, worlds/, and recipes/ as output roots", () => {
+    for (const dir of ["consumers", "dist", "node_modules", "worlds", "recipes"]) {
       assert.throws(() => assertOutputRoot(join(ROOT, dir, "anything")), /protected repository tree/);
     }
   });

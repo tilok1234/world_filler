@@ -96,6 +96,27 @@ wf-fill verify-pack <pack> <content-pack>
 godot --headless --script consumers/godot-proof/verify_content_pack.gd -- <pack> <content-pack>
 ```
 
+## Using packs in the game (Godot)
+
+`consumers/godot_addon/worldfiller_importer/` is the game-side importer:
+copy that folder into a Godot 4 project, ship the world pack + content
+pack as game data, and `WorldfillerImporter.load_packs(world_dir,
+content_dir)` returns verified, decoded data (placements, territories
+with cell arrays, walkability, POIs) plus query helpers
+(`walkable`, `territory_at`, `placement_by_id`). Its README carries the
+integration example and the runtime-split rules. Proof:
+`godot --headless --script consumers/godot_addon/test_importer.gd --
+<world-pack> <content-pack> <wrong-world-pack>`.
+
+## The no-terminal loop (Windows)
+
+Drop WorldForge world-pack folders into `worlds\`, optionally give each
+one a recipe as `recipes\<world-folder-name>.json`, and double-click
+`START-HERE.bat`: every world without a content pack gets directed and
+the newest map opens. To regenerate after editing a recipe, delete that
+world's folder under `outputs\export` and run it again. Refused worlds
+are named in the console — a refusal is the audit working, not a crash.
+
 ## The regenerated-world (staleness) workflow
 
 When the upstream world regenerates (new WorldForge behavior, new seed),
