@@ -104,6 +104,13 @@ stays deferred).
 
 ## 3. Toolchain and environment gotchas
 
+- **dist/ is COMMITTED** (user-facing decision, 2026-07-28): the project
+  has zero runtime deps, so a plain ZIP download runs with nothing but
+  Node — `START-HERE.bat` exports the fixture worlds and opens the
+  viewer with no npm install and no build. **Every commit that touches
+  src/ must rebuild and include dist/** or the shipped program drifts
+  from the source. setup.bat / open-viewer.bat support the same flow.
+
 - Node **>= 24.15 required** (engines pin, matches upstream). Container
   default node is 22 — `source /opt/nvm/nvm.sh && nvm install 24` (the
   bare `/opt/nvm` tree may not have 24 preinstalled).

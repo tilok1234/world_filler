@@ -1,0 +1,21 @@
+/**
+ * World Filler version identity. Every derived output stamps these; a
+ * behavior change bumps DIRECTOR_BEHAVIOR_VERSION plus the touched rule
+ * packs, sequentially, mirroring the upstream versioning doctrine.
+ */
+export const DIRECTOR_VERSION = "0.1.0";
+export const DIRECTOR_BEHAVIOR_VERSION = 5;
+export const RULE_PACK_VERSIONS = {
+    analysis: 1,
+    plan: 1,
+    placement: 2,
+    territory: 2,
+    validate: 1,
+    export: 1,
+};
+export const RECIPE_FORMAT = 1;
+export const PLAN_FORMAT = 1;
+export const PLACEMENTS_FORMAT = 1;
+export const TERRITORIES_FORMAT = 1;
+export const REPORT_FORMAT = 1;
+export const CONTENT_PACK_FORMAT = 1;
