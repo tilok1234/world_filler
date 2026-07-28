@@ -431,14 +431,21 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     const id = record["id"];
     const rule = record["rule"];
     const regionId = record["regionId"];
-    if (typeof id !== "string" || !id.startsWith("placement.")) {
-      throw new RecipeError(`recipe: $.locks.placements[${i}].id must be a placement id`);
-    }
     if (rule !== "world_boss.v1" && rule !== "dungeon_binding.v1") {
       throw new RecipeError(`recipe: $.locks.placements[${i}].rule must be world_boss.v1 or dungeon_binding.v1`);
     }
     if (typeof regionId !== "string" || regionId === "") {
       throw new RecipeError(`recipe: $.locks.placements[${i}].regionId must be a region id`);
+    }
+    // Lock ids ship verbatim into placements.json, so they must obey the
+    // frozen id scheme and agree with the lock's own rule and regionId:
+    // placement.<world_boss|dungeon>.<regionId>.<slot>.
+    const idPrefix = `placement.${rule === "world_boss.v1" ? "world_boss" : "dungeon"}.${regionId}.`;
+    const idSlot = typeof id === "string" && id.startsWith(idPrefix) ? id.slice(idPrefix.length) : null;
+    if (typeof id !== "string" || idSlot === null || !/^(0|[1-9][0-9]*)$/.test(idSlot)) {
+      throw new RecipeError(
+        `recipe: $.locks.placements[${i}].id must match ${idPrefix}<slot> (the frozen placement id scheme, agreeing with the lock's rule and regionId)`,
+      );
     }
     const cell = parseCellPair(record["cell"], `$.locks.placements[${i}].cell`);
     const exclusionRadius = record["exclusionRadius"];

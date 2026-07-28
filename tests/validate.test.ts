@@ -170,6 +170,22 @@ describe("locks", () => {
     arenaSide: boss.arenaSide,
   };
 
+  it("refuses lock ids that violate the frozen id scheme or disagree with the lock's rule/region", () => {
+    const badIds = [
+      "placement.myboss",
+      `placement.world_boss.${boss.regionId}.x`,
+      `placement.dungeon.${boss.regionId}.0`, // rule says world_boss
+      "placement.world_boss.region.other.999.0", // regionId disagrees
+    ];
+    for (const badId of badIds) {
+      assert.throws(
+        () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ ...lockEntry, id: badId }] } }),
+        /id must match placement\./,
+        badId,
+      );
+    }
+  });
+
   it("holds a lock across regeneration with identical geometry, and is byte-stable", () => {
     const locked = pipelineFor("fen-hollow", { ...MINIMAL, name: "locked", locks: { placements: [lockEntry] } });
     const held = locked.placements.placements.find((p) => p.id === boss.id);
@@ -268,14 +284,14 @@ describe("locks", () => {
   it("rejects malformed locks in the recipe", () => {
     assert.throws(
       () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "x", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4, arenaOrigin: [0, 0], arenaSide: 3 }] } }),
-      /id must be a placement id/,
+      /id must match placement\./,
     );
     assert.throws(
-      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.x", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
+      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.world_boss.r.0", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
       /world_boss locks require arenaOrigin and arenaSide/,
     );
     assert.throws(
-      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.x", rule: "dungeon_binding.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
+      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.dungeon.r.0", rule: "dungeon_binding.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
       /dungeon locks require anchorPoiId/,
     );
   });

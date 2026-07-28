@@ -413,6 +413,18 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     return 1;
   }
   const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  // A pin exists to be honored: the shipping verb refuses a stale base
+  // unconditionally, exactly like plan/place/territories. `validate` is
+  // the verb that diagnoses staleness (G7 warns by default, --strict
+  // makes it a failure).
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(
+      `export: refusing — recipe pins base ${pin} but the pack's generation identity is ` +
+        `${model.generator.generationIdentitySha256} (stale base; re-pin deliberately)`,
+    );
+    return 1;
+  }
   const bundle = analyzeWorld(model);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
@@ -468,6 +480,11 @@ function runVerifyPack(worldPackDir: string, contentPackDir: string): number {
 function main(argv: readonly string[]): number {
   const strict = argv.includes("--strict");
   const positional = argv.filter((entry) => entry !== "--strict");
+  const unknownFlag = positional.find((entry) => entry.startsWith("-"));
+  if (unknownFlag !== undefined) {
+    console.error(`unknown flag ${unknownFlag} (the only flag is --strict); refusing rather than treating it as a path`);
+    return 1;
+  }
   const [command, target, extra, extra2] = positional;
   if (command === undefined || command === "help" || command === "--help") {
     usage();

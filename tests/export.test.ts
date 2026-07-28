@@ -96,8 +96,8 @@ describe("content pack export", () => {
     }
   });
 
-  it("refuses to export when a gate fails (strict stale pin)", () => {
-    const base = mkdtempSync(join(tmpdir(), "wf-export-gate-"));
+  it("refuses a stale base pin unconditionally — strict not required", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-stale-"));
     try {
       const staleRecipe = join(base, "stale.json");
       writeFileSync(
@@ -110,12 +110,93 @@ describe("content pack export", () => {
         }),
       );
       const out = join(base, "pack");
-      const run = runCli(["export", FEN, staleRecipe, out, "--strict"], base);
+      const run = runCli(["export", FEN, staleRecipe, out], base);
       assert.notEqual(run.status, 0);
-      assert.match(run.stderr, /export: refusing — the audit failed: .*G7/);
+      assert.match(run.stderr, /export: refusing — recipe pins base .*\(stale base; re-pin deliberately\)/);
       assert.throws(() => readdirSync(out), /ENOENT/);
     } finally {
       rmSync(base, { recursive: true, force: true });
     }
+  });
+
+  it("refuses to export when a gate fails (strict invalid lock), writing nothing", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-gate-"));
+    try {
+      const badLockRecipe = join(base, "bad-lock.json");
+      writeFileSync(
+        badLockRecipe,
+        JSON.stringify({
+          recipeFormat: 1,
+          name: "bad-lock",
+          directorSeed: 1,
+          locks: {
+            placements: [
+              {
+                id: "placement.dungeon.region.nowhere.0.0",
+                rule: "dungeon_binding.v1",
+                regionId: "region.nowhere.0",
+                cell: [4, 4],
+                exclusionRadius: 4,
+                anchorPoiId: 9999,
+              },
+            ],
+          },
+        }),
+      );
+      const out = join(base, "pack");
+      const run = runCli(["export", FEN, badLockRecipe, out, "--strict"], base);
+      assert.notEqual(run.status, 0);
+      assert.match(run.stderr, /export: refusing — the audit failed: .*G6/);
+      assert.throws(() => readdirSync(out), /ENOENT/);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("stages atomically: re-export replaces a corrupted pack and leaves no staging directory", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-atomic-"));
+    try {
+      const out = join(base, "pack");
+      assert.equal(runCli(["export", FEN, RECIPE, out], base).status, 0);
+
+      // Corrupt the pack in place and leave junk where staging goes; a
+      // re-export must fully replace the pack and clean up after itself.
+      writeFileSync(join(out, "placements.json"), "corrupted, not JSON");
+      cpSync(out, `${out}.staging`, { recursive: true });
+      assert.equal(runCli(["export", FEN, RECIPE, out], base).status, 0);
+      const summary = verifyContentPack(FEN, out);
+      assert.ok(summary.placements >= 1);
+      assert.throws(() => readdirSync(`${out}.staging`), /ENOENT/);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("matches the committed golden pack byte-for-byte (frozen serialization tripwire)", () => {
+    // Any field rename, removal, or type change in ANY payload document
+    // trips here even though export-vs-export comparisons drift together.
+    // Re-record ONLY via `node dist/tools/updateGoldenPack.js` as an
+    // explicit, logged decision.
+    const golden = join(repoRoot(), "fixtures", "golden", "content-pack-fen-hollow-basic-direction");
+    const base = mkdtempSync(join(tmpdir(), "wf-export-golden-"));
+    try {
+      const out = join(base, "pack");
+      assert.equal(runCli(["export", FEN, RECIPE, out], base).status, 0);
+      for (const name of ["manifest.json", "content-plan.json", "placements.json", "territories.json", "report.json"]) {
+        assert.equal(
+          readFileSync(join(out, name), "utf8"),
+          readFileSync(join(golden, name), "utf8"),
+          `${name} matches the committed golden bytes`,
+        );
+      }
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses unknown flags instead of treating them as output paths", () => {
+    const run = runCli(["export", FEN, RECIPE, "--stric"], tmpdir());
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /unknown flag --stric/);
   });
 });

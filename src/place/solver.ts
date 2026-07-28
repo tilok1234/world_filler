@@ -751,7 +751,11 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   for (const region of plan.regions) {
     const heldBosses = heldByRegionRule.get(`${region.id}|world_boss.v1`) ?? 0;
     if (region.budgets.worldBosses - heldBosses <= 0) continue;
-    const field = placeBoss(state, region.id, 0, peerFields);
+    // A held lock may occupy a slot number; the fresh boss takes the first
+    // free one so ids can never collide (mirrors the dungeon-side consult).
+    let slot = 0;
+    while (heldIds.has(`placement.world_boss.${region.id}.${slot}`)) slot += 1;
+    const field = placeBoss(state, region.id, slot, peerFields);
     if (field !== null) peerFields.push(field);
   }
 

@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalJson } from "../core/canonicalJson.js";
 import { sha256Hex } from "../core/sha256.js";
@@ -92,6 +92,32 @@ export function buildContentPack(inputs: ExportInputs): BuiltContentPack {
     throw new ExportError(`export: refusing — the audit failed: ${failed.join("; ")}`);
   }
 
+  // The report must be the audit of exactly these inputs: every document
+  // stamps the same identity, and a passing report for a different
+  // recipe, world, or behavior version authorizes nothing. Callers that
+  // thread one pipeline's outputs pass trivially; mixed inputs refuse.
+  const expectedRecipeSha = recipeSha256(recipe);
+  const expectedBase = model.generator.generationIdentitySha256;
+  const rulePacksJson = JSON.stringify(RULE_PACK_VERSIONS);
+  for (const [name, doc] of [
+    ["content-plan.json", plan],
+    ["placements.json", placements],
+    ["territories.json", territories],
+    ["report.json", report],
+  ] as const) {
+    const mismatches: string[] = [];
+    if (doc.directorRecipeSha256 !== expectedRecipeSha) mismatches.push("directorRecipeSha256");
+    if (doc.directorBehaviorVersion !== DIRECTOR_BEHAVIOR_VERSION) mismatches.push("directorBehaviorVersion");
+    if (JSON.stringify(doc.rulePacks) !== rulePacksJson) mismatches.push("rulePacks");
+    if (doc.analysisVersion !== ANALYSIS_VERSION) mismatches.push("analysisVersion");
+    if (doc.base.generationIdentitySha256 !== expectedBase) mismatches.push("base.generationIdentitySha256");
+    if (mismatches.length > 0) {
+      throw new ExportError(
+        `export: refusing — ${name} was not produced from these inputs (${mismatches.join(", ")} disagree)`,
+      );
+    }
+  }
+
   const payload = new Map<string, string>();
   payload.set("content-plan.json", canonicalJson(plan));
   payload.set("placements.json", canonicalJson(placements));
@@ -134,11 +160,23 @@ export function buildContentPack(inputs: ExportInputs): BuiltContentPack {
   return { manifest, files: payload };
 }
 
-/** Write a built pack to a directory (creates it; overwrites payload files). */
+/**
+ * Write a built pack to a directory via sibling temp-directory staging
+ * (the upstream safe-write rule: all hard failures, no partial packs).
+ * The complete pack is written into `<outDir>.staging` — manifest.json
+ * last, as the commit record — and only then swapped into place, so a
+ * failure mid-write can never destroy an existing pack or leave a
+ * directory that looks like a pack. A directory without manifest.json
+ * is not a pack.
+ */
 export function writeContentPack(pack: BuiltContentPack, outDir: string): void {
-  mkdirSync(outDir, { recursive: true });
+  const staging = `${outDir}.staging`;
+  rmSync(staging, { recursive: true, force: true });
+  mkdirSync(staging, { recursive: true });
   for (const [name, bytes] of pack.files) {
-    writeFileSync(join(outDir, name), bytes);
+    writeFileSync(join(staging, name), bytes);
   }
-  writeFileSync(join(outDir, "manifest.json"), canonicalJson(pack.manifest));
+  writeFileSync(join(staging, "manifest.json"), canonicalJson(pack.manifest));
+  rmSync(outDir, { recursive: true, force: true });
+  renameSync(staging, outDir);
 }

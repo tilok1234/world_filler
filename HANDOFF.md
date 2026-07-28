@@ -20,29 +20,19 @@ Both proof worlds pass the nine-gate audit and export content packs that
 verify in the TypeScript lane AND inside headless Godot 4.6.2
 (`consumers/godot-proof/verify_content_pack.gd`).
 
-## 1. IN FLIGHT at handoff time — the F7 freeze review
+## 1. The F7 freeze review — RESOLVED
 
-An ultracode adversarial review of the FROZEN content-pack format 1 ran
-in the closing session. It was STOPPED when the session hit its usage
-limit: **4 of 5 review lenses completed; the fifth lens and the entire
-adversarial verification phase never ran.** The 38 raw findings (3
-claimed-critical, 23 major, 12 minor) were salvaged into
-**`docs/FREEZE_REVIEW_FINDINGS.md`** — every one is an UNVERIFIED
-reviewer claim.
-
-Next session, before building F8 or any game-side importer:
-
-1. Verify each finding in that file (read the code, actively try to
-   refute — the F4 verification pass was worth it; ask the user for
-   ultracode opt-in if a swarm is wanted, max 8 concurrent).
-2. Fix what survives, note refuted ones, commit as the freeze-review
-   resolution, and only then declare content pack format 1 final.
-3. The missing fifth lens was importer-buildability ("can the game
-   importer be built from docs/CONTENT_PACK_FORMAT.md + the two
-   reference verifiers alone?") — run that read yourself and fold any
-   gaps into the doc.
-
-Until then the freeze is **provisional**.
+The interrupted review's 38 findings were verified (all confirmed,
+collapsing to 15 distinct defects), fixed, and committed; the missing
+fifth lens (importer-buildability) was run and folded into
+docs/CONTENT_PACK_FORMAT.md. See docs/FREEZE_REVIEW_FINDINGS.md for the
+per-defect resolution record. **Content pack format 1 is FINAL.**
+Evidence: 134 tests green (new adversarial verifier battery + committed
+golden pack, re-record only via `node dist/tools/updateGoldenPack.js`);
+the rewritten GDScript verifier refuses all 12 tampered packs in
+headless Godot 4.6.2 identically to the TS lane; pre-fix and post-fix
+exports of fen-hollow/basic-direction are byte-identical (behavior
+version stays 5 — every fix was refusal-path tightening).
 
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 

@@ -31,7 +31,14 @@ against the world pack alone.
 
 All payload files are canonical JSON: keys sorted (UTF-16 code-unit order),
 two-space indent, LF, one trailing newline, UTF-8, safe integers only.
-No timestamps exist anywhere; identity is hashes.
+`manifest.json` is written with the same canonical-JSON rules, so entire
+packs are byte-stable, manifest included. No timestamps exist anywhere;
+identity is hashes.
+
+The exporter stages the whole pack in a sibling temp directory and swaps
+it into place, writing `manifest.json` last as the commit record. A
+directory without `manifest.json` is not a pack; importers must treat it
+as absent, never best-effort.
 
 ## manifest.json
 
@@ -69,26 +76,84 @@ No timestamps exist anywhere; identity is hashes.
 An importer MUST, in order:
 
 1. Require `pack == "worldfiller-content-pack"` and `packFormat == 1`;
-   refuse anything else (no best-effort reads of unknown formats).
-2. Hash-verify every entry in `files` against the payload bytes.
+   refuse anything else (no best-effort reads of unknown formats — `"1"`
+   and `1.9` are refusals, not `1`). `packFormat` 1 also fixes every
+   payload format at 1: refuse any other `planFormat`,
+   `placementsFormat`, `territoriesFormat`, or `reportFormat`.
+2. Require `files` to list **exactly** `content-plan.json`,
+   `placements.json`, `report.json`, `territories.json` — missing or
+   extra names refuse (a pruned table would make hash verification
+   vacuous). Keys are bare file names, never paths. Hash-verify every
+   entry against the payload bytes, and parse payloads from the same
+   bytes that were hashed.
 3. Cross-check the base pairing against the world pack it is loading
    beside: `base.generationIdentitySha256 ==
    worldManifest.generator.generationIdentitySha256` AND
    `base.artifactSha256 == worldManifest.baseArtifactSha256`. A mismatched
-   pair refuses at import, not at play time.
+   pair refuses at import, not at play time. `base.artifactFormat`,
+   `base.width`, and `base.height` must equal the world pack's own values.
 4. Require `report.json` `.ok == true` (the pack was audited; a hand-built
    pack without a passing report is not a valid pack).
-5. Treat unknown ids and enum values as errors, never as defaults.
+5. Treat unknown ids and **closed-enum** values as errors, never as
+   defaults (see "Closed enums and open vocabularies" below).
+6. Require the manifest's duplicated identity fields
+   (`directorRecipeSha256`, `directorBehaviorVersion`, `rulePacks`,
+   `analysisVersion`, `recipeName`, `directorSeed`,
+   `base.generationIdentitySha256`) to agree with every hashed payload
+   document, and `counts` to equal the actual array lengths — the
+   manifest is the one unhashed file, so its redundancy is verified,
+   never trusted.
+
+## Closed enums and open vocabularies
+
+Obligation 5 applies to the format-frozen **closed enums** only. In
+format 1 these are:
+
+- `placement.rule`: `world_boss.v1` | `dungeon_binding.v1`
+- `territory.cells.encoding`: `runs`
+- `territory.respawnPressure`: `low` | `medium` | `high`
+- `report.json` gate `status`: `pass` | `warn` | `fail`
+- `lockReport[].status`: `held` | `invalid`
+
+Everything else that looks like an enum is an **open, behavior-versioned
+vocabulary** that legitimately gains values under a
+`directorBehaviorVersion` bump while `packFormat` stays 1 — importers
+MUST NOT refuse unknown values there: `candidateFunnel[].stage`,
+`failures[].reason`, `unboundAnchors[].reason`, lock invalidity reasons,
+plan waiver strings, `anchorPoiType` (upstream-owned, append-only), and
+`enemyId` (game-owned).
+
+## Ids are opaque keys
+
+Placement and territory ids are unique opaque strings. The only
+guaranteed structure is the prefix (`placement.world_boss.`,
+`placement.dungeon.`, `territory.`) and a trailing `.<decimal slot>`.
+`regionId` itself contains dots (the informative scheme is
+`region.<biome-short>.<anchorIndex>`), so ids MUST NOT be parsed for
+region membership — read the explicit `regionId` field. Key runtime
+deltas by the whole id string.
 
 Walkability truth is the world pack's `walkability.json` bitgrid
 (`base64-bitpacked-row-major-lsb-first`, bit i = y*width+x, walkable = 1).
 The reference verifiers re-check every placement and territory cell against
 it; an importer may repeat that spot-check cheaply at load.
 
+## Version identity block (all payload files)
+
+Every payload document carries the same identity fields at top level:
+`directorBehaviorVersion`, `rulePacks` (the six-key table from the
+manifest), `analysisVersion`, `recipeName`, `directorSeed` (absent from
+`report.json` only — the seed is inside the hashed recipe identity),
+`directorRecipeSha256`, and `base` (`generationIdentitySha256`,
+`artifactFormat`, plus `width`/`height` everywhere except
+`report.json`). They duplicate the manifest so each file is
+self-identifying in isolation; the blessed cross-checks require them to
+agree.
+
 ## placements.json (format 1)
 
-Top level: `placementsFormat`, version identity, `base`, `placements[]`,
-`failures[]`, `unboundAnchors[]`, `lockReport[]`.
+Top level: `placementsFormat`, the version identity block, `base`,
+`placements[]`, `failures[]`, `unboundAnchors[]`, `lockReport[]`.
 
 Each placement:
 
@@ -101,7 +166,7 @@ Each placement:
   "accessCell": [31, 59],           // walk-up ground, always walkable+reachable
   "anchorPoiId": 3 | null,          // dungeon: the world pack poi id it binds
   "anchorPoiType": "poi.cave" | null,
-  "inSafeZone": false,              // dungeons: access cell inside a settlement safe zone
+  "inSafeZone": false,              // accessCell inside a settlement safe zone (any rule; bosses are false by construction in format 1)
   "arenaOrigin": [28, 56] | null,   // boss: top-left of the reserved arena square
   "arenaSide": 6 | null,
   "exclusionRadius": 16,            // spacing buffer radius around cell
@@ -113,6 +178,24 @@ Each placement:
 }
 ```
 
+Rows held by a recipe lock carry `channel: "locked"` and placeholder
+explanation values — `draw 0`, `score 0`, empty `scoreTerms`/
+`topCandidates`, and a single `candidateFunnel` entry
+`{"stage": "locked", "remaining": 1}`. These are sentinels, not data;
+tooling must not read solver meaning into them.
+
+### Explanation and diagnostic data (importers MUST NOT depend on it)
+
+`scoreTerms`, `candidateFunnel`, `topCandidates`, `failures[]`,
+`unboundAnchors[]`, and territory `coverage` detail are **inspection
+data**: hashed payload so tooling can trust their bytes, but their
+element shapes and string vocabularies are behavior-versioned and exempt
+from obligation 5. An importer needs none of them to compose a world and
+MUST NOT couple to their contents. The one diagnostic array with a
+frozen shape is `lockReport[]` — `{ "id", "status": "held" | "invalid",
+"reasons": [...] }` — because the staleness workflow points users at it;
+its `reasons` strings remain an open vocabulary.
+
 Runtime split: the pack carries permanent structure. Spawning the boss,
 door state, kill state, and loot are game runtime concerns; persist them as
 game-side deltas over the deterministic base (upstream doctrine), keyed by
@@ -120,8 +203,8 @@ placement `id`.
 
 ## territories.json (format 1)
 
-Top level: `territoriesFormat`, version identity, `base`, `territories[]`,
-`failures[]`, `coverage`.
+Top level: `territoriesFormat`, the version identity block, `base`,
+`territories[]`, `failures[]`, `coverage`.
 
 Each territory:
 
@@ -131,7 +214,7 @@ Each territory:
   "regionId": "region.mud.1245",
   "dangerBand": 2,                          // 0 = safe heartland band
   "seedCell": [18, 44],
-  "cells": { "encoding": "runs", "runs": [[16, 42, 5], ...] },  // [x, y, length], never crossing rows
+  "cells": { "encoding": "runs", "runs": [[16, 42, 5], ...] },  // [x, y, length]; importers MUST refuse x < 0, y < 0, length < 1, or x + length > width — runs never cross rows
   "cellCount": 65,
   "roster": [ { "enemyId": "enemy.mire_creeper", "weightPercent": 35, "nightOnly": false } ],
   "packSize": [2, 6],
@@ -149,14 +232,40 @@ respawn pressure, and elite chance; the pack only fixes the ground and the
 budgets. Territory cells never overlap each other, safe zones, or any
 placement's exclusion radius.
 
+`coverage` is diagnostic data scoped to **territory-budgeted regions
+only**: `coverage.regions` lists one row per region whose plan carried a
+territory budget > 0, and `totalHostileWalkable`/`totalCovered` sum those
+rows, not the whole world. World-total denominators live in
+`content-plan.json`, which carries `hostileWalkableCells` for every
+region.
+
 ## content-plan.json and report.json
 
 `content-plan.json` (plan format 1) is the per-region brief: danger bands,
 classes, budgets, waivers, progression check results — useful for debug
-overlays and quest/level tuning. `report.json` (report format 1) is the
-audit that authorized the export: gate list with statuses and details.
-Neither is required at runtime, but both are hashed payload so tooling can
+overlays and quest/level tuning. Its region entries are inspection data
+like the explanation arrays, with one load-bearing exception: each region
+row carries `hostileWalkableCells`, the world-total denominator that
+territory `coverage` deliberately does not repeat.
+
+`report.json` (report format 1) is the audit that authorized the export.
+Its load-bearing fields are `reportFormat`, `ok`, and the identity block;
+`gates[]` entries are `{ "id", "name", "status": "pass" | "warn" |
+"fail", "details": [...] }` plus a top-level `strict` flag recording the
+audit mode. Gate ids and detail strings are open vocabulary. Neither
+file is required at runtime, but both are hashed payload so tooling can
 trust them.
+
+## Strictness and staleness
+
+`wf-fill export` refuses a recipe whose `base.generationIdentitySha256`
+pin does not match the world pack, in every mode — a pin exists to be
+honored at the shipping verb, exactly as `plan`/`place`/`territories`
+refuse. `wf-fill validate` is the verb that *diagnoses* a stale world:
+gate G7 (base identity) and G6 (invalid locks) report as warnings by
+default and become hard failures under `--strict`. Every other gate is
+unconditionally hard. A pack's `report.json` records which mode audited
+it in `strict`.
 
 ## Versioning
 

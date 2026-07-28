@@ -106,6 +106,14 @@ export function encodeRuns(cells: ReadonlySet<number>, width: number): Array<[nu
 export function decodeRuns(runs: readonly (readonly [number, number, number])[], width: number): Set<number> {
   const cells = new Set<number>();
   for (const [x, y, length] of runs) {
+    if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(length)) {
+      throw new Error(`territory: run [${x}, ${y}, ${length}] must be integers`);
+    }
+    if (x < 0 || y < 0 || length < 1 || x + length > width) {
+      throw new Error(
+        `territory: run [${x}, ${y}, ${length}] is invalid at width ${width} — runs never cross rows`,
+      );
+    }
     for (let i = 0; i < length; i += 1) cells.add(y * width + x + i);
   }
   return cells;

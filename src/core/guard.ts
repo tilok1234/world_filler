@@ -10,7 +10,19 @@ import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "no
  * trees is refused with a named error.
  */
 
-const PROTECTED_SUBDIRS = ["src", "tests", "tools", "docs", "fixtures", "schemas", ".git", "vendor"];
+const PROTECTED_SUBDIRS = [
+  "src",
+  "tests",
+  "tools",
+  "docs",
+  "fixtures",
+  "consumers",
+  "dist",
+  "node_modules",
+  "schemas",
+  "vendor",
+  ".git",
+];
 
 export function repoRoot(): string {
   let dir = resolve(import.meta.dirname ?? ".");

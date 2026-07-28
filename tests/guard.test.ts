@@ -12,7 +12,7 @@ describe("output path guard", () => {
   });
 
   it("refuses protected repository trees", () => {
-    for (const tree of ["src", "fixtures", "docs", "tests"]) {
+    for (const tree of ["src", "fixtures", "docs", "tests", "consumers", "dist", "node_modules"]) {
       assert.throws(() => assertOutputRoot(join(repoRoot(), tree, "x")), /protected repository tree/);
     }
     assert.throws(() => assertOutputRoot(repoRoot()), /repository root itself/);
