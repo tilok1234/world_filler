@@ -14,6 +14,7 @@ export const MATERIALS = [
   "water.shallow",
   "terrain.packed_road",
   "terrain.cobble",
+  "terrain.mud",
 ] as const;
 
 export const MAT = Object.fromEntries(MATERIALS.map((name, index) => [name, index])) as Record<

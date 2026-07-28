@@ -1,11 +1,16 @@
 # World Filler Roadmap
 
-Status: **F0 + F1 complete and green (2026-07-28)** — clean-room reader,
+Status: **F0–F2 complete and green (2026-07-28)** — clean-room reader,
 ladder, flood, and parity suite verified (bit-for-bit reference-grid parity
 on the three committed fixtures and, locally, the canonical 256² world at
 flood 33893); deterministic kernel landed with committed golden vectors,
 hierarchical channels, independence proofs, hygiene bans, and a three-OS CI
-workflow (first cross-platform run pending on GitHub). F2 is next.
+workflow (first cross-platform run pending on GitHub). F2 spatial analysis
+landed: components, distance fields, clearance, corridors, safe zones,
+region segmentation + adjacency, hashed cached summaries, and heatmap
+renders (`wf-fill analyze`); structural exit criteria verified, island
+behavior proven on a synthetic detached-landmass test, **visual verdict on
+the renders pending user review**. F3 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

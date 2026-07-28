@@ -74,7 +74,15 @@ vectors (`fixtures/golden/kernel.json`, re-recorded only via
 `node dist/tools/updateGolden.js` as an explicit decision), stateless
 indexed draws, weighted selection, shuffling, channel-independence tests,
 a hygiene test banning hidden nondeterminism from the source tree, and a
-three-OS CI workflow. Next: F2 (spatial analysis).
+three-OS CI workflow. F2 spatial analysis is implemented and green:
+walkable components (multi-component aware), path-distance fields (spawn /
+settlements / roads / water), clearance, corridor chokepoints, safe zones,
+biome region segmentation with adjacency and dead-end scoring, a canonical
+hashed analysis summary with a drift-detecting cache, and eleven heatmap
+renders per world via a zero-dependency PNG encoder (`wf-fill analyze`).
+Structural exit criteria verified on fixtures and the canonical 256² world;
+the render **visual verdict is pending user review**. Next: F3
+(DirectorRecipe + regional content plan).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

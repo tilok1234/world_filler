@@ -1,6 +1,12 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 import { readGamePack } from "./pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
 import { checkParity } from "./parity.js";
+import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary } from "./analysis/analyze.js";
+import { renderAnalysis } from "./render/heatmaps.js";
+import { canonicalJson } from "./core/canonicalJson.js";
+import { assertOutputRoot, repoRoot } from "./core/guard.js";
 
 function usage(): void {
   console.log(
@@ -8,10 +14,13 @@ function usage(): void {
       "wf-fill — deterministic world director over WorldForge game packs",
       "",
       "usage:",
-      "  wf-fill inspect <pack-dir>   identity, dimensions, records, parity summary",
-      "  wf-fill parity <pack-dir>    full bit-for-bit walkability parity + rung coverage",
+      "  wf-fill inspect <pack-dir>            identity, dimensions, records, parity summary",
+      "  wf-fill parity <pack-dir>             full bit-for-bit walkability parity + rung coverage",
+      "  wf-fill analyze <pack-dir> [out-dir]  spatial analysis bundle + heatmap renders",
       "",
-      "Both commands are read-only. Exit code 1 on any refusal or parity failure.",
+      "inspect and parity are read-only. analyze writes under outputs/ (or the",
+      "given out-dir, which must pass the output-root guard). Exit code 1 on any",
+      "refusal or parity failure.",
     ].join("\n"),
   );
 }
@@ -84,8 +93,45 @@ function runParity(dir: string): number {
   return parity.ok ? 0 : 1;
 }
 
+function runAnalyze(dir: string, outArg: string | undefined): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("analyze: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const bundle = analyzeWorld(model);
+
+  const outputsRoot = join(repoRoot(), "outputs");
+  const outDir = assertOutputRoot(outArg ?? join(outputsRoot, "analysis", basename(dir)));
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  writeFileSync(join(outDir, "summary.json"), canonicalJson(bundle.summary));
+  for (const map of renderAnalysis(model, bundle)) {
+    writeFileSync(join(outDir, "renders", `${map.name}.png`), map.png);
+  }
+
+  const cacheDir = analysisCacheDir(outputsRoot, model.generator.generationIdentitySha256);
+  const cached = readAnalysisSummary(cacheDir);
+  if (cached !== null && canonicalJson(cached) !== canonicalJson(bundle.summary)) {
+    console.log("analyze: NOTE — cached summary for this identity differed and was replaced (analysis drift)");
+  }
+  writeAnalysisSummary(cacheDir, bundle.summary);
+
+  const s = bundle.summary;
+  console.log(`analysis: ${s.base.width}x${s.base.height}, spawn (${s.spawnCell[0]}, ${s.spawnCell[1]})`);
+  console.log(
+    `components: ${s.components.count} (spawn component ${s.components.spawnComponent}, sizes ${s.components.sizes.join(", ")})`,
+  );
+  console.log(`regions: ${s.regionCount}; corridor cells: ${s.corridorCellCount}; safe-zone cells: ${s.safeZoneCellCount}`);
+  for (const [name, stat] of Object.entries(s.fieldStats)) {
+    console.log(`field ${name}: max ${stat.max}, reachable ${stat.reachableCells}`);
+  }
+  console.log(`wrote ${outDir} (summary.json + ${11} renders) and cache ${cacheDir}`);
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
-  const [command, target] = argv;
+  const [command, target, extra] = argv;
   if (command === undefined || command === "help" || command === "--help") {
     usage();
     return command === undefined ? 1 : 0;
@@ -97,6 +143,7 @@ function main(argv: readonly string[]): number {
   try {
     if (command === "inspect") return runInspect(target);
     if (command === "parity") return runParity(target);
+    if (command === "analyze") return runAnalyze(target, extra);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return 1;
