@@ -21,7 +21,7 @@ const RAMP: readonly Rgb[] = [
   [155, 60, 190],
 ];
 
-function bandColor(band: number, bandCount: number): Rgb {
+export function bandColor(band: number, bandCount: number): Rgb {
   if (band === 0) return BAND0;
   const steps = Math.max(1, bandCount - 2);
   const t = ((band - 1) * (RAMP.length - 1) * 256) / steps;

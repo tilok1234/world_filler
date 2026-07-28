@@ -111,7 +111,8 @@ export interface UnboundAnchor {
     | "spacing_blocked"
     | "no_region"
     | "region_zero_budget"
-    | "no_content_zone";
+    | "no_content_zone"
+    | "below_distance_floor";
 }
 
 export interface PlacementsDoc {
@@ -266,6 +267,10 @@ function placeDungeons(
     readonly scoreTerms: readonly ScoreTerm[];
   }
 
+  // Scale-free settlement floor: anchors whose doorstep is closer to a
+  // settlement than this permille of the world's max are not bound.
+  const distanceFloor = Math.floor((settlementMax * recipe.dungeonRule.minSettlementDistancePermille) / 1000);
+  let reachableCount = 0;
   const reachable: DungeonCandidate[] = [];
   for (const anchor of anchorPois) {
     if (state.inNoContent(anchor.cell[0], anchor.cell[1])) {
@@ -277,7 +282,12 @@ function placeDungeons(
       state.unboundAnchors.push({ poiId: anchor.poiId, poiType: anchor.poiType, cell: anchor.cell, regionId, reason: "unreachable_anchor" });
       continue;
     }
+    reachableCount += 1;
     const settlementDistance = bundle.distanceFromSettlements[access[1] * state.width + access[0]] as number;
+    if (settlementDistance !== UNREACHABLE && settlementDistance < distanceFloor) {
+      state.unboundAnchors.push({ poiId: anchor.poiId, poiType: anchor.poiType, cell: anchor.cell, regionId, reason: "below_distance_floor" });
+      continue;
+    }
     const value = settlementDistance === UNREACHABLE ? 1000 : permilleOf(settlementDistance, settlementMax);
     const terms: ScoreTerm[] = [
       {
@@ -322,7 +332,8 @@ function placeDungeons(
     }
     const funnel: CandidateFunnel[] = [
       { stage: "anchors_in_region", remaining: anchorPois.length },
-      { stage: "reachable", remaining: reachable.length },
+      { stage: "reachable", remaining: reachableCount },
+      { stage: "above_distance_floor", remaining: reachable.length },
       { stage: "spacing_clear", remaining: viable.length },
     ];
     if (viable.length === 0) {
@@ -332,7 +343,8 @@ function placeDungeons(
         slot,
         candidateFunnel: funnel,
         message: `no viable dungeon anchor for ${regionId} slot ${slot}: ` +
-          `${anchorPois.length} anchors, ${reachable.length} reachable, 0 clear of existing reservations`,
+          `${anchorPois.length} anchors, ${reachableCount} reachable, ${reachable.length} above the distance floor, ` +
+          `0 clear of existing reservations`,
       });
       break;
     }
@@ -421,6 +433,14 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
   let afterSafeAndReserved = 0;
   let afterExclusion = 0;
   let afterSettlement = 0;
+  let afterRoad = 0;
+  // Scale-free remoteness floors: permille of the world's own max field
+  // distance, so one recipe reads the same on a 64² and a 256² world.
+  const settlementFloor = Math.max(
+    rule.minSettlementPathDistance,
+    Math.floor((settlementMax * rule.minSettlementDistancePermille) / 1000),
+  );
+  const roadFloor = Math.floor((roadMax * rule.minRoadDistancePermille) / 1000);
   const candidates: BossCandidate[] = [];
 
   for (let y = 0; y < state.height; y += 1) {
@@ -451,8 +471,11 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
       afterExclusion += 1;
       const settlementDistance = bundle.distanceFromSettlements[centerIndex] as number;
       const settlementValue = settlementDistance === UNREACHABLE ? 1000 : permilleOf(settlementDistance, settlementMax);
-      if (settlementDistance !== UNREACHABLE && settlementDistance < rule.minSettlementPathDistance) continue;
+      if (settlementDistance !== UNREACHABLE && settlementDistance < settlementFloor) continue;
       afterSettlement += 1;
+      const roadDistance = bundle.distanceFromRoads[centerIndex] as number;
+      if (roadDistance !== UNREACHABLE && roadDistance < roadFloor) continue;
+      afterRoad += 1;
       let peerOk = true;
       for (const field of peerFields) {
         const peerDistance = field[centerIndex] as number;
@@ -464,7 +487,6 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
       if (!peerOk) continue;
 
       const clearanceValue = permilleOf(Math.min(bundle.clearance[anchorIndex] as number, side * 2), side * 2);
-      const roadDistance = bundle.distanceFromRoads[centerIndex] as number;
       const roadValue = roadDistance === UNREACHABLE ? 1000 : permilleOf(roadDistance, roadMax);
       const terms: ScoreTerm[] = [
         { term: "clearance", value: clearanceValue, weightPermille: rule.clearancePermille, contribution: Math.floor((clearanceValue * rule.clearancePermille) / 1000) },
@@ -487,6 +509,7 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
     { stage: "clear_of_safe_and_reserved", remaining: afterSafeAndReserved },
     { stage: "exclusion_clear", remaining: afterExclusion },
     { stage: "settlement_distance", remaining: afterSettlement },
+    { stage: "road_distance", remaining: afterRoad },
     { stage: "peer_distance", remaining: candidates.length },
   ];
 

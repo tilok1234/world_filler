@@ -150,9 +150,15 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     else anchorCandidates[label] = (anchorCandidates[label] as number) + 1;
   }
 
-  // Band assignment.
+  // Band assignment. "linear" splits the world's max spawn distance evenly,
+  // so the deepest band exists only in the single farthest pocket;
+  // "quantile" ranks wilderness regions by median spawn distance and gives
+  // each band an equal share of reachable walkable ground, so every band
+  // (including the deepest) covers meaningful territory wherever the
+  // topology puts it. Integer math throughout; ties break on region index.
   const bands = new Array<number | null>(regionCount).fill(null);
   const overridden = new Array<boolean>(regionCount).fill(false);
+  const wilderness: Array<{ index: number; median: number; weight: number }> = [];
   for (let i = 0; i < regionCount; i += 1) {
     const region = bundle.regions[i] as (typeof bundle.regions)[number];
     const override = overrideByRegion.get(region.id);
@@ -169,8 +175,23 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
       continue;
     }
     const median = medianOfSorted(reachable);
+    if (danger.assignment === "quantile") {
+      wilderness.push({ index: i, median, weight: reachable.length });
+      continue;
+    }
     const band = 1 + Math.floor((median * (danger.bandCount - 1)) / (maxSpawnDistance + 1));
     bands[i] = Math.min(band, danger.bandCount - 1);
+  }
+  if (wilderness.length > 0) {
+    wilderness.sort((a, b) => (a.median !== b.median ? a.median - b.median : a.index - b.index));
+    const totalWeight = wilderness.reduce((sum, entry) => sum + entry.weight, 0);
+    let cumulative = 0;
+    for (const entry of wilderness) {
+      // Midpoint quantile in integer arithmetic: (cumulative + weight/2) / total.
+      const band = 1 + Math.floor(((2 * cumulative + entry.weight) * (danger.bandCount - 1)) / (2 * totalWeight));
+      bands[entry.index] = Math.min(band, danger.bandCount - 1);
+      cumulative += entry.weight;
+    }
   }
 
   // Spawn region.

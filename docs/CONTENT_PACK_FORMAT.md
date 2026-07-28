@@ -60,8 +60,8 @@ timestamps exist anywhere; identity is hashes.
   "packFormat": 1,
   "world": "fen-hollow",                       // world pack directory name at export time
   "adapter": { "name": "worldfiller", "version": "0.1.0" },
-  "directorBehaviorVersion": 6,
-  "rulePacks": { "analysis": 1, "plan": 1, "placement": 3, "territory": 3, "validate": 2, "export": 2 },
+  "directorBehaviorVersion": 7,
+  "rulePacks": { "analysis": 1, "plan": 2, "placement": 4, "territory": 3, "validate": 2, "export": 2 },
   "analysisVersion": 1,
   "recipeName": "basic-direction",
   "directorSeed": 103991,
@@ -209,7 +209,8 @@ placeholders, not measurements; importers must not interpret them.
 entries (anchor POIs that did not become dungeons):
 `{ poiId, poiType, cell, regionId | null, reason }` with `reason` in the
 open vocabulary (currently `not_selected_budget`, `unreachable_anchor`,
-`spacing_blocked`, `no_region`, `region_zero_budget`, `no_content_zone`).
+`spacing_blocked`, `no_region`, `region_zero_budget`, `no_content_zone`,
+`below_distance_floor`).
 `lockReport[]` entries: `{ id, status: "held" | "invalid", reasons[] }`
 with `reasons` in the open lock-invalidity vocabulary (currently
 `region_missing`, `over_budget`, `cell_not_walkable`, `cell_unreachable`,

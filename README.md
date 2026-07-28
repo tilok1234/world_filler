@@ -133,8 +133,17 @@ incoherent pipeline inputs; recipe lock ids must match the frozen id
 scheme; the output guard is an outputs/-only allow-list; and a
 committed golden pack pins the frozen serialization byte-for-byte
 (director behavior 6 — docs/FREEZE_REVIEW_FINDINGS.md has the full
-disposition). Render **visual verdicts pending user review** (F2
-heatmaps, F3 danger bands, F4 placements, F5 territories). Next: F8
+disposition). Visual-verdict round 1 (2026-07-28) turned the user's render feedback
+into recipe capability, all opt-in with defaults preserving prior
+behavior (director behavior 7; plan 2, placement 4): quantile danger-band
+assignment (`danger.assignment` — each band gets an equal share of
+reachable walkable ground, so the deepest band exists in several places,
+not one), scale-free settlement/road distance floors for world bosses
+and dungeon anchors (permille of the world's own max field distance;
+floored anchors are unbound as `below_distance_floor`, boss funnels gain
+a `road_distance` stage), and a territory render recolored by danger
+band with outlined territories. The fixture recipe opts into all three;
+**round-2 verdicts on the V2 renders are pending user review**. Next: F8
 (viewer + director UX loop).
 
 ```sh

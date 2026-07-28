@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-28, F0–F7 complete + freeze review resolved)
+# World Filler — handoff (2026-07-28, F0–F7 + freeze review resolved + verdict round 1)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -7,7 +7,7 @@ Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 **F0–F7 complete and the F7 freeze review fully resolved, committed, and
 pushed** to `tilok1234/world_filler`, branch
-`claude/world-filler-repo-focus-9fmr60`. **129 tests green** (`npm test`).
+`claude/world-filler-repo-focus-9fmr60`. **131 tests green** (`npm test`).
 WorldForge checkout untouched throughout — verified clean after every
 milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
 contract; the user has re-confirmed this twice).
@@ -39,27 +39,65 @@ lens (importer-buildability) ran and its gaps were folded into
   serialization byte-for-byte (re-record ONLY via
   `node dist/tools/updateGolden.js`; kernel.json re-recorded
   byte-identical this session — verified no drift).
-- Versions: director behavior **6**; rule packs placement 3,
-  territory 3, validate 2, export 2 (analysis 1, plan 1). All formats
-  still 1. Coverage now has a row for every plan region (world totals).
+- Versions after the freeze resolution: behavior 6; the round-1
+  verdict changes then bumped to behavior 7, plan 2, placement 4
+  (section 1). All formats still 1. Coverage now has a row for every plan region (world totals).
 
 Pipeline (all deterministic, explained, rendered):
 `inspect | parity | analyze | plan | place | explain | territories |
 validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
 
-## 1. Next: F8 — Director UX loop (docs/ROADMAP.md § F8)
+## 1. Visual verdict loop — round 1 done, round 2 pending
+
+Round-1 verdicts (user, this session, on the canonical 256² world at ×3
+and the three fixtures at ×8; gallery artifact
+`claude.ai/code/artifact/246ef66f-08c0-4403-8b24-777d7b5d22d4`):
+
+1. Danger bands: "could maybe try more than 1 purple place" →
+   implemented `danger.assignment: "quantile"` (opt-in recipe knob;
+   default "linear" unchanged): bands get equal shares of reachable
+   walkable ground, monotone in median spawn distance. Canonical world
+   now shows band 4 in three distinct areas.
+2. Placements "feel too close to roads and everything" → implemented
+   scale-free permille distance floors (opt-in, default 0 = off):
+   `worldBossRule.minSettlementDistancePermille` / `minRoadDistancePermille`
+   (hard floors as permille of the world's max field distance; boss
+   funnel gains open-vocab stage `road_distance`) and
+   `dungeonRule.minSettlementDistancePermille` (culled anchors unbound
+   with new open-vocab reason `below_distance_floor`). Tuned in
+   fixtures/recipes/basic-direction.json to s320/r300/d250 — the
+   strongest values at which every fixture world keeps its boss
+   (dust-hollow's boss dies at road ≥ ~320). Canonical: 12 dungeons,
+   3 honest failure X's (settlement clusters with no remote anchors).
+3. Territories render was unreadable to the user → territoryRender now
+   fills territories with their danger-band color (same palette as the
+   danger map) with darkened edge outlines; signature gained bandCount.
+4. "Correct pic for heatmap?" → the four chat images had no heatmap
+   (terrain base was the 4th); heatmaps live in the artifact's analysis
+   section — clarified, verified correct.
+
+Versions: behavior **7**, plan 2, placement 4 (see version.ts comment).
+Golden content pack re-recorded for the retuned recipe (kernel golden
+byte-identical). The canonical 256² world regenerates ONLY from
+WorldForge pinned commit `bb7832f` (behavior 47) — the checkout's HEAD
+has moved to behaviors 49-50 and produces a DIFFERENT world that fails
+parity; use `git -C <WorldForge> archive bb7832f | tar -x -C <scratch>`
+and build there. Adopting the newer upstream base remains an explicit
+user decision (not taken).
+
+**Round 2 pending: user must judge the V2 renders** (quantile bands,
+floored placements, band-colored territories). Territory coverage knob
+(`targetHostileCoveragePermille`, currently default 350 → ~27% actual)
+awaits a density verdict too.
+
+## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
 Single-file, no-build, read-only browser viewer (minimap backdrop, layer
 toggles for analysis/danger/plan/placements/territories, hover
 explanations), iteration-verb polish, workflow docs. Then the first-arc
 close-out per ROADMAP (deferred list stays deferred).
 
-Also still open: **visual verdicts on the F2–F5 renders are PENDING user
-review** — structural success ≠ design approval (AGENTS.md). Send
-upscaled renders (terrain/danger/placements/territories) for approval:
-re-render via the render modules at scale 3x (256²) or 8x (64²).
-
-## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
+## 3. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
 - F0 clean-room reader + walkability ladder + flood; bit-for-bit parity
   vs reference grids (fixtures committed; canonical world flood 33893).
@@ -81,7 +119,7 @@ re-render via the render modules at scale 3x (256²) or 8x (64²).
 - F7 export + frozen format doc + dual verifiers + **resolved freeze
   review** (format 1 final).
 
-## 3. Toolchain and environment gotchas
+## 4. Toolchain and environment gotchas
 
 - Node **>= 24.15 required**. Container default node is 22 — use
   `/opt/nvm/versions/node/v24.18.0/bin` in PATH, or
@@ -109,7 +147,7 @@ re-render via the render modules at scale 3x (256²) or 8x (64²).
   upstream base = regenerate fixtures + re-record coverage + note it in
   the commit, an explicit logged decision.
 
-## 4. Standing user preferences (confirmed in-session)
+## 5. Standing user preferences (confirmed in-session)
 
 - world_filler is a separate isolated repo; WorldForge is read-only
   reference. Never mix. (Re-confirmed this session: "we are only gonna
@@ -123,19 +161,19 @@ re-render via the render modules at scale 3x (256²) or 8x (64²).
   verdicts on F2–F5 renders are still PENDING** — structural success ≠
   design approval (AGENTS.md).
 
-## 5. Versions
+## 6. Versions
 
-director behavior **6** · rule packs: analysis 1, plan 1, placement 3,
+director behavior **7** · rule packs: analysis 1, plan 2, placement 4,
 territory 3, validate 2, export 2 · recipe format 1 · plan/placements/
 territories/report formats 1 · content pack format 1 (**frozen, FINAL**)
 · supported upstream: artifact format 8, game pack 1, walkability 1.
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
 vocabularies; sequential bumps; stamp everything).
 
-## 6. Commands
+## 7. Commands
 
     export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test                                   # build + 129 tests
+    npm test                                   # build + 131 tests
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json

@@ -31,6 +31,14 @@ export interface DirectorRecipe {
     readonly bandCount: number;
     readonly maxBandJump: number;
     readonly safeZoneShareForBand0Permille: number;
+    /**
+     * How wilderness bands are assigned: "linear" splits the world's max
+     * spawn distance evenly (the deepest band exists only in the single
+     * farthest pocket); "quantile" gives each band an equal share of
+     * reachable walkable ground, so deep bands exist in meaningful
+     * quantity wherever the topology puts them.
+     */
+    readonly assignment: "linear" | "quantile";
     readonly overrides: readonly DangerOverride[];
   };
   readonly budgets: {
@@ -50,6 +58,10 @@ export interface DirectorRecipe {
   readonly worldBossRule: {
     readonly minClearance: number;
     readonly minSettlementPathDistance: number;
+    /** Scale-free floor: permille of the world's max settlement distance (0 = off). */
+    readonly minSettlementDistancePermille: number;
+    /** Scale-free floor: permille of the world's max road distance (0 = off). */
+    readonly minRoadDistancePermille: number;
     readonly minPeerPathDistance: number;
     readonly exclusionRadius: number;
     readonly clearancePermille: number;
@@ -59,6 +71,8 @@ export interface DirectorRecipe {
   readonly dungeonRule: {
     readonly exclusionRadius: number;
     readonly settlementFarPermille: number;
+    /** Scale-free floor: anchors closer to settlements than this permille of the world max are not bound (0 = off). */
+    readonly minSettlementDistancePermille: number;
   };
   readonly territoryRule: {
     readonly targetHostileCoveragePermille: number;
@@ -168,6 +182,8 @@ const DANGER_FIELDS: Readonly<Record<string, FieldSpec>> = {
 const WORLD_BOSS_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   minClearance: { min: 2, max: 21, fallback: 6 },
   minSettlementPathDistance: { min: 0, max: 10000, fallback: 20 },
+  minSettlementDistancePermille: { min: 0, max: 1000, fallback: 0 },
+  minRoadDistancePermille: { min: 0, max: 1000, fallback: 0 },
   minPeerPathDistance: { min: 0, max: 100000, fallback: 80 },
   exclusionRadius: { min: 1, max: 128, fallback: 16 },
   clearancePermille: { min: 0, max: 1000, fallback: 600 },
@@ -178,6 +194,7 @@ const WORLD_BOSS_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
 const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   exclusionRadius: { min: 1, max: 128, fallback: 8 },
   settlementFarPermille: { min: 0, max: 1000, fallback: 1000 },
+  minSettlementDistancePermille: { min: 0, max: 1000, fallback: 0 },
 };
 
 const TERRITORY_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
@@ -276,8 +293,12 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     throw new RecipeError("recipe: base.generationIdentitySha256 must be a 64-hex sha256");
   }
 
-  const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides"]);
+  const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides", "assignment"]);
   const dangerRecord = raw["danger"] === undefined ? {} : requireObject(raw["danger"], "$.danger");
+  const assignmentRaw = dangerRecord["assignment"] === undefined ? "linear" : dangerRecord["assignment"];
+  if (assignmentRaw !== "linear" && assignmentRaw !== "quantile") {
+    throw new RecipeError(`recipe: $.danger.assignment must be linear or quantile, got ${String(assignmentRaw)}`);
+  }
   const overridesRaw = dangerRecord["overrides"] === undefined ? [] : dangerRecord["overrides"];
   if (!Array.isArray(overridesRaw)) throw new RecipeError("recipe: $.danger.overrides must be an array");
   const overrides: DangerOverride[] = overridesRaw.map((entry, i) => {
@@ -518,6 +539,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       bandCount: danger["bandCount"] as number,
       maxBandJump: danger["maxBandJump"] as number,
       safeZoneShareForBand0Permille: danger["safeZoneShareForBand0Permille"] as number,
+      assignment: assignmentRaw,
       overrides,
     },
     budgets: {
@@ -535,6 +557,8 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     worldBossRule: {
       minClearance: worldBossRule["minClearance"] as number,
       minSettlementPathDistance: worldBossRule["minSettlementPathDistance"] as number,
+      minSettlementDistancePermille: worldBossRule["minSettlementDistancePermille"] as number,
+      minRoadDistancePermille: worldBossRule["minRoadDistancePermille"] as number,
       minPeerPathDistance: worldBossRule["minPeerPathDistance"] as number,
       exclusionRadius: worldBossRule["exclusionRadius"] as number,
       clearancePermille: worldBossRule["clearancePermille"] as number,
@@ -544,6 +568,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     dungeonRule: {
       exclusionRadius: dungeonRule["exclusionRadius"] as number,
       settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
+      minSettlementDistancePermille: dungeonRule["minSettlementDistancePermille"] as number,
     },
     territoryRule: {
       targetHostileCoveragePermille: territoryRule["targetHostileCoveragePermille"] as number,

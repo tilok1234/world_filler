@@ -1052,16 +1052,16 @@
     "totalCovered": 527,
     "totalHostileWalkable": 1960
   },
-  "directorBehaviorVersion": 6,
-  "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+  "directorBehaviorVersion": 7,
+  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
   "directorSeed": 103991,
   "failures": [],
   "recipeName": "basic-direction",
   "rulePacks": {
     "analysis": 1,
     "export": 2,
-    "placement": 3,
-    "plan": 1,
+    "placement": 4,
+    "plan": 2,
     "territory": 3,
     "validate": 2
   },
@@ -1926,7 +1926,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/0",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.0",
@@ -1997,7 +1997,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/1",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 4,
       "elitePermille": 30,
       "id": "territory.region.mud.43.1",
@@ -2083,7 +2083,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/2",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.2",
@@ -2209,7 +2209,7 @@
         ]
       },
       "channel": "world/region.mud.942/reroll.0/territory/0",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 5,
       "elitePermille": 30,
       "id": "territory.region.mud.942.0",
@@ -2325,7 +2325,7 @@
         ]
       },
       "channel": "world/region.mud.942/reroll.0/territory/1",
-      "dangerBand": 3,
+      "dangerBand": 4,
       "draw": 7,
       "elitePermille": 30,
       "id": "territory.region.mud.942.1",

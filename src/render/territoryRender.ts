@@ -5,26 +5,23 @@ import type { PlacementsDoc } from "../place/solver.js";
 import { decodeRuns } from "../territory/territory.js";
 import { encodePng } from "./png.js";
 import { renderTerrain, upscaleRgba } from "./heatmaps.js";
+import { bandColor } from "./planRender.js";
 
 /**
- * Territory render: each territory filled in a deterministic color derived
- * from its id hash, safe zones tinted blue, placement markers on top for
- * context. Inspection evidence, not contract.
+ * Territory render: each territory filled with its danger band's color
+ * (same palette as the danger render, so the two maps read together:
+ * harder enemies live in deeper-band ground), edge cells darkened so
+ * adjacent territories stay distinguishable, safe zones tinted blue,
+ * placement markers on top for context. Inspection evidence, not
+ * contract.
  */
-
-function hashColor(seedText: string): readonly [number, number, number] {
-  let h = 2166136261;
-  for (let i = 0; i < seedText.length; i += 1) {
-    h = Math.imul(h ^ seedText.charCodeAt(i), 16777619) >>> 0;
-  }
-  return [70 + (h & 0x7f), 70 + ((h >>> 7) & 0x7f), 70 + ((h >>> 14) & 0x7f)];
-}
 
 export function renderTerritories(
   model: WorldModel,
   bundle: AnalysisBundle,
   territoriesDoc: TerritoriesDoc,
   placementsDoc: PlacementsDoc,
+  bandCount: number,
   scale: number = 1,
 ): Uint8Array {
   const { width, height } = model.dimensions;
@@ -43,12 +40,27 @@ export function renderTerritories(
   }
 
   for (const territory of territoriesDoc.territories) {
-    const color = hashColor(territory.id);
-    for (const index of decodeRuns(territory.cells.runs, width, height)) {
+    const color = bandColor(territory.dangerBand, bandCount);
+    const cells = decodeRuns(territory.cells.runs, width, height);
+    for (const index of cells) {
+      const x = index % width;
+      const y = (index - x) / width;
+      // Edge cells (any 4-neighbor outside this territory) draw darker,
+      // outlining each territory against neighbors and open ground.
+      let edge = false;
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height || !cells.has(ny * width + nx)) {
+          edge = true;
+          break;
+        }
+      }
       const offset = index * 4;
-      rgba[offset] = color[0];
-      rgba[offset + 1] = color[1];
-      rgba[offset + 2] = color[2];
+      const dim = edge ? 5 : 10;
+      rgba[offset] = Math.floor((color[0] * dim) / 10);
+      rgba[offset + 1] = Math.floor((color[1] * dim) / 10);
+      rgba[offset + 2] = Math.floor((color[2] * dim) / 10);
     }
   }
 

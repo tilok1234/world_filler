@@ -1,5 +1,8 @@
 {
   "recipeFormat": 1,
   "name": "basic-direction",
-  "directorSeed": 103991
+  "directorSeed": 103991,
+  "danger": { "assignment": "quantile" },
+  "worldBossRule": { "minSettlementDistancePermille": 320, "minRoadDistancePermille": 300 },
+  "dungeonRule": { "minSettlementDistancePermille": 250 }
 }

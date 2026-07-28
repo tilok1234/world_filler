@@ -8,12 +8,15 @@ export const DIRECTOR_VERSION = "0.1.0";
 // 6: freeze-review resolution — coverage rows for every plan region,
 // boss slots skip held lock ids, malformed territory runs refuse by name,
 // export refuses incoherent inputs and stale pins.
-export const DIRECTOR_BEHAVIOR_VERSION = 6;
+// 7: first visual-verdict round — quantile band assignment (opt-in),
+// scale-free settlement/road distance floors for bosses and dungeon
+// anchors (opt-in, new unbound reason below_distance_floor).
+export const DIRECTOR_BEHAVIOR_VERSION = 7;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
-  plan: 1,
-  placement: 3,
+  plan: 2,
+  placement: 4,
   territory: 3,
   validate: 2,
   export: 2,

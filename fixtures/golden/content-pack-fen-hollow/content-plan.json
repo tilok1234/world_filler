@@ -10,8 +10,8 @@
     "progressionWarnings": [],
     "worldWaivers": []
   },
-  "directorBehaviorVersion": 6,
-  "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+  "directorBehaviorVersion": 7,
+  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
   "directorSeed": 103991,
   "planFormat": 1,
   "recipeName": "basic-direction",
@@ -25,7 +25,7 @@
         "worldBosses": 0
       },
       "cellCount": 13,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 13,
@@ -120,7 +120,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 1,
@@ -166,7 +166,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 1,
@@ -189,7 +189,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -212,7 +212,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -235,7 +235,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -581,7 +581,7 @@
         "worldBosses": 0
       },
       "cellCount": 4,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -697,7 +697,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 3,
+      "dangerBand": 4,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -720,7 +720,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -743,7 +743,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -766,7 +766,7 @@
         "worldBosses": 0
       },
       "cellCount": 5,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -789,7 +789,7 @@
         "worldBosses": 0
       },
       "cellCount": 37,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 37,
@@ -812,7 +812,7 @@
         "worldBosses": 0
       },
       "cellCount": 8,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 8,
@@ -835,7 +835,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -904,7 +904,7 @@
         "worldBosses": 0
       },
       "cellCount": 8,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 8,
@@ -1065,7 +1065,7 @@
         "worldBosses": 0
       },
       "cellCount": 27,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 1,
       "hostileWalkableCells": 11,
@@ -1134,7 +1134,7 @@
         "worldBosses": 0
       },
       "cellCount": 11,
-      "dangerBand": 3,
+      "dangerBand": 4,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 1,
       "hostileWalkableCells": 5,
@@ -1180,7 +1180,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 3,
+      "dangerBand": 4,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -1203,7 +1203,7 @@
         "worldBosses": 0
       },
       "cellCount": 4,
-      "dangerBand": 2,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 4,
@@ -1295,7 +1295,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 2,
@@ -1318,7 +1318,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -1362,7 +1362,7 @@
         "worldBosses": 0
       },
       "cellCount": 4,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 4,
@@ -1710,7 +1710,7 @@
         "worldBosses": 0
       },
       "cellCount": 400,
-      "dangerBand": 3,
+      "dangerBand": 4,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 297,
@@ -1733,7 +1733,7 @@
         "worldBosses": 0
       },
       "cellCount": 348,
-      "dangerBand": 3,
+      "dangerBand": 4,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 215,
@@ -1779,7 +1779,7 @@
         "worldBosses": 0
       },
       "cellCount": 46,
-      "dangerBand": 2,
+      "dangerBand": 1,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 40,
@@ -3066,8 +3066,8 @@
   "rulePacks": {
     "analysis": 1,
     "export": 2,
-    "placement": 3,
-    "plan": 1,
+    "placement": 4,
+    "plan": 2,
     "territory": 3,
     "validate": 2
   },

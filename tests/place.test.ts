@@ -282,6 +282,38 @@ describe("placement solver", () => {
     assert.ok(failure.candidateFunnel.some((step) => step.stage === "clearance_anchor_in_region"));
   });
 
+  it("distance floors are scale-free and explained: floored anchors are named, boss funnels carry the road stage", () => {
+    // Near-maximal floors: every reachable anchor sits below the
+    // settlement floor and is unbound by name, never silently skipped.
+    const floored = solveFor("fen-hollow", {
+      ...MINIMAL,
+      name: "floored",
+      dungeonRule: { minSettlementDistancePermille: 990 },
+      worldBossRule: { minRoadDistancePermille: 995 },
+    }).doc;
+    assert.ok(
+      floored.unboundAnchors.some((anchor) => anchor.reason === "below_distance_floor"),
+      "anchors below the settlement floor carry the below_distance_floor reason",
+    );
+    const funnels = [
+      ...floored.placements.map((placement) => placement.candidateFunnel),
+      ...floored.failures.map((failure) => failure.candidateFunnel),
+    ];
+    assert.ok(
+      funnels.some((funnel) => funnel.some((step) => step.stage === "road_distance")),
+      "boss funnels record the road_distance stage",
+    );
+    // Zero floors (the defaults) leave the solve byte-identical to a
+    // recipe that never mentions them.
+    const zeroFloors = solveFor("fen-hollow", {
+      ...MINIMAL,
+      worldBossRule: { minSettlementDistancePermille: 0, minRoadDistancePermille: 0 },
+      dungeonRule: { minSettlementDistancePermille: 0 },
+    }).doc;
+    const defaults = solveFor("fen-hollow", MINIMAL).doc;
+    assert.equal(canonicalJson(zeroFloors), canonicalJson(defaults));
+  });
+
   it("rejects rerolls referencing unknown regions", () => {
     const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
     const model = new WorldModel(pack.artifact);

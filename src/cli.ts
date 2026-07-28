@@ -322,7 +322,7 @@ function runTerritories(dir: string, recipePath: string, outArg: string | undefi
   );
   mkdirSync(join(outDir, "renders"), { recursive: true });
   writeFileSync(join(outDir, "territories.json"), canonicalJson(doc));
-  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, doc, placements));
+  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, doc, placements, recipe.danger.bandCount));
 
   console.log(
     `territories: ${doc.territories.length} grown, ${doc.failures.length} failures; ` +
@@ -455,7 +455,7 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
   mkdirSync(join(outDir, "renders"), { recursive: true });
   writeFileSync(join(outDir, "renders", "danger.png"), renderDanger(model, bundle, plan, recipe.danger.bandCount));
   writeFileSync(join(outDir, "renders", "placements.png"), renderPlacements(model, bundle, placements));
-  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, territories, placements));
+  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, territories, placements, recipe.danger.bandCount));
 
   console.log(
     `content pack: ${built.manifest.counts.placements} placements, ${built.manifest.counts.territories} territories, ` +

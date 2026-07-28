@@ -6,8 +6,8 @@
     "height": 64,
     "width": 64
   },
-  "directorBehaviorVersion": 6,
-  "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+  "directorBehaviorVersion": 7,
+  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
   "directorSeed": 103991,
   "failures": [],
   "lockReport": [],
@@ -29,6 +29,10 @@
         {
           "remaining": 1,
           "stage": "reachable"
+        },
+        {
+          "remaining": 1,
+          "stage": "above_distance_floor"
         },
         {
           "remaining": 1,
@@ -104,7 +108,11 @@
           "stage": "settlement_distance"
         },
         {
-          "remaining": 56,
+          "remaining": 28,
+          "stage": "road_distance"
+        },
+        {
+          "remaining": 28,
           "stage": "peer_distance"
         }
       ],
@@ -206,8 +214,8 @@
   "rulePacks": {
     "analysis": 1,
     "export": 2,
-    "placement": 3,
-    "plan": 1,
+    "placement": 4,
+    "plan": 2,
     "territory": 3,
     "validate": 2
   },

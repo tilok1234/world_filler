@@ -63,6 +63,10 @@ describe("DirectorRecipe normalization", () => {
       () => normalizeRecipe({ ...MINIMAL, dungeonAnchors: { poiTypes: ["prop.oak"] } }),
       /poi\.\* type names/,
     );
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { assignment: "noise" } }),
+      /assignment must be linear or quantile/,
+    );
   });
 });
 
@@ -76,6 +80,33 @@ describe("regional content plan", () => {
     const first = compilePlan(model, bundle, recipe);
     const second = compilePlan(model, bundle, recipe);
     assert.equal(canonicalJson(first), canonicalJson(second));
+  });
+
+  it("quantile assignment fills every wilderness band, monotone in median distance, deterministically", () => {
+    const quantileRecipe = normalizeRecipe({ ...MINIMAL, danger: { assignment: "quantile" } });
+    const plan = compilePlan(model, bundle, quantileRecipe);
+    assert.equal(canonicalJson(compilePlan(model, bundle, quantileRecipe)), canonicalJson(plan));
+
+    const wilderness = plan.regions.filter(
+      (region) => region.dangerBand !== null && region.dangerBand > 0 && !region.dangerOverridden && region.medianSpawnDistance !== null,
+    );
+    // Every wilderness band exists in meaningful quantity — the point of
+    // quantile assignment (linear leaves the deepest band to one pocket).
+    for (let band = 1; band < quantileRecipe.danger.bandCount; band += 1) {
+      assert.ok(wilderness.some((region) => region.dangerBand === band), `band ${band} is populated`);
+    }
+    // Bands never decrease as median spawn distance grows.
+    const sorted = [...wilderness].sort(
+      (a, b) => (a.medianSpawnDistance as number) - (b.medianSpawnDistance as number),
+    );
+    for (let i = 1; i < sorted.length; i += 1) {
+      const current = sorted[i] as (typeof sorted)[number];
+      const previous = sorted[i - 1] as (typeof sorted)[number];
+      assert.ok(
+        (current.dangerBand as number) >= (previous.dangerBand as number),
+        "quantile bands are monotone in median distance",
+      );
+    }
   });
 
   it("produces sane bands, budgets, and waivers on a real world", () => {
