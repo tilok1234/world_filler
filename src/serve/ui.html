@@ -2,129 +2,1165 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>wf-fill director studio (placeholder UI)</title>
-<!--
-  PLACEHOLDER studio front-end: functional but deliberately plain. It
-  exists to prove the API end to end; the designed replacement (built
-  from docs/DESIGN_BRIEF.md) swaps this file wholesale. Served at / by
-  src/serve/server.ts.
--->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Director Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23141720'/%3E%3Crect x='5' y='5' width='6' height='6' transform='rotate(45 8 8)' fill='%236ac1ff'/%3E%3C/svg%3E">
 <style>
-  body { margin: 0; background: #14161a; color: #d6dae2; font: 13px/1.5 ui-monospace, Consolas, monospace; }
-  main { max-width: 900px; margin: 0 auto; padding: 16px; }
-  h1 { color: #5cc8ff; font-size: 16px; }
-  h2 { color: #8b93a1; font-size: 13px; text-transform: uppercase; margin: 18px 0 6px; }
-  button, select { background: #1d2026; color: #d6dae2; border: 1px solid #2c313a; border-radius: 4px; padding: 5px 10px; cursor: pointer; }
-  textarea { width: 100%; height: 260px; background: #101216; color: #d6dae2; border: 1px solid #2c313a; }
-  #status { white-space: pre-wrap; background: #101216; border: 1px solid #2c313a; padding: 8px; border-radius: 4px; min-height: 40px; }
-  .row { margin: 6px 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .ok { color: #7bd88f; } .bad { color: #ff6b6b; }
-  a { color: #5cc8ff; }
-  table { border-collapse: collapse; } td, th { border: 1px solid #2c313a; padding: 3px 8px; }
+:root{
+  --bg0:#0e1014; --bg1:#14171d; --bg2:#191d24; --bg3:#20252e;
+  --line:#272d38; --line2:#323a47;
+  --ink:#d8dde6; --mut:#8a93a3; --dim:#5b6472;
+  --acc:#6ac1ff; --accdim:#3a6d92;
+  --amber:#e8b45a; --green:#7bd88f; --red:#ff7d7d; --gold:#ffd166;
+  --boss:#ff7d9d; --dun:#6ac1ff;
+  --mono:ui-monospace,'Cascadia Mono',Consolas,Menlo,monospace;
+  --sans:system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box} 
+html,body{height:100%}
+body{margin:0;background:var(--bg0);color:var(--ink);font:13px/1.45 var(--sans);
+  display:grid;grid-template-columns:250px 1fr 392px;overflow:hidden}
+a{color:var(--acc);text-decoration:none} a:hover{color:#9ed7ff;text-decoration:underline}
+h1,h2,h3{margin:0;font-weight:600}
+button{font:inherit;color:inherit}
+.mono{font-family:var(--mono)}
+.scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.scroll::-webkit-scrollbar{width:9px}
+.scroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px;border:2px solid var(--bg1)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.hidden{display:none!important}
+
+/* ---------- buttons, chips, inputs ---------- */
+.btn{background:var(--bg3);border:1px solid var(--line2);border-radius:5px;padding:5px 12px;
+  cursor:pointer;transition:border-color .1s,background .1s;user-select:none;white-space:nowrap}
+.btn:hover{border-color:#465163;background:#252b36}
+.btn.primary{background:#1c4664;border-color:#2d6b97;color:#cfeaff;font-weight:600}
+.btn.primary:hover{background:#215579;border-color:#3d84b8}
+.btn.small{padding:2px 8px;font-size:12px;border-radius:4px}
+.btn:disabled{opacity:.45;cursor:default;pointer-events:none}
+body.busy .verb{opacity:.45;pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:9px;
+  font-size:11px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--line2);color:var(--mut);white-space:nowrap}
+.chip .dot{width:7px;height:7px;border-radius:2px;flex:none}
+.chip.pass{color:#9fe3ae;border-color:#2c5237;background:#16261c}
+.chip.warn{color:#ecc98d;border-color:#635028;background:#2a2314}
+.chip.fail{color:#ffa0a0;border-color:#6b3232;background:#2d1717}
+.chip.acc{color:#9ed7ff;border-color:#2d5c80;background:#132430}
+.chip.gold{color:#ffe1a1;border-color:#6b5a2a;background:#2b2412}
+input[type=text],input[type=number],select,textarea{
+  background:#101318;border:1px solid var(--line2);border-radius:4px;color:var(--ink);
+  font:12px var(--mono);padding:3px 7px}
+input[type=number]{width:76px}
+input[type=checkbox]{accent-color:var(--acc)}
+input[type=range]{accent-color:var(--acc)}
+textarea{width:100%;resize:vertical}
+label{user-select:none}
+
+/* ---------- messages ---------- */
+.msg{margin-top:6px;padding:6px 9px;border-radius:5px;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word}
+.msg.bad{background:#2d1416;border:1px solid #6b3232;color:#ffb0b0}
+.msg.good{background:#15251b;border:1px solid #2c5237;color:#a9e6b7}
+.msg.note{background:#2a2314;border:1px solid #635028;color:#ecc98d}
+
+/* ---------- left rail ---------- */
+#rail{background:var(--bg1);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#brand{padding:14px 14px 10px}
+#brand h1{font-size:15px;letter-spacing:.4px}
+#brand .sub{color:var(--dim);font:11px var(--mono);margin-top:2px}
+#modechip{margin:0 14px 10px;font:11px var(--mono);padding:4px 8px;border-radius:5px;display:flex;gap:6px;align-items:center}
+#modechip .led{width:7px;height:7px;border-radius:50%;flex:none}
+#modechip.live{background:#15251b;border:1px solid #2c5237;color:#a9e6b7}
+#modechip.mock{background:#2a2314;border:1px solid #635028;color:#ecc98d}
+#railhead{padding:0 14px 5px;color:var(--dim);font:600 10px var(--sans);letter-spacing:1.2px;text-transform:uppercase}
+#worlds{flex:1;min-height:0;padding:0 8px 8px}
+.world{padding:8px 9px;border-radius:6px;border:1px solid transparent;cursor:pointer;margin-bottom:2px}
+.world:hover{background:var(--bg2)}
+.world.on{background:#16202b;border-color:#2d5c80}
+.world .nm{font:600 13px var(--mono);display:flex;align-items:center;gap:7px}
+.world .nm .pend{width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none;
+  box-shadow:0 0 6px #e8b45a88}
+.world .meta{color:var(--dim);font:11px var(--mono);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{font-size:10px;padding:0 5px;border-radius:3px;border:1px solid var(--line2);color:var(--mut);white-space:nowrap;display:inline-block}
+.tag.own{color:#ecc98d;border-color:#635028}
+.tag.exp{color:#9fe3ae;border-color:#2c5237}
+#dock{border-top:1px solid var(--line);padding:12px 14px;background:var(--bg2)}
+#dock .row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+#btnDirect{flex:1;padding:9px 12px;font-size:14px;border-radius:6px;position:relative}
+#btnDirect .spin{display:none}
+body.busy #btnDirect .spin{display:inline-block}
+.spin{width:12px;height:12px;border:2px solid #cfeaff44;border-top-color:#cfeaff;border-radius:50%;
+  animation:sp .8s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+#dock .strict{display:flex;gap:6px;align-items:center;color:var(--mut);font-size:12px}
+#directOut .gates{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}
+
+/* ---------- center / map ---------- */
+#center{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg0)}
+#maphead{display:flex;gap:14px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);
+  background:var(--bg1);flex-wrap:wrap}
+.seg{display:flex;flex:none;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:4px 11px;cursor:pointer;color:var(--mut);
+  font:12px var(--mono);border-right:1px solid var(--line2)}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed=true]{background:#1c4664;color:#cfeaff}
+.ovs{display:flex;gap:11px;align-items:center;color:var(--mut);font-size:12px;flex-wrap:wrap}
+.ovs label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.ovs label:hover{color:var(--ink)}
+#alpha{width:74px}
+.legend{margin-left:auto;display:flex;gap:10px;color:var(--dim);font:11px var(--mono);align-items:center}
+.legend b{font-weight:400}
+#stale{background:#2a2314;border-bottom:1px solid #635028;color:#ecc98d;padding:0 12px;font:12px var(--mono)}
+#stale .bar{display:flex;gap:10px;align-items:center;padding:6px 0;flex-wrap:wrap}
+#stale ul{margin:0 0 8px;padding-left:20px;color:#d9b97e}
+#stale .btn{border-color:#635028;background:#3a3018;color:#ffe1a1}
+#stale details summary{cursor:pointer;color:#c7a35e;white-space:nowrap}
+#mapwrap{flex:1;position:relative;min-height:0;background:
+  repeating-conic-gradient(#101318 0% 25%, #0e1014 0% 50%) 0 0/22px 22px}
+#cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;cursor:crosshair}
+#cv.panning{cursor:grabbing}
+#mapempty{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;
+  justify-content:center;background:var(--bg0);text-align:center;padding:30px}
+#mapempty .err-line{font:13px var(--mono);color:#ffb0b0;max-width:440px;white-space:pre-wrap}
+#mapempty .hint{color:var(--mut);max-width:400px}
+#busy{position:absolute;inset:0;background:#0e1014c9;display:flex;flex-direction:column;gap:12px;
+  align-items:center;justify-content:center;backdrop-filter:blur(1px)}
+#busy .bspin{width:34px;height:34px;border:3px solid #6ac1ff33;border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite}
+#busy .t1{font:600 14px var(--sans)}
+#busy .t2{color:var(--mut);font-size:12px}
+#mapfoot{display:flex;gap:12px;align-items:center;padding:6px 12px;border-top:1px solid var(--line);
+  background:var(--bg1);font:12px var(--mono);color:var(--mut);min-height:30px}
+#cursorbar{flex:1;display:flex;gap:8px;align-items:center;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cursorbar .cid{color:var(--ink)}
+#stamp{color:var(--dim);white-space:nowrap}
+.zoomctl{display:flex;gap:2px;align-items:center}
+.zoomctl .btn{padding:1px 8px;font-family:var(--mono)}
+
+/* ---------- right panel ---------- */
+#side{background:var(--bg1);border-left:1px solid var(--line);min-height:0}
+#side section{border-bottom:1px solid var(--line)}
+#side .shead{position:sticky;top:0;z-index:3;display:flex;gap:8px;align-items:center;
+  padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--line);
+  font:600 10px var(--sans);letter-spacing:1.2px;text-transform:uppercase;color:var(--mut)}
+#side details>.shead{cursor:pointer;list-style:none}
+#side details>.shead::-webkit-details-marker{display:none}
+#side details>.shead:after{content:'▸';margin-left:auto;color:var(--dim);transition:transform .12s}
+#side details[open]>.shead:after{transform:rotate(90deg)}
+.sbody{padding:12px 14px}
+.card h3{font:600 13px var(--mono);word-break:break-all;margin:7px 0 2px;color:#e8edf5}
+.chiprow{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:9px 0;font:12px var(--mono)}
+.kv .k{color:var(--dim);white-space:nowrap}
+.kv .v{color:var(--ink);word-break:break-all;text-align:right}
+.kv .v.l{text-align:left}
+table.t{border-collapse:collapse;width:100%;font:12px var(--mono);margin:7px 0}
+.t th{color:var(--dim);font-weight:400;text-align:left;padding:2px 8px 4px 0;border-bottom:1px solid var(--line)}
+.t td{padding:3px 8px 3px 0;border-bottom:1px solid #1d222b;vertical-align:top}
+.t tr:last-child td{border-bottom:0}
+.t .r{text-align:right;padding-right:0}
+.t th.r{padding-right:0}
+.t .tot td{border-top:1px solid var(--line2);font-weight:600}
+.sent{background:#2b2412;border:1px solid #6b5a2a;border-radius:5px;padding:8px 10px;margin:9px 0;
+  color:#ffe1a1;font:12px var(--mono)}
+.sent .cap{color:#a08b52;font-family:var(--sans);margin-top:3px}
+.funnel{margin:7px 0;font:11px var(--mono);color:var(--mut)}
+.funnel .fr{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center;margin:2px 0}
+.funnel .fbar{height:4px;background:var(--bg3);border-radius:2px;position:relative;overflow:hidden}
+.funnel .fbar i{position:absolute;inset:0 auto 0 0;background:var(--accdim);border-radius:2px}
+.cands{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.cands .chip{cursor:pointer}
+.cands .chip:hover{border-color:var(--acc);color:#9ed7ff}
+.actions{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.rowlist{margin:6px 0;display:flex;flex-direction:column;gap:2px}
+.rowitem{display:flex;gap:8px;align-items:center;padding:4px 7px;border-radius:5px;cursor:pointer;
+  font:12px var(--mono);border:1px solid transparent;min-width:0}
+.rowitem:hover{background:var(--bg2);border-color:var(--line2)}
+.rowitem .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rowitem .sub{color:var(--dim)}
+.covbar{position:relative;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;flex:0 0 64px}
+.covbar i{position:absolute;inset:0 auto 0 0;background:var(--accdim)}
+.covbar b{position:absolute;top:-1px;bottom:-1px;width:1px;background:#ecc98d}
+.subh{color:var(--dim);font:600 10px var(--sans);letter-spacing:1.1px;text-transform:uppercase;margin:13px 0 4px}
+.hintline{color:var(--dim);font-size:11px;margin-top:8px}
+.gaterow{display:flex;gap:8px;align-items:baseline;padding:3px 0;font:12px var(--mono)}
+.gaterow .gid{color:var(--dim);flex:0 0 24px}
+.gaterow .gnm{flex:1;color:var(--ink)}
+.gatedet{margin:0 0 6px 32px;color:#ecc98d;font:11px var(--mono);white-space:pre-wrap;word-break:break-word}
+.xbtn{background:none;border:0;color:var(--dim);cursor:pointer;font-size:14px;padding:0 3px;margin-left:auto}
+.xbtn:hover{color:var(--ink)}
+
+/* ---------- recipe form ---------- */
+.rgrid{display:grid;grid-template-columns:1fr auto;gap:5px 12px;align-items:center;margin:6px 0 2px}
+.rgrid label{color:var(--mut);font:12px var(--mono)}
+.rgrid input[type=text]{width:150px}
+.rgrid select{width:150px}
+.enemies{width:100%;border-collapse:collapse;font:11px var(--mono);margin:6px 0}
+.enemies th{color:var(--dim);font-weight:400;text-align:left;padding:2px 5px 4px 0}
+.enemies td{padding:2px 5px 2px 0}
+.enemies input[type=text]{width:100%;padding:2px 5px}
+.enemies input[type=number]{width:46px;padding:2px 4px}
+.enemies .bio{min-width:110px}
+.rfoot{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.dirty{color:var(--amber);font:11px var(--mono)}
+#rawwrap textarea{height:300px;font-size:11px;line-height:1.5}
 </style>
 </head>
 <body>
-<main>
-  <h1>director studio <span style="color:#8b93a1">(placeholder UI — the designed one replaces this)</span></h1>
 
-  <h2>1 · world</h2>
-  <div class="row">
-    <select id="world"></select>
-    <label><input type="checkbox" id="strict"> strict</label>
-    <button id="direct">Direct (generate / regenerate)</button>
-    <a id="viewLink" target="_blank" style="display:none">open map</a>
+<aside id="rail">
+  <div id="brand">
+    <h1>Director Studio</h1>
+    <div class="sub">wf-fill · content director</div>
   </div>
-  <div id="status">pick a world.</div>
-
-  <h2>2 · placements — lock what you like</h2>
-  <div id="placements">direct a world first.</div>
-
-  <h2>3 · regions — reroll what you don't</h2>
-  <div class="row">
-    <select id="region"></select>
-    <button id="reroll">Reroll region</button>
+  <div id="modechip"></div>
+  <div id="railhead">Worlds</div>
+  <div id="worlds" class="scroll"></div>
+  <div id="dock">
+    <div class="row">
+      <label class="strict" title="Fail the run instead of waiving when a gate cannot pass">
+        <input type="checkbox" id="strict"> strict
+      </label>
+      <a id="viewlink" class="hidden" target="_blank">open /view</a>
+    </div>
+    <div class="row" style="margin-bottom:0">
+      <button id="btnDirect" class="btn primary verb"><span class="spin"></span>Direct</button>
+    </div>
+    <div id="directOut"></div>
   </div>
+</aside>
 
-  <h2>4 · recipe (raw)</h2>
-  <div class="row"><button id="loadRecipe">Load</button><button id="saveRecipe">Validate + save</button><span id="recipeMsg"></span></div>
-  <textarea id="recipe" spellcheck="false"></textarea>
-</main>
+<section id="center">
+  <div id="maphead">
+    <div class="seg" id="backdropSeg" role="group" aria-label="backdrop"></div>
+    <div class="ovs" id="ovs">
+      <label><input type="checkbox" data-ov="terr" checked> territories</label>
+      <label><input type="checkbox" data-ov="plc" checked> placements</label>
+      <label><input type="checkbox" data-ov="arena" checked> arenas</label>
+      <label><input type="checkbox" data-ov="excl"> exclusion</label>
+      <label title="territory fill opacity">fill <input type="range" id="alpha" min="0" max="90" value="45"></label>
+    </div>
+    <div class="legend">
+      <b><span style="color:var(--boss)">◆</span> boss</b>
+      <b><span style="color:var(--dun)">■</span> dungeon</b>
+      <b><span style="color:var(--gold)">◆</span> locked</b>
+      <span class="zoomctl">
+        <button class="btn small" data-zoom="out" title="zoom out">−</button>
+        <button class="btn small" data-zoom="fit" title="fit">fit</button>
+        <button class="btn small" data-zoom="in" title="zoom in">+</button>
+      </span>
+    </div>
+  </div>
+  <div id="stale" class="hidden"></div>
+  <div id="mapwrap">
+    <canvas id="cv" aria-label="world map"></canvas>
+    <div id="mapempty" class="hidden"></div>
+    <div id="busy" class="hidden">
+      <div class="bspin"></div>
+      <div class="t1" id="busyT1">Directing…</div>
+      <div class="t2">generation + export — can take a few seconds on big worlds</div>
+    </div>
+  </div>
+  <div id="mapfoot">
+    <div id="cursorbar"></div>
+    <div id="stamp"></div>
+  </div>
+</section>
+
+<aside id="side" class="scroll">
+  <section>
+    <div class="shead">Inspect <span id="inspectCtx" style="margin-left:auto;text-transform:none;letter-spacing:0"></span></div>
+    <div class="sbody" id="inspectBody"></div>
+  </section>
+  <details id="auditSec" open>
+    <summary class="shead">Audit</summary>
+    <div class="sbody" id="auditBody"></div>
+  </details>
+  <details id="recipeSec">
+    <summary class="shead">Recipe</summary>
+    <div class="sbody" id="recipeBody"></div>
+  </details>
+</aside>
+
 <script>
 "use strict";
-const $ = (id) => document.getElementById(id);
-const api = async (method, path, body) => {
-  const res = await fetch(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
-  const data = await res.json().catch(() => ({ ok: false, error: "non-JSON response" }));
-  if (!res.ok) throw new Error(data.error || res.statusText);
-  return data;
+/* Director Studio — single-file front-end for wf-fill serve.
+   Live mode: same-origin fetch against /api/*.
+   Demo mode: if the API is unreachable, replays the captured sample
+   responses embedded below (renders included) so the file runs anywhere. */
+
+const CAPTURED = {"_note":"Real captured responses from wf-fill serve over the fen-hollow fixture (64x64). PNG routes omitted — they return image/png bytes.","GET /api/worlds":{"worlds":[{"name":"dust-hollow","source":"fixtures","width":64,"height":64,"hasOwnRecipe":false,"hasExport":false},{"name":"fen-hollow","source":"fixtures","width":64,"height":64,"hasOwnRecipe":false,"hasExport":false},{"name":"tiny-temperate","source":"fixtures","width":64,"height":64,"hasOwnRecipe":false,"hasExport":false}]},"POST /api/direct?world=fen-hollow":{"ok":true,"counts":{"placements":2,"territories":13,"placementFailures":0,"territoryFailures":0,"unboundAnchors":3},"gates":[{"id":"G1","name":"placements on valid ground","status":"pass"},{"id":"G2","name":"exclusion symmetry","status":"pass"},{"id":"G3","name":"territories on valid ground","status":"pass"},{"id":"G4","name":"budgets place or explain","status":"pass"},{"id":"G5","name":"danger progression","status":"pass"},{"id":"G6","name":"locks held","status":"pass"},{"id":"G7","name":"base identity","status":"pass"},{"id":"G8","name":"determinism round-trip","status":"pass"},{"id":"G9","name":"painted zones respected","status":"pass"}],"strict":false},"GET /api/pack?world=fen-hollow":{"manifest":{"adapter":{"name":"worldfiller","version":"0.1.0"},"analysisVersion":1,"base":{"artifactFormat":8,"artifactSha256":"682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e","generationIdentitySha256":"595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26","height":64,"width":64},"counts":{"placementFailures":0,"placements":2,"territories":13,"territoryFailures":0,"unboundAnchors":3},"directorBehaviorVersion":5,"directorRecipeSha256":"4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564","directorSeed":103991,"files":{"content-plan.json":"c35d6f541d4ea027cbab43a44f35a6e8696f1e8b3fd1a69ff30f467b45494a7f","placements.json":"938db26ba7d7d6968991692f330e7c09d5c4eec5a8d229534ee13b60b5700124","report.json":"a9de83f702fc1d7012f862c7a006b334ad12ffa05c08201da883e5bcf797dd8a","territories.json":"3ce9d2394b3c37e7dfc14845ff899b195598820c53963b39d4dcb949ada84c73"},"pack":"worldfiller-content-pack","packFormat":1,"recipeName":"basic-direction","rulePacks":{"analysis":1,"export":1,"placement":2,"plan":1,"territory":2,"validate":1},"world":"fen-hollow"},"plan":{"analysisVersion":1,"base":{"artifactFormat":8,"generationIdentitySha256":"595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26","height":64,"width":64},"checks":{"progressionWarnings":[],"worldWaivers":[]},"directorBehaviorVersion":5,"directorRecipeSha256":"4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564","directorSeed":103991,"planFormat":1,"recipeName":"basic-direction","regions":[{"biome":"terrain.cobble","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":13,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":13,"id":"region.cobble.1224","medianSpawnDistance":32,"reachableCells":13,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":13},{"biome":"terrain.cobble","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":261,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.cobble.2317","medianSpawnDistance":9,"reachableCells":135,"regionClass":"standard","safeSharePermille":1000,"waivers":["fully_safe","no_dungeon_anchors"],"walkableCells":136},{"biome":"terrain.cobble","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":183,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.cobble.2865","medianSpawnDistance":62,"reachableCells":108,"regionClass":"standard","safeSharePermille":994,"waivers":["fully_safe","no_dungeon_anchors"],"walkableCells":108},{"biome":"terrain.cobble","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":68,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.cobble.924","medianSpawnDistance":55,"reachableCells":34,"regionClass":"standard","safeSharePermille":1000,"waivers":["fully_safe","no_dungeon_anchors"],"walkableCells":34},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.1764","medianSpawnDistance":51,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":55,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":41,"id":"region.grass.202","medianSpawnDistance":56,"reachableCells":41,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":41},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.2022","medianSpawnDistance":53,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.grass.2136","medianSpawnDistance":34,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.grass.2139","medianSpawnDistance":36,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.grass.2146","medianSpawnDistance":44,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.2297","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.249","medianSpawnDistance":99,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.2613","medianSpawnDistance":69,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.grass.2804","medianSpawnDistance":62,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.2880","medianSpawnDistance":10,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":10,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3262","medianSpawnDistance":65,"reachableCells":8,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":8},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":1,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.grass.3286","medianSpawnDistance":22,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":9,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3328","medianSpawnDistance":10,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3473","medianSpawnDistance":16,"reachableCells":4,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":13,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3648","medianSpawnDistance":18,"reachableCells":6,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":8},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3652","medianSpawnDistance":10,"reachableCells":2,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":16,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3656","medianSpawnDistance":16,"reachableCells":11,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":11},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.374","medianSpawnDistance":94,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.3775","medianSpawnDistance":67,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.grass.3813","medianSpawnDistance":42,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.4024","medianSpawnDistance":65,"reachableCells":7,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":7},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.4031","medianSpawnDistance":70,"reachableCells":2,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":1,"id":"region.grass.419","medianSpawnDistance":73,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":1},{"biome":"terrain.grass","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.grass.631","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.gravel.1009","medianSpawnDistance":77,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.gravel.1031","medianSpawnDistance":47,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.gravel.1092","medianSpawnDistance":33,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.gravel.1102","medianSpawnDistance":40,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":37,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":37,"id":"region.gravel.1158","medianSpawnDistance":33,"reachableCells":37,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":37},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":8,"id":"region.gravel.1218","medianSpawnDistance":31,"reachableCells":8,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":8},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.gravel.1294","medianSpawnDistance":37,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":4,"id":"region.gravel.136","medianSpawnDistance":62,"reachableCells":4,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":15,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":15,"id":"region.gravel.140","medianSpawnDistance":57,"reachableCells":15,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":15},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":8,"id":"region.gravel.1486","medianSpawnDistance":32,"reachableCells":8,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":8},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":6,"dangerBand":1,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":6,"id":"region.gravel.1604","medianSpawnDistance":25,"reachableCells":6,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":6},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":1,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":4,"id":"region.gravel.1671","medianSpawnDistance":25,"reachableCells":4,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":1,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.gravel.1739","medianSpawnDistance":26,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":9,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":9,"id":"region.gravel.362","medianSpawnDistance":82,"reachableCells":9,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":9},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.gravel.367","medianSpawnDistance":86,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":11,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":11,"id":"region.gravel.369","medianSpawnDistance":91,"reachableCells":11,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":11},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":27,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":1,"hostileWalkableCells":11,"id":"region.gravel.393","medianSpawnDistance":51,"reachableCells":11,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":11},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.gravel.453","medianSpawnDistance":67,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.gravel.581","medianSpawnDistance":69,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":11,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":1,"hostileWalkableCells":5,"id":"region.gravel.622","medianSpawnDistance":78,"reachableCells":5,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":7,"id":"region.gravel.710","medianSpawnDistance":72,"reachableCells":7,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":7},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.gravel.810","medianSpawnDistance":78,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":4,"id":"region.gravel.907","medianSpawnDistance":45,"reachableCells":4,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.gravel","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":4,"id":"region.gravel.939","medianSpawnDistance":74,"reachableCells":4,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":1,"worldBosses":0},"cellCount":87,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":82,"id":"region.mud.0","medianSpawnDistance":69,"reachableCells":82,"regionClass":"standard","safeSharePermille":0,"waivers":["no_dungeon_anchors"],"walkableCells":82},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":1,"territories":2,"worldBosses":0},"cellCount":291,"dangerBand":1,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":205,"id":"region.mud.1152","medianSpawnDistance":24,"reachableCells":247,"regionClass":"standard","safeSharePermille":182,"waivers":["no_dungeon_anchors"],"walkableCells":248},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.mud.1220","medianSpawnDistance":31,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":3,"id":"region.mud.1230","medianSpawnDistance":39,"reachableCells":3,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.mud","budgets":{"dungeonBindings":1,"encounterSites":6,"territories":4,"worldBosses":1},"cellCount":898,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":1,"hostileWalkableCells":751,"id":"region.mud.1245","medianSpawnDistance":41,"reachableCells":780,"regionClass":"major","safeSharePermille":46,"waivers":[],"walkableCells":791},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":4,"id":"region.mud.1358","medianSpawnDistance":36,"reachableCells":4,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.mud.138","medianSpawnDistance":60,"reachableCells":2,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.mud.2284","medianSpawnDistance":64,"reachableCells":1,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":2},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.2766","medianSpawnDistance":15,"reachableCells":3,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":7,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.2881","medianSpawnDistance":7,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.mud.2911","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":2},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":2,"id":"region.mud.3040","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":2},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":1,"hostileWalkableCells":3,"id":"region.mud.3101","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":3},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3317","medianSpawnDistance":57,"reachableCells":4,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3338","medianSpawnDistance":8,"reachableCells":4,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3341","medianSpawnDistance":11,"reachableCells":3,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3399","medianSpawnDistance":6,"reachableCells":4,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":4},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3662","medianSpawnDistance":17,"reachableCells":3,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":3},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":6,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.mud.3893","medianSpawnDistance":59,"reachableCells":6,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":6},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":13,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":6,"id":"region.mud.3914","medianSpawnDistance":19,"reachableCells":12,"regionClass":"minor","safeSharePermille":461,"waivers":["too_small"],"walkableCells":12},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":2,"territories":3,"worldBosses":0},"cellCount":400,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":297,"id":"region.mud.43","medianSpawnDistance":79,"reachableCells":319,"regionClass":"standard","safeSharePermille":82,"waivers":["no_dungeon_anchors"],"walkableCells":328},{"biome":"terrain.mud","budgets":{"dungeonBindings":0,"encounterSites":1,"territories":2,"worldBosses":0},"cellCount":348,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":215,"id":"region.mud.942","medianSpawnDistance":75,"reachableCells":202,"regionClass":"standard","safeSharePermille":37,"waivers":["no_dungeon_anchors"],"walkableCells":224},{"biome":"terrain.packed_road","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":1,"worldBosses":0},"cellCount":107,"dangerBand":3,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":99,"id":"region.packed_road.1129","medianSpawnDistance":63,"reachableCells":107,"regionClass":"standard","safeSharePermille":74,"waivers":["no_dungeon_anchors"],"walkableCells":107},{"biome":"terrain.packed_road","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":46,"dangerBand":2,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":40,"id":"region.packed_road.1562","medianSpawnDistance":32,"reachableCells":46,"regionClass":"minor","safeSharePermille":130,"waivers":["too_small"],"walkableCells":46},{"biome":"terrain.snow","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":40,"dangerBand":4,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":14,"id":"region.snow.492","medianSpawnDistance":81,"reachableCells":12,"regionClass":"minor","safeSharePermille":0,"waivers":["too_small"],"walkableCells":14},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1214","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1233","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1238","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":500,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1268","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1296","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1335","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1392","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":4,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1425","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1437","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":500,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1458","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1566","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1715","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1846","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1884","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":15,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.1917","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2227","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.223","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":41,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2264","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":22,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2346","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2463","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2465","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2594","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2631","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":7,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2768","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":285,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2831","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2951","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2964","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":33,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2978","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.2983","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3027","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3045","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3150","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.338","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3445","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.355","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3636","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":1000,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":11,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.3856","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.404","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.42","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.543","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.574","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":30,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.580","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.598","medianSpawnDistance":58,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":6,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.606","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":833,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":13,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.628","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":5,"dangerBand":0,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.667","medianSpawnDistance":58,"reachableCells":5,"regionClass":"minor","safeSharePermille":1000,"waivers":["too_small"],"walkableCells":5},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.674","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":3,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.699","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.724","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":9,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.803","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":2,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.825","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0},{"biome":"terrain.swamp","budgets":{"dungeonBindings":0,"encounterSites":0,"territories":0,"worldBosses":0},"cellCount":8,"dangerBand":null,"dangerOverridden":false,"dungeonAnchorCandidates":0,"hostileWalkableCells":0,"id":"region.swamp.9","medianSpawnDistance":null,"reachableCells":0,"regionClass":"minor","safeSharePermille":0,"waivers":["unreachable_from_spawn","too_small"],"walkableCells":0}],"rulePacks":{"analysis":1,"export":1,"placement":2,"plan":1,"territory":2,"validate":1},"spawnRegionId":"region.cobble.2317","unassignedDungeonAnchors":0,"worldBudget":{"dungeonBindings":1,"encounterSites":10,"territories":13,"worldBosses":{"allocated":1,"target":1}}},"placements":{"analysisVersion":1,"base":{"artifactFormat":8,"generationIdentitySha256":"595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26","height":64,"width":64},"directorBehaviorVersion":5,"directorRecipeSha256":"4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564","directorSeed":103991,"failures":[],"lockReport":[],"placements":[{"accessCell":[18,38],"anchorPoiId":3,"anchorPoiType":"poi.cave","arenaOrigin":null,"arenaSide":null,"candidateFunnel":[{"remaining":1,"stage":"anchors_in_region"},{"remaining":1,"stage":"reachable"},{"remaining":1,"stage":"spacing_clear"}],"cell":[18,38],"channel":"world/region.mud.1245/reroll.0/dungeon/0","draw":0,"exclusionRadius":8,"id":"placement.dungeon.region.mud.1245.0","inSafeZone":false,"locked":false,"regionId":"region.mud.1245","rule":"dungeon_binding.v1","score":410,"scoreTerms":[{"contribution":410,"term":"settlement_far","value":410,"weightPermille":1000}],"topCandidates":[{"cell":[18,38],"score":410}]},{"accessCell":[31,59],"anchorPoiId":null,"anchorPoiType":null,"arenaOrigin":[29,57],"arenaSide":6,"candidateFunnel":[{"remaining":58,"stage":"clearance_anchor_in_region"},{"remaining":58,"stage":"reachable"},{"remaining":58,"stage":"paint_no_content"},{"remaining":56,"stage":"clear_of_safe_and_reserved"},{"remaining":56,"stage":"exclusion_clear"},{"remaining":56,"stage":"settlement_distance"},{"remaining":56,"stage":"peer_distance"}],"cell":[31,59],"channel":"world/region.mud.1245/reroll.0/boss/0","draw":5,"exclusionRadius":16,"id":"placement.world_boss.region.mud.1245.0","inSafeZone":false,"locked":false,"regionId":"region.mud.1245","rule":"world_boss.v1","score":1104,"scoreTerms":[{"contribution":399,"term":"clearance","value":666,"weightPermille":600},{"contribution":500,"term":"settlement_far","value":625,"weightPermille":800},{"contribution":205,"term":"road_far","value":411,"weightPermille":500}],"topCandidates":[{"cell":[32,60],"score":1198},{"cell":[31,60],"score":1183},{"cell":[30,60],"score":1155},{"cell":[29,60],"score":1126},{"cell":[32,59],"score":1119},{"cell":[31,59],"score":1104},{"cell":[28,60],"score":1097},{"cell":[30,59],"score":1075}]}],"placementsFormat":1,"recipeName":"basic-direction","rulePacks":{"analysis":1,"export":1,"placement":2,"plan":1,"territory":2,"validate":1},"unboundAnchors":[{"cell":[9,6],"poiId":0,"poiType":"poi.city_ruin","reason":"region_zero_budget","regionId":"region.gravel.393"},{"cell":[46,9],"poiId":1,"poiType":"poi.city_ruin","reason":"region_zero_budget","regionId":"region.gravel.622"},{"cell":[29,50],"poiId":2,"poiType":"poi.cave","reason":"region_zero_budget","regionId":"region.mud.3101"}]},"territories":{"analysisVersion":1,"base":{"artifactFormat":8,"generationIdentitySha256":"595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26","height":64,"width":64},"coverage":{"regions":[{"budget":1,"coveragePermille":341,"covered":28,"emitted":1,"hostileWalkable":82,"regionId":"region.mud.0"},{"budget":2,"coveragePermille":341,"covered":70,"emitted":2,"hostileWalkable":205,"regionId":"region.mud.1152"},{"budget":4,"coveragePermille":291,"covered":219,"emitted":4,"hostileWalkable":751,"regionId":"region.mud.1245"},{"budget":3,"coveragePermille":343,"covered":102,"emitted":3,"hostileWalkable":297,"regionId":"region.mud.43"},{"budget":2,"coveragePermille":344,"covered":74,"emitted":2,"hostileWalkable":215,"regionId":"region.mud.942"},{"budget":1,"coveragePermille":343,"covered":34,"emitted":1,"hostileWalkable":99,"regionId":"region.packed_road.1129"}],"totalCovered":527,"totalHostileWalkable":1649},"directorBehaviorVersion":5,"directorRecipeSha256":"4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564","directorSeed":103991,"failures":[],"recipeName":"basic-direction","rulePacks":{"analysis":1,"export":1,"placement":2,"plan":1,"territory":2,"validate":1},"territories":[{"cellCount":28,"cells":{"encoding":"runs","runs":[[2,5,1],[0,6,4],[0,7,4],[0,8,5],[0,9,1],[2,9,2],[0,10,3],[1,11,1],[0,12,2],[0,13,3],[0,14,1],[2,14,1]]},"channel":"world/region.mud.0/reroll.0/territory/0","dangerBand":3,"draw":4,"elitePermille":30,"id":"territory.region.mud.0.0","maxActive":2,"packSize":[2,6],"regionId":"region.mud.0","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[0,12]},{"cellCount":35,"cells":{"encoding":"runs","runs":[[0,18,3],[0,19,2],[0,20,3],[0,21,2],[0,22,2],[3,22,1],[0,23,5],[0,24,5],[0,25,4],[0,26,3],[0,27,3],[0,28,2]]},"channel":"world/region.mud.1152/reroll.0/territory/0","dangerBand":1,"draw":7,"elitePermille":30,"id":"territory.region.mud.1152.0","maxActive":2,"packSize":[2,6],"regionId":"region.mud.1152","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35}],"seedCell":[0,21]},{"cellCount":35,"cells":{"encoding":"runs","runs":[[15,24,1],[15,25,1],[10,26,3],[15,26,2],[12,27,1],[14,27,2],[17,27,2],[12,28,8],[13,29,6],[11,30,6],[11,31,2],[14,31,1]]},"channel":"world/region.mud.1152/reroll.0/territory/1","dangerBand":1,"draw":5,"elitePermille":30,"id":"territory.region.mud.1152.1","maxActive":2,"packSize":[2,6],"regionId":"region.mud.1152","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35}],"seedCell":[13,28]},{"cellCount":65,"cells":{"encoding":"runs","runs":[[40,26,1],[40,27,2],[38,28,5],[38,29,6],[36,30,9],[37,31,1],[40,31,5],[39,32,4],[39,33,3],[40,34,3],[38,35,5],[39,36,1],[39,37,2],[38,38,3],[37,39,2],[40,39,2],[36,40,6],[37,41,5]]},"channel":"world/region.mud.1245/reroll.0/territory/0","dangerBand":2,"draw":4,"elitePermille":30,"id":"territory.region.mud.1245.0","maxActive":5,"packSize":[2,6],"regionId":"region.mud.1245","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[37,40]},{"cellCount":65,"cells":{"encoding":"runs","runs":[[33,24,1],[32,25,3],[31,26,5],[31,27,3],[31,28,4],[30,29,5],[28,30,8],[28,31,9],[28,32,7],[36,32,2],[29,33,5],[36,33,2],[30,34,5],[37,34,1],[30,35,3],[31,36,2]]},"channel":"world/region.mud.1245/reroll.0/territory/1","dangerBand":2,"draw":4,"elitePermille":30,"id":"territory.region.mud.1245.1","maxActive":5,"packSize":[2,6],"regionId":"region.mud.1245","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[37,34]},{"cellCount":24,"cells":{"encoding":"runs","runs":[[44,44,1],[42,45,3],[42,46,3],[43,47,2],[43,48,3],[44,49,2],[47,49,4],[45,50,3],[49,50,1],[45,51,1],[49,51,1]]},"channel":"world/region.mud.1245/reroll.0/territory/2","dangerBand":2,"draw":6,"elitePermille":30,"id":"territory.region.mud.1245.2","maxActive":1,"packSize":[2,6],"regionId":"region.mud.1245","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[42,45]},{"cellCount":65,"cells":{"encoding":"runs","runs":[[36,20,1],[38,20,1],[40,20,4],[35,21,9],[34,22,4],[39,22,2],[42,22,3],[35,23,1],[37,23,8],[36,24,9],[35,25,3],[39,25,2],[42,25,3],[36,26,4],[42,26,3],[37,27,2],[43,27,2],[37,28,1],[43,28,2],[44,29,1]]},"channel":"world/region.mud.1245/reroll.0/territory/3","dangerBand":2,"draw":6,"elitePermille":30,"id":"territory.region.mud.1245.3","maxActive":5,"packSize":[2,6],"regionId":"region.mud.1245","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[44,26]},{"cellCount":34,"cells":{"encoding":"runs","runs":[[57,0,6],[58,1,2],[61,1,3],[57,2,4],[62,2,1],[58,3,3],[62,3,2],[60,4,1],[62,4,2],[59,5,1],[62,5,2],[59,6,3],[63,6,1],[61,7,3]]},"channel":"world/region.mud.43/reroll.0/territory/0","dangerBand":3,"draw":2,"elitePermille":30,"id":"territory.region.mud.43.0","maxActive":2,"packSize":[2,6],"regionId":"region.mud.43","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[63,3]},{"cellCount":34,"cells":{"encoding":"runs","runs":[[48,0,8],[48,1,9],[49,2,8],[50,3,3],[54,3,3],[50,4,3]]},"channel":"world/region.mud.43/reroll.0/territory/1","dangerBand":3,"draw":4,"elitePermille":30,"id":"territory.region.mud.43.1","maxActive":2,"packSize":[2,6],"regionId":"region.mud.43","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[55,1]},{"cellCount":34,"cells":{"encoding":"runs","runs":[[43,0,5],[43,1,5],[43,2,6],[43,3,7],[43,4,3],[47,4,3],[44,5,3],[48,5,1],[45,6,1]]},"channel":"world/region.mud.43/reroll.0/territory/2","dangerBand":3,"draw":2,"elitePermille":30,"id":"territory.region.mud.43.2","maxActive":2,"packSize":[2,6],"regionId":"region.mud.43","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[46,0]},{"cellCount":37,"cells":{"encoding":"runs","runs":[[57,28,1],[57,29,2],[55,30,3],[56,31,2],[55,32,1],[57,32,1],[54,33,2],[57,33,4],[54,34,4],[59,34,1],[54,35,2],[59,35,3],[63,35,1],[59,36,1],[61,36,3],[58,37,5],[58,38,1]]},"channel":"world/region.mud.942/reroll.0/territory/0","dangerBand":3,"draw":5,"elitePermille":30,"id":"territory.region.mud.942.0","maxActive":2,"packSize":[2,6],"regionId":"region.mud.942","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[58,38]},{"cellCount":37,"cells":{"encoding":"runs","runs":[[58,19,2],[57,20,4],[55,21,1],[57,21,1],[59,21,1],[53,22,1],[55,22,4],[52,23,3],[56,23,3],[53,24,6],[52,25,5],[58,25,2],[53,26,2],[59,26,1],[54,27,1]]},"channel":"world/region.mud.942/reroll.0/territory/1","dangerBand":3,"draw":7,"elitePermille":30,"id":"territory.region.mud.942.1","maxActive":2,"packSize":[2,6],"regionId":"region.mud.942","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20},{"enemyId":"enemy.mire_creeper","nightOnly":false,"weightPercent":35},{"enemyId":"enemy.night_shade","nightOnly":true,"weightPercent":15}],"seedCell":[58,24]},{"cellCount":34,"cells":{"encoding":"runs","runs":[[45,24,1],[45,25,2],[45,26,2],[45,27,2],[45,28,2],[45,29,2],[45,30,2],[45,31,2],[45,32,2],[45,33,2],[45,34,2],[45,35,2],[45,36,2],[45,37,3],[45,38,3],[46,39,2],[46,40,1]]},"channel":"world/region.packed_road.1129/reroll.0/territory/0","dangerBand":3,"draw":3,"elitePermille":30,"id":"territory.region.packed_road.1129.0","maxActive":2,"packSize":[2,6],"regionId":"region.packed_road.1129","respawnPressure":"medium","roster":[{"enemyId":"enemy.marauder","nightOnly":false,"weightPercent":20}],"seedCell":[45,33]}],"territoriesFormat":1},"report":{"analysisVersion":1,"base":{"artifactFormat":8,"generationIdentitySha256":"595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26"},"directorBehaviorVersion":5,"directorRecipeSha256":"4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564","gates":[{"details":[],"id":"G1","name":"placements on valid ground","status":"pass"},{"details":[],"id":"G2","name":"exclusion symmetry","status":"pass"},{"details":[],"id":"G3","name":"territories on valid ground","status":"pass"},{"details":[],"id":"G4","name":"budgets place or explain","status":"pass"},{"details":[],"id":"G5","name":"danger progression","status":"pass"},{"details":[],"id":"G6","name":"locks held","status":"pass"},{"details":[],"id":"G7","name":"base identity","status":"pass"},{"details":[],"id":"G8","name":"determinism round-trip","status":"pass"},{"details":[],"id":"G9","name":"painted zones respected","status":"pass"}],"ok":true,"recipeName":"basic-direction","reportFormat":1,"rulePacks":{"analysis":1,"export":1,"placement":2,"plan":1,"territory":2,"validate":1},"strict":false}},"GET /api/recipe?world=fen-hollow":{"world":"fen-hollow","path":"/home/user/world_filler/fixtures/recipes/basic-direction.json","own":false,"raw":"{\n  \"recipeFormat\": 1,\n  \"name\": \"basic-direction\",\n  \"directorSeed\": 103991\n}\n","normalized":{"recipeFormat":1,"name":"basic-direction","directorSeed":103991,"base":{"generationIdentitySha256":null},"danger":{"bandCount":5,"maxBandJump":2,"safeZoneShareForBand0Permille":300,"overrides":[]},"budgets":{"minRegionCells":64,"majorRegionCells":800,"territoriesPer1000Walkable":12,"territoryCapPerRegion":4,"encountersPer1000Walkable":8,"encounterCapPerRegion":6,"dungeonCapPerRegion":2,"worldBossCount":1,"minWorldBossBand":2},"dungeonAnchors":{"poiTypes":["poi.beast_den","poi.cave","poi.city_ruin","poi.crypt","poi.giant_skeleton","poi.mine","poi.ruin"]},"worldBossRule":{"minClearance":6,"minSettlementPathDistance":20,"minPeerPathDistance":80,"exclusionRadius":16,"clearancePermille":600,"settlementFarPermille":800,"roadFarPermille":500},"dungeonRule":{"exclusionRadius":8,"settlementFarPermille":1000},"territoryRule":{"targetHostileCoveragePermille":350,"minCells":24,"maxCells":400,"packSizeMin":2,"packSizeMax":6,"maxActivePer100Cells":8,"elitePermille":30,"respawnPressure":"medium"},"contentLibrary":{"enemies":[{"id":"enemy.frost_wraith","biomes":["terrain.snow"],"minBand":0,"maxBand":12,"weightPercent":30,"nightOnly":false},{"id":"enemy.gravel_lurker","biomes":["terrain.gravel","terrain.sand"],"minBand":0,"maxBand":8,"weightPercent":30,"nightOnly":false},{"id":"enemy.marauder","biomes":["terrain.cobble","terrain.dry_grass","terrain.grass","terrain.gravel","terrain.mud","terrain.packed_road","terrain.sand","terrain.snow"],"minBand":1,"maxBand":15,"weightPercent":20,"nightOnly":false},{"id":"enemy.mire_creeper","biomes":["terrain.mud","terrain.swamp"],"minBand":0,"maxBand":8,"weightPercent":35,"nightOnly":false},{"id":"enemy.night_shade","biomes":["terrain.dry_grass","terrain.grass","terrain.mud","terrain.snow"],"minBand":2,"maxBand":15,"weightPercent":15,"nightOnly":true},{"id":"enemy.prowler","biomes":["terrain.dry_grass","terrain.grass"],"minBand":0,"maxBand":5,"weightPercent":40,"nightOnly":false}]},"rerolls":[],"locks":{"placements":[]},"paint":{"noContent":[],"preferContent":[]}}},"POST /api/lock":{"ok":true,"locked":{"id":"placement.world_boss.region.mud.1245.0","rule":"world_boss.v1","regionId":"region.mud.1245","cell":[31,59],"exclusionRadius":16,"anchorPoiId":null,"arenaOrigin":[29,57],"arenaSide":6}},"POST /api/reroll":{"ok":true,"regionId":"region.mud.1245","iteration":1},"POST /api/unlock":{"ok":true,"released":"placement.world_boss.region.mud.1245.0"},"error example: GET /api/pack?world=nope (404)":{"ok":false,"error":"no export for nope yet — direct it first"},"error example: PUT /api/recipe invalid (400)":{"ok":false,"error":"recipe: directorSeed must be a non-negative safe integer"}};
+const RENDER_URIS = {"terrain":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAEN0lEQVR4nN2bPW7cQAyFdZgcw1UKIydItYWL1DqAqxRBCh/CyNUCpMshEsjABBT3Pf4MKe3GBZFdraTh+4bkcCRnWT8//PHs0+Xjzh7XH9A+PKyusWs928aN+Jq1JXpiB4RZ8TcF8PV5fTP9fTPP6Q7hdwPg6eVxJz4DwhMVObcicvN9GsB2sWUdADwIVfHTADzxA4CsERkAXp2RgGQa6mPy3/HZE54CgMJeA7BEoOKZDVU5tharfSvXACQyCuCoXB3j/vz1m9qMLzQCMgBmIegw9ywCIOrLiMYrANsPUqAHwBOH8lk6kClyEoD0RR6T41g+QgDD0SgAy1mv6uuCGYkEDwCDjSZljAsBIAgDhD7GyB4BYLMKAOQTjQAtVteFbgAeBFQE9fdIuqUARMO9IwWiUWABkPeRINIA5MVsHxCptkjgy7fnN2MAmOnxEZSZbnTxBq3aNsgQjWymc9QAKnuSxaI/211pswBkQGRTbioCNrGXyxfXdB/eAYGBeP3+BG0GgD73qhEaANjWF/2uHakAYGI7IKB6t0jhQ4wUKJ2TANDNrIou72MBqQDQhTySPrsIyAAYn9kSwwB40eGlkgcAwbDOuYoALdCKAAsAm+FKMUUAqivWDgCrAVK8lQLaGVbgqkusBFC9J9wORwBElsh3D8C7+XaeLG5WjbgbAKgP2ASwPsASP2w4fRSASh24WgVkWLMQj3aHRwNAK0/2vvSZIBKa7f600xEAkZ0nAxBpmVMAosdnZg0BiD7K9gBkIiz8brBinet2BwD5WwuASut6NgDdr5QAVPt2y6x06AKw2wx1AOiYXQng6AiYBpARLmfSEuUVQNlXVFeBUwFEZzViHoC2PiAKIHJu5/NF2VRpALPgpwDIra3s9qxQq0KQ12sATLT1/mIagN7b657fglARv5lOgY7CeyoA9sbGg6PvcTiArsdXHoQogBU8dzwdQPURl/e6KhIF8nwLQHRP4QKQTncCiDxFtgC0p4AWg15QHAGApQWzmwLQECIOIwDerFutbaQIZputJfOKSgNgj8T1+ozEo9XDupcEpjvR4VMm9/8BQBcwCBkALAWk+PHb9tkTL+/FACANTNsOAEoBWQRRDfBC1aKOXrayFEH3Q+KjNcoE4L238wDMCEcR4kHMAPBsGXmTvbACQMOY2TO0A8hC0CEbcRrlvrd6ZGwKQJUgyrOZ3B+fs6L1HiTq85j0wwBk/4qUbaYiMFmBCwGIhr8ewALg/YlqR9hbM98GgImWA2Qd78x5BgAtqa0A9DnZ7qtLNAPAehQEwVwF9ExboVR94HkzAGetAGeJt9pz5P9VJ+h9t2rCuwXA0uNeAKzGBs56luEWQa8+HAVgtp5IAF7q7laByMnst86lbFXP82fTAB0rA0CDdq/lHSkQBbCrASzMI/875N4BaA20BrAT/hcAbMY9fX8BniCWF8Pia2EAAAAASUVORK5CYII=","danger":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADfklEQVR4nO2ZPW4cMQyF5wApDTtFsLCBrdOl8yFcu/Gt3PgaqXMD32AbN7mGgzHAgMPlr0hpFGeLBy/GO1q9TxRFScvp4f7d0tfD9UY3xx+svlwdTUnvWlp/19PXqBbvFysgtJqfAgAnq9MVxqcG4AVhmfJ8N9O/l/tfcwOw2sia7w7ghHJEBIDUBpY2ivAM/+U+p6fA2+vDmSwQklpHFQxpZr2muwLoJWpSUrTdXQHQMB8JAaLxDADXoRYAj8+/z8R1IDIdJJP4Oe7/7febD7kBSCPSAoBLehgCTZieSLAAcMmT84d/mwUgNeAxrq0EWQAnIbt7AXB9ckXACACtUUDDn/Og9SkEIKI9AOB2sJcwAG8uiELACVECIMkDpaUaXVp/NBIJ3IoAylSOnqgzAWj0q9Z9DUAERLV5NgJWs4fDnSmA4oXjgSCBaM05UlsbAI8/n96xAAC39oPo/2lHMgCqE68EEgZ8wcYlgxYAbidIcwg2ub7TA8BJKHa0KFro6EcBSEuMBIBrj8LR1AJD+046AiQA0ghbBqMAsivWBkBrDqCJ9G9UCQmOrjAZCJEiypwCoCgAro3/AoBoHLWDQ5/miKkB0DWfe2aZB8HU6gUgkwdYAJbM0CcQegHgVp4oiGYALe/0BhCpHFMAMlEzAkAkJwwBgDvPbbRGA8D/KwGQMTMaAN3upwCMNl4NYLMZugCY3DiuK7KrwD8JAEOYog7wqiLrYwBcGWyNunQ71J4EUX2PS2PJfAUEbmQ183Atpl2PtQEge3u6P9AgZMyvolOgQkMBUAhwmGLB6XFcrwMAkw4AkRGkELwA3phzx/EAkkdcFAB3iGq937rhaQawOeYqBCCdInsB1E8BOuLMBUUPANK0kLQrAAmCxxQ3h6VR10rbPkkwcEXFmdfqcc08t3pobWFg1ETmUkUE4JkGGgAti4Px47erD62fLfO4LQ8ACQp9rgLAnfZECA5VLR9wl63SFOHa4wx5r9pCACLR4cnknHGIAgzAghgBYGkXABD2dPQjJfPuAGjIejrNzX1r9YhoKAAsbwe1uQ+fo6bPrulmAaCdG3Cjbl3HaTCniwDt4MRTNI0Y+TIA0Y5XznkJALekdgUQBVFlWgIg1SjdpkBrNHwKAHualsJ/eARcAEwUBV7jnw4AQPCYLgVQuZRVTYOIUgCq1/ILgAuA8RD+AJE+UvlxF68KAAAAAElFTkSuQmCC","placements":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAFfElEQVR4nNWay2oUQRSG+wlchzCrMIQsejFgwoAEzCaIZBHDqBiDgolLXbhyk43xAVz7CL6Jj+MbRKqcak7/fW51mSQKP85096Tr/+qcU5furt/ZurU0m2+P1R+xerTVm5J+a2q+bbazRJ33whYQis3fJ4DHiz4KvwdZjW5i/KEA2F3ORuZzQFimPNfWmAxtLwYQfqypBQALQq35YgCW+QRgVCMyAJh1hgCiaYjH6P/ps2U8CwAX9ghAM8EVz9xQpfdGs9i26hrAmfQC2FSupvu+vXgvqqQtYgTkACiFgGFuyQPA25YUjRMA4QQ1aAHA3x/tvIxazF9PlM7RBuQUOQqAtoUeo0C1OsACSD3iBaASJsVu0V//E4EQofTXWeO8BYArnpw/Cp8FwEFIIPCYRHZiXgAwQHCmQhUAZiQSIwDNYl3wABiZVwB4IHBFEL9LALThWQXgDXdOE/MGgAjBEQUqAJJOFEQ2APpjaR1gVdtokgFwsv8pSgIgCe/PQSmZjXbWTUs19HR/PZjmNEkDx8wRAdSsSToubLhUKDGfpAFAEKVrgtL1yCQCgtn5fM8UzsNbQAjiGvn0YJdVCQC8djIRSgCkpS93HhtSA2B1cDlIMl4Kgat3XQ95FD5Tg8v9xSAKgC2edPwnFR8BaEBqAEwKuSN9Oux9L4Ch8EhDzHybBYCRgTCs+mIB4GBo10wiAA1qEaABkHqYA5BTYBFA7Yg1AiDVAGpeTQFojDjkwcIoVyMAGWsJMwWSPAA8QyRX4b0zvv8CgPXHw3W0uGGNeJAAuHlAACDNAzTzSeH7RgFU1IHJKEDDWgpx7+xw0wC4kSf374p7gpxRa/ZnNdoDwLPyFAE4psxZALzHi3qNAeDdyrYA5ESY+9lgjVqO2y0A0HNNAMQGXa6Kpq53DQDnK1UAomlJlea1dGgFYLQYytLpcRSaTsdHKoSr1YL7BeA1vtbux+eDGc2UVQDpvKJ2FKgGsLr84QZAo6Bkc5WDsPF5gBX6AUCQafz0+HZ29iyqxjgFIKVAaTqxAMRV2trUyYefUeHz/OxVlGY+qnLoo79HAFpKme8HcOtzSdQ8Anjx51aHUAEghTamQIth1Q/g9FsUByCYT8qJgmEzxYCDlXvjAMTdGwZAkhQBAwRmw8QLoGf2He8cQDxGzHMQ1GJoPa7yRAGzVa7lfzUA+my/JQBu1zYHQPMUwB7HR1ajx1sAIKSFZx6gPYKbpIXxftG9ABggEONBi7PvUaNil8Z+DgDp9RXT69rU1lMEcydbneehJRcFg/nzX1Gz888TUfPB7CqYXutivjfoamcrKp2z5ve4yApbdqFdntzHOU73ZPlGrgESgHW0UAAIId1gMEcgoPHwmcLhQNBGIwDuoYo0kuHxCIBLgVERZB5xTyIkACChekXMo2jvJ62YKEnHsEBy5r0PYlQA1nM7K0VSQ3OMcxGSPtPfcgDCRqv3oaukCAAh1ADw9DzCGMwzxjUITQHkQqDpERQiRzOPAIbcB/MaAISAKgJQSzClzde1SnM/fbYgIoS0RM59DyF1elMAtJHvljPRANfrNDI8APDJkzSfMQF4wx9vQM9h7wfzEgDOvLfnqegTau4FjCYAJNP0Bt7w1wDkmsc0QLNYn7hhvAoA9v6X5Rs3gAShxLQEYQKAe0lTgKCOAtjTHIBgPqmFqTsHUFsAc8J/EwDY8HcCOEnzAKSifceUuFlDyGn478NDVqURsHEAUnokALkNT4bDvxYAtAWc9qquWQSt+nBTAYD+QwDaHEJKA9zHsFJ3NAp4LpbOlQxlWgSkOYQHQrN5gAcA927frHAsb10DsA7kTIvVYZCeoxDo/t1DB4AexBogXUDF7dTWzOZq5VkNWv7+AvtWXcewihWlAAAAAElFTkSuQmCC","territories":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAGDElEQVR4nNWazYokRRSF8wFcFjOzkKYHajFI06uZhxh0xJWLRkFc9EpmEGkYpuYBfAcdEAS3utCNW/V9fIOWqOJWnTxxT9wbkdm2Nhw6f6Iq43xx743IzJq2729uIz06ezDTw+0zV+9ttqHUZyOV63757k2l735qq/T/2x/fuCrnpgyAtSCMml8CgCEwkBDAB0+2e/F+UdTpNYxHADIQvJFPR4CZPb98ODPfA6Jlqlwj07a0UwAYQmmL+6XvHoBUBJQPt7QGgAiCtUHDvM8AuP+2LwH88dun3eYNANaIHgBRnUFAdh00XY7Zf05XNo7mZwCKcZQHwAt7BtAy4RVPFW1RKqJpNs71iuWlgQvAM5kFsEQZAB9+9LFUti+zWYABIIQsgFEIHOaZghwByPbFonEyw2a+nECDEYD6y6/2enT2WSU7hx1Q6RABwL7gMQSq+0gA0HwPgFZn5wVvtxdCKNuH4/WMMArAK55exCH8aQszADZgCAaCjymybF4D2KUBFC0B4M1EE+Y9mmezXBdyAHZJADEErwjyvgLQmp5lCvSEu0971wlgl4qCFgBMJwQRArA08BYh6j4grrZXLoDLi5d7KQBKfH0PyshqdIouOq6rIwQz7YnTILNyZABL7kkmL2y8VBgxb2oBqEHkl85RgRuKgGL27OxxKFyGrgXhAKLu5NOLc1cjALjt9P1Xz29NZsgMKvF57sgSAE8vrkG+8VEIPDMUHQGgGTR4efHkKATgfRlebL7ymwNoAVkCYCsWO0Uvfv1zL24/i4AeALatpphDEa0BcGQwjC9e3+z7gP9REQAPhpn3IFQRwAZbEdACoEbYA2CdYbOeGEBrxjKz/F8CsP+c42i+lQLcGVXp+cbIM4/H+DwCmEdcbVyNvJsCpgyAzBTpV3i94lNh34oCBsCG7xTAz6+eN3OwtMPiVteIQ7vfv77pSoO/3v4QRoCnFABvHVAAeOuAFgBsW/YVgGLelE2BAsAg4CJOmcfj4SyAYY3bxazJjtt+BEEBQPMehKIXNxqAN/Ng1VdFUQKwgx4A2zcAaD4CcQBw3gRg7cqdJ458AcAQFABc8KiQlwDwoCpsaFypBYBzlkffnjHYyLOyAKoa84uGkX43iBo1j/O2F/6zcHUAGIQRAAgBz3UBUMYzS1aTZxyljKOyAMw4m8eiOQTAtnuM27I1AmAQLB2WAFCjjxpKAS+0o3X5MRwbxvG8Z96+oycCuAasAqDHOD48tf+eeWuHMNA8risyswCOPKZC0QoArrtHfkuvvlpFELc9CNE6wDPNkTBUBOcArlNt1d2aqv6ecQSgUqD6fjB+jDwHiABw1TR1urWdr/aU+QiCug7mPX6eAbRSD1PQS4nJvz9X2tC9/QnAJ3/fhhB6I81G3j7PKVCU/S5OCYPRCYAfbW2O5k09UWAPUzw4GPr8HaMAvOMugOzjK/wiFQEtCAoATnsMwcK+F4BSGoB+xJW7UPS66ng7K1Z/3N5uh1v5vxgAvttfE4D/FBkeaAQARqbgJgAe8fqVlX69Fc0YLQAqLZTuFQBDqH8J0n63GI26qbW0NbUA9L7JnnIvLX0A/CMHb0mqzPMjs5Z5hPDNrn40fnhs/zKZ+/OInc4vP5c1oA/AzjXvQWDjZTsyX4ybagB1PVIzGR/fA/BSAIugVwO8COH1uJL3slWliEkBiN41dgGI3ttFAEaMexGiINYArlN9bWkPgCHcNQCGEd0zMIAThBUB9ELA9CjKTIde7kezh4LAQIqGACwlWOfZWO7bdmbqQtPlcwcgfb9DsEFfGUBuPvZGXd1SKwAI0QBwf1IAsuHPF2gBiH6i2hv2Kppwbvf6sxiAMo0XyIZ/C0Cv+Vpzs1yfvGl8EQBuc1pM5Tq8jmkNwF+j+BCaswCPdCuUDhDWNPUvAbiLAnif5r1foLbuaKuVYLSva8J9AdjcPQCVHqftsY6Xv7WjIGu8qgFRfq8NAP/4XP+v0+vnGFHqzmaBTGN1bslUpsz3PNPz6kD3OiADwHtHsO5cvl4d6FkWN6dBPDeHsPnfAGAPsgaoBq15/r8EgCEoD3zuHwBerxMuHMicAAAAAElFTkSuQmCC"};
+
+/* ============================== state ============================== */
+const S = {
+  mode: 'live',
+  worlds: [], world: null,
+  pack: null, packErr: null,
+  recipe: null, draft: null, rawMode: false, recipeDirty: false,
+  pending: {},                       // world -> [receipt strings]
+  sel: null,                         // {t:'placement'|'territory'|'region', id}
+  hover: null,                       // {cell:[x,y], pid, tid}
+  backdrop: 'terrain',
+  ov: { terr: true, plc: true, arena: true, excl: false },
+  alpha: 0.45,
+  view: { m: 1, px: 0, py: 0 },
+  busy: false,
+  msgs: {},                          // scope -> {text, bad|good|note}
+  flash: null,                       // {cell, until}
+  gen: 0,                            // bumps per direct → render cache-bust
 };
-const status = (text, bad) => { $("status").textContent = text; $("status").className = bad ? "bad" : ""; };
-const world = () => $("world").value;
+const BACKDROPS = ['terrain', 'danger', 'placements', 'territories'];
 
-async function loadWorlds() {
-  const data = await api("GET", "/api/worlds");
-  $("world").innerHTML = data.worlds.map((entry) =>
-    `<option value="${entry.name}">${entry.name} (${entry.width}x${entry.height}, ${entry.source}${entry.hasOwnRecipe ? ", own recipe" : ""}${entry.hasExport ? ", exported" : ""})</option>`).join("");
-  if (data.worlds.length > 0) await refreshPack();
+/* ============================== utils ============================== */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cellS = (c) => c ? `(${c[0]}, ${c[1]})` : '—';
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const deep = (o) => structuredClone(o);
+function hashId(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+const OKLCH = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('color', 'oklch(0.7 0.1 200)');
+function idColor(id){
+  const h = hashId(id), hue = h % 360, l = 0.66 + ((h >>> 9) % 3) * 0.05;
+  return OKLCH ? `oklch(${l} 0.14 ${hue})` : `hsl(${hue} 55% ${Math.round(l * 88)}%)`;
+}
+const BANDC = ['#7bd88f', '#b8d87b', '#e8c95a', '#e8975a', '#ff7d7d', '#ff5d8a'];
+const bandChip = (b) => `<span class="chip"><span class="dot" style="background:${BANDC[clamp(b,0,5)]}"></span>band ${esc(b)}</span>`;
+function setMsg(scope, text, kind){ S.msgs[scope] = { text, kind }; }
+const msgSlot = (scope) => { const m = S.msgs[scope]; return m ? `<div class="msg ${m.kind}">${esc(m.text)}</div>` : ''; };
+const pendList = () => S.pending[S.world] || (S.pending[S.world] = []);
+
+/* ======================== API layer + demo mock ======================== */
+function ApiError(message){ const e = new Error(message); e.isApi = true; return e; }
+
+async function api(method, path, body){
+  if (S.mode === 'mock') return mockApi(method, path, body);
+  const res = await fetch(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+  const data = await res.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
+  if (!res.ok) throw ApiError(data.error || res.statusText);
+  return data;
 }
 
-async function refreshPack() {
-  $("viewLink").style.display = "none";
-  $("placements").textContent = "direct this world to see placements.";
-  $("region").innerHTML = "";
-  try {
-    const pack = await api("GET", "/api/pack?world=" + world());
-    $("viewLink").href = "/view?world=" + world();
-    $("viewLink").style.display = "inline";
-    const locks = new Set((pack.placements.lockReport || []).filter((entry) => entry.status === "held").map((entry) => entry.id));
-    $("placements").innerHTML = "<table><tr><th>placement</th><th>cell</th><th></th></tr>" +
-      pack.placements.placements.map((placement) =>
-        `<tr><td>${placement.id}${placement.locked ? " 🔒" : ""}</td><td>(${placement.cell})</td>` +
-        `<td><button data-id="${placement.id}" data-verb="${placement.locked ? "unlock" : "lock"}">${placement.locked ? "Unlock" : "Lock"}</button></td></tr>`).join("") + "</table>";
-    for (const button of $("placements").querySelectorAll("button")) {
-      button.addEventListener("click", async () => {
-        try {
-          await api("POST", "/api/" + button.dataset.verb, { world: world(), placementId: button.dataset.id });
-          status(button.dataset.verb + " saved to the recipe — press Direct to regenerate.");
-        } catch (error) { status(String(error.message), true); }
-      });
+const MOCK = {
+  worlds: deep(CAPTURED['GET /api/worlds'].worlds),
+  exported: new Set(),
+  recipes: {},                        // world -> {own recipe obj}
+  locks: {},                          // world -> Set(placementId)
+  rerolls: {},                        // world -> Map(regionId -> iteration)
+};
+const mlocks = (w) => MOCK.locks[w] || (MOCK.locks[w] = new Set());
+const mrolls = (w) => MOCK.rerolls[w] || (MOCK.rerolls[w] = new Map());
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function mockRecipe(w){
+  if (MOCK.recipes[w]) return MOCK.recipes[w];
+  const base = deep(CAPTURED['GET /api/recipe?world=fen-hollow']);
+  base.world = w; return base;
+}
+function mockOwn(w){ // a verb wrote into this world's recipe → it becomes an own recipe
+  const r = mockRecipe(w);
+  r.own = true; r.path = `recipes/${w}.json`;
+  r.normalized.locks = { placements: [...mlocks(w)].map((id) => ({ id })) };
+  r.normalized.rerolls = [...mrolls(w)].map(([regionId, iteration]) => ({ regionId, iteration }));
+  r.raw = JSON.stringify(r.normalized, null, 2);
+  MOCK.recipes[w] = r;
+}
+async function mockApi(method, path, body){
+  const url = new URL(path, 'http://x');
+  const p = url.pathname, q = url.searchParams, w = q.get('world') || (body && body.world);
+  if (p === '/api/worlds'){
+    return { worlds: MOCK.worlds.map((e) => ({ ...e, hasOwnRecipe: !!MOCK.recipes[e.name] && MOCK.recipes[e.name].own, hasExport: MOCK.exported.has(e.name) })) };
+  }
+  if (p === '/api/direct'){
+    await delay(1500);
+    MOCK.exported.add(w);
+    const r = deep(CAPTURED['POST /api/direct?world=fen-hollow']);
+    r.strict = q.get('strict') === '1';
+    return r;
+  }
+  if (p === '/api/pack'){
+    if (!MOCK.exported.has(w)) throw ApiError(`no export for ${w} yet — direct it first`);
+    const pack = deep(CAPTURED['GET /api/pack?world=fen-hollow']);
+    pack.manifest.world = w;
+    const locks = mlocks(w);
+    for (const pl of pack.placements.placements) pl.locked = locks.has(pl.id);
+    pack.placements.lockReport = [...locks].map((id) => ({ id, status: 'held' }));
+    return pack;
+  }
+  if (p === '/api/recipe' && method === 'GET') return deep(mockRecipe(w));
+  if (p === '/api/recipe' && method === 'PUT'){
+    const seed = body && body.directorSeed;
+    if (seed !== undefined && (!Number.isSafeInteger(seed) || seed < 0))
+      throw ApiError('recipe: directorSeed must be a non-negative safe integer');
+    const cur = mockRecipe(w);
+    MOCK.recipes[w] = { world: w, path: `recipes/${w}.json`, own: true,
+      raw: JSON.stringify(body, null, 2), normalized: { ...deep(cur.normalized), ...deep(body) } };
+    return { ok: true };
+  }
+  if (p === '/api/lock'){
+    if (!MOCK.exported.has(w)) throw ApiError(`no export for ${w} yet — direct it first`);
+    mlocks(w).add(body.placementId); mockOwn(w);
+    const src = CAPTURED['GET /api/pack?world=fen-hollow'].placements.placements.find((x) => x.id === body.placementId);
+    return { ok: true, locked: src ? { id: src.id, rule: src.rule, regionId: src.regionId, cell: src.cell, exclusionRadius: src.exclusionRadius, anchorPoiId: src.anchorPoiId, arenaOrigin: src.arenaOrigin, arenaSide: src.arenaSide } : { id: body.placementId } };
+  }
+  if (p === '/api/unlock'){ mlocks(w).delete(body.placementId); mockOwn(w); return { ok: true, released: body.placementId }; }
+  if (p === '/api/reroll'){
+    const it = (mrolls(w).get(body.regionId) || 0) + 1;
+    mrolls(w).set(body.regionId, it); mockOwn(w);
+    return { ok: true, regionId: body.regionId, iteration: it };
+  }
+  throw ApiError('unknown route ' + p);
+}
+const renderURL = (world, name) => S.mode === 'mock'
+  ? RENDER_URIS[name]
+  : `/api/render?world=${encodeURIComponent(world)}&name=${name}&v=${S.gen}`;
+
+/* ============================ derived pack ============================ */
+const D = { W: 0, H: 0, terrMap: null, plcMap: null, tColors: {}, terrCv: null, covByRegion: {}, budgeted: [] };
+function derivePack(){
+  const pk = S.pack; if (!pk) return;
+  D.W = pk.manifest.base.width; D.H = pk.manifest.base.height;
+  D.terrMap = new Map(); D.plcMap = new Map(); D.tColors = {};
+  for (const t of pk.territories.territories){
+    D.tColors[t.id] = idColor(t.id);
+    for (const [x, y, len] of t.cells.runs)
+      for (let i = 0; i < len; i++) D.terrMap.set((y * D.W) + x + i, t.id);
+  }
+  for (const pl of pk.placements.placements) D.plcMap.set(pl.cell[1] * D.W + pl.cell[0], pl.id);
+  const tc = document.createElement('canvas'); tc.width = D.W; tc.height = D.H;
+  const g = tc.getContext('2d');
+  for (const t of pk.territories.territories){
+    g.fillStyle = D.tColors[t.id];
+    for (const [x, y, len] of t.cells.runs) g.fillRect(x, y, len, 1);
+  }
+  D.terrCv = tc;
+  D.covByRegion = {};
+  for (const c of (pk.territories.coverage?.regions || [])) D.covByRegion[c.regionId] = c;
+  D.budgeted = pk.plan.regions.filter((r) => (r.budgets.territories + r.budgets.worldBosses + r.budgets.dungeonBindings + (r.budgets.encounterSites || 0)) > 0);
+}
+const getPlc = (id) => S.pack?.placements.placements.find((p) => p.id === id);
+const getTerr = (id) => S.pack?.territories.territories.find((t) => t.id === id);
+const getReg = (id) => S.pack?.plan.regions.find((r) => r.id === id);
+const rerollIter = (rid) => (S.recipe?.normalized?.rerolls || []).find((r) => r.regionId === rid)?.iteration ?? 0;
+function recipeLockIds(){ // ids are opaque atoms — accept either bare strings or {id} entries
+  const list = S.recipe?.normalized?.locks?.placements || [];
+  return new Set(list.map((e) => typeof e === 'string' ? e : e && e.id).filter(Boolean));
+}
+
+/* ============================== map =============================== */
+const cv = $('cv'), wrap = $('mapwrap');
+const IMGS = new Map();
+function backdropImg(){
+  if (!S.world) return null;
+  const key = `${S.world}/${S.backdrop}#${S.gen}`;
+  let e = IMGS.get(key);
+  if (!e){
+    e = { img: new Image(), ready: false };
+    e.img.onload = () => { e.ready = true; draw(); };
+    e.img.src = renderURL(S.world, S.backdrop);
+    IMGS.set(key, e);
+  }
+  return e;
+}
+function geo(){
+  const r = wrap.getBoundingClientRect();
+  const s0 = Math.min(r.width / D.W, r.height / D.H) * 0.97;
+  const s = s0 * S.view.m;
+  const maxx = Math.max(0, (D.W * s - r.width) / 2 + 60), maxy = Math.max(0, (D.H * s - r.height) / 2 + 60);
+  S.view.px = clamp(S.view.px, -maxx, maxx); S.view.py = clamp(S.view.py, -maxy, maxy);
+  return { s, s0, ox: (r.width - D.W * s) / 2 + S.view.px, oy: (r.height - D.H * s) / 2 + S.view.py, cw: r.width, ch: r.height };
+}
+function sizeCanvas(){
+  const r = wrap.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  draw();
+}
+new ResizeObserver(sizeCanvas).observe(wrap);
+
+function draw(){
+  const ctx = cv.getContext('2d'), dpr = devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!S.pack) return;
+  const v = geo();
+  ctx.imageSmoothingEnabled = false;
+  const bd = backdropImg();
+  if (bd && bd.ready) ctx.drawImage(bd.img, 0, 0, D.W, D.H, v.ox, v.oy, D.W * v.s, D.H * v.s);
+  else { ctx.fillStyle = '#161a21'; ctx.fillRect(v.ox, v.oy, D.W * v.s, D.H * v.s);
+    ctx.fillStyle = '#5b6472'; ctx.font = '12px ui-monospace,monospace'; ctx.textAlign = 'center';
+    ctx.fillText('loading render…', v.ox + D.W * v.s / 2, v.oy + D.H * v.s / 2); ctx.textAlign = 'left'; }
+  if (S.ov.terr && D.terrCv){
+    ctx.globalAlpha = S.alpha;
+    ctx.drawImage(D.terrCv, 0, 0, D.W, D.H, v.ox, v.oy, D.W * v.s, D.H * v.s);
+    ctx.globalAlpha = 1;
+    const hiId = (S.sel?.t === 'territory' && S.sel.id) || (S.hover?.tid) || null;
+    if (hiId){
+      const t = getTerr(hiId);
+      if (t){
+        ctx.globalAlpha = Math.min(0.85, S.alpha + 0.3);
+        ctx.fillStyle = D.tColors[t.id];
+        for (const [x, y, len] of t.cells.runs)
+          ctx.fillRect(v.ox + x * v.s, v.oy + y * v.s, len * v.s, v.s);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#ffffffb0'; ctx.lineWidth = 1;
+        ctx.strokeRect(v.ox + t.seedCell[0] * v.s, v.oy + t.seedCell[1] * v.s, v.s, v.s);
+      }
     }
-    $("region").innerHTML = pack.plan.regions
-      .filter((region) => region.budgets.territories + region.budgets.worldBosses + region.budgets.dungeonBindings > 0)
-      .map((region) => `<option>${region.id}</option>`).join("");
-  } catch { /* no export yet */ }
+  }
+  const pls = S.pack.placements.placements;
+  if (S.ov.arena){
+    ctx.strokeStyle = '#ff7d9d'; ctx.lineWidth = 1.5;
+    for (const p of pls) if (p.arenaOrigin && p.arenaSide)
+      ctx.strokeRect(v.ox + p.arenaOrigin[0] * v.s, v.oy + p.arenaOrigin[1] * v.s, p.arenaSide * v.s, p.arenaSide * v.s);
+  }
+  if (S.ov.excl){
+    ctx.strokeStyle = '#e8b45a99'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    for (const p of pls){
+      ctx.beginPath();
+      ctx.arc(v.ox + (p.cell[0] + 0.5) * v.s, v.oy + (p.cell[1] + 0.5) * v.s, p.exclusionRadius * v.s, 0, 7);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  if (S.ov.plc){
+    for (const p of pls){
+      const cx = v.ox + (p.cell[0] + 0.5) * v.s, cy = v.oy + (p.cell[1] + 0.5) * v.s;
+      const r = clamp(v.s * 0.75, 5.5, 11);
+      const seld = S.sel?.t === 'placement' && S.sel.id === p.id;
+      const hov = S.hover?.pid === p.id;
+      const col = p.locked ? '#ffd166' : (p.rule.startsWith('world_boss') ? '#ff7d9d' : '#6ac1ff');
+      ctx.beginPath();
+      if (p.rule.startsWith('world_boss')){ ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy); ctx.closePath(); }
+      else ctx.rect(cx - r * 0.82, cy - r * 0.82, r * 1.64, r * 1.64);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#10131a'; ctx.stroke();
+      if (p.locked){ /* padlock glyph */
+        ctx.strokeStyle = '#332708'; ctx.fillStyle = '#332708'; ctx.lineWidth = Math.max(1, r * 0.16);
+        ctx.beginPath(); ctx.arc(cx, cy - r * 0.12, r * 0.26, Math.PI, 0); ctx.stroke();
+        ctx.fillRect(cx - r * 0.34, cy - r * 0.12, r * 0.68, r * 0.52);
+      }
+      if (seld || hov){
+        ctx.beginPath(); ctx.arc(cx, cy, r + 3.5, 0, 7);
+        ctx.strokeStyle = seld ? '#ffffff' : '#ffffff88'; ctx.lineWidth = seld ? 2 : 1.2; ctx.stroke();
+      }
+    }
+  }
+  if (S.hover){
+    ctx.strokeStyle = '#ffffff80'; ctx.lineWidth = 1;
+    ctx.strokeRect(v.ox + S.hover.cell[0] * v.s, v.oy + S.hover.cell[1] * v.s, v.s, v.s);
+  }
+  if (S.flash && Date.now() < S.flash.until){
+    const [fx, fy] = S.flash.cell;
+    const cx = v.ox + (fx + 0.5) * v.s, cy = v.oy + (fy + 0.5) * v.s;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - 13, cy); ctx.lineTo(cx + 13, cy); ctx.moveTo(cx, cy - 13); ctx.lineTo(cx, cy + 13); ctx.stroke();
+    requestAnimationFrame(draw);
+  }
 }
 
-$("direct").addEventListener("click", async () => {
-  status("directing " + world() + " …");
-  try {
-    const result = await api("POST", "/api/direct?world=" + world() + ($("strict").checked ? "&strict=1" : ""));
-    status("OK — " + result.counts.placements + " placements, " + result.counts.territories + " territories; gates: " +
-      result.gates.map((gate) => gate.id + ":" + gate.status).join(" "));
-    await refreshPack();
-  } catch (error) { status(String(error.message), true); }
+/* map pointer interactions: hover to inspect, click to pin, drag pans (nothing on the map is movable) */
+let ptr = null;
+function evCell(e){
+  const v = geo(), r = wrap.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left - v.ox) / v.s), y = Math.floor((e.clientY - r.top - v.oy) / v.s);
+  return (x >= 0 && y >= 0 && x < D.W && y < D.H) ? [x, y] : null;
+}
+cv.addEventListener('pointermove', (e) => {
+  if (!S.pack) return;
+  if (ptr && ptr.drag){ S.view.px += e.clientX - ptr.x; S.view.py += e.clientY - ptr.y; ptr.x = e.clientX; ptr.y = e.clientY; draw(); return; }
+  if (ptr && Math.hypot(e.clientX - ptr.x0, e.clientY - ptr.y0) > 4){ ptr.drag = true; cv.classList.add('panning'); ptr.x = e.clientX; ptr.y = e.clientY; return; }
+  const c = evCell(e);
+  const key = c ? c.join() : '';
+  if (key !== (S.hover ? S.hover.cell.join() : '')){
+    if (c){
+      const idx = c[1] * D.W + c[0];
+      S.hover = { cell: c, pid: D.plcMap.get(idx) || null, tid: D.terrMap.get(idx) || null };
+    } else S.hover = null;
+    renderInspect(); renderCursor(); draw();
+  }
 });
-$("reroll").addEventListener("click", async () => {
-  try {
-    const result = await api("POST", "/api/reroll", { world: world(), regionId: $("region").value });
-    status("reroll " + result.regionId + " -> iteration " + result.iteration + " saved — press Direct to regenerate.");
-  } catch (error) { status(String(error.message), true); }
+cv.addEventListener('pointerleave', () => { if (S.hover){ S.hover = null; renderInspect(); renderCursor(); draw(); } });
+cv.addEventListener('pointerdown', (e) => { ptr = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, drag: false }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointerup', (e) => {
+  const wasDrag = ptr && ptr.drag; ptr = null; cv.classList.remove('panning');
+  if (wasDrag || !S.pack) return;
+  const c = evCell(e); if (!c) return;
+  const idx = c[1] * D.W + c[0];
+  const pid = D.plcMap.get(idx), tid = D.terrMap.get(idx);
+  S.sel = pid ? { t: 'placement', id: pid } : tid ? { t: 'territory', id: tid } : null;
+  renderInspect(); draw();
 });
-$("loadRecipe").addEventListener("click", async () => {
-  try {
-    const data = await api("GET", "/api/recipe?world=" + world());
-    $("recipe").value = data.raw;
-    $("recipeMsg").textContent = data.own ? "own recipe (recipes/" + world() + ".json)" : "example recipe (saving creates recipes/" + world() + ".json)";
-  } catch (error) { $("recipeMsg").textContent = String(error.message); }
+cv.addEventListener('wheel', (e) => {
+  if (!S.pack) return; e.preventDefault();
+  const v = geo(), r = wrap.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const wx = (mx - v.ox) / v.s, wy = (my - v.oy) / v.s;
+  const m2 = clamp(S.view.m * Math.exp(-e.deltaY * 0.0016), 1, 14);
+  const s2 = v.s0 * m2;
+  S.view.px = mx - wx * s2 - (v.cw - D.W * s2) / 2;
+  S.view.py = my - wy * s2 - (v.ch - D.H * s2) / 2;
+  S.view.m = m2; draw();
+}, { passive: false });
+document.querySelectorAll('[data-zoom]').forEach((b) => b.addEventListener('click', () => {
+  const z = b.dataset.zoom;
+  if (z === 'fit'){ S.view = { m: 1, px: 0, py: 0 }; }
+  else S.view.m = clamp(S.view.m * (z === 'in' ? 1.5 : 1 / 1.5), 1, 14);
+  draw();
+}));
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.sel){ S.sel = null; renderInspect(); draw(); } });
+
+/* ============================ rail / worlds ============================ */
+function renderWorlds(){
+  $('worlds').innerHTML = S.worlds.map((w) => {
+    const pend = (S.pending[w.name] || []).length;
+    return `<div class="world ${w.name === S.world ? 'on' : ''}" data-world="${esc(w.name)}" role="button" tabindex="0">
+      <div class="nm">${esc(w.name)}${pend ? `<span class="pend" title="${pend} recipe change(s) pending"></span>` : ''}</div>
+      <div class="meta">${w.width}×${w.height} · ${esc(w.source)}
+        ${w.hasOwnRecipe ? '<span class="tag own">own recipe</span>' : ''}
+        ${w.hasExport ? '<span class="tag exp">exported</span>' : ''}</div>
+    </div>`;
+  }).join('') || '<div class="hintline" style="padding:8px">no worlds found</div>';
+}
+$('worlds').addEventListener('click', (e) => {
+  const el = e.target.closest('[data-world]');
+  if (el && !S.busy) selectWorld(el.dataset.world);
 });
-$("saveRecipe").addEventListener("click", async () => {
-  try {
-    await api("PUT", "/api/recipe?world=" + world(), JSON.parse($("recipe").value));
-    $("recipeMsg").textContent = "saved ✓ — press Direct to regenerate.";
-  } catch (error) { $("recipeMsg").textContent = String(error.message); }
+$('worlds').addEventListener('keydown', (e) => {
+  const el = e.target.closest('[data-world]');
+  if (el && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); if (!S.busy) selectWorld(el.dataset.world); }
 });
-$("world").addEventListener("change", refreshPack);
-loadWorlds().catch((error) => status(String(error.message), true));
+
+async function refreshWorlds(){
+  try {
+    const data = await api('GET', '/api/worlds');
+    S.worlds = data.worlds; renderWorlds();
+  } catch (err){ setMsg('direct', err.message, 'bad'); renderDirectOut(); }
+}
+async function selectWorld(name){
+  S.world = name; S.sel = null; S.hover = null; S.pack = null; S.packErr = null;
+  S.recipe = null; S.draft = null; S.recipeDirty = false; S.rawMode = false;
+  S.msgs = {}; S.view = { m: 1, px: 0, py: 0 };
+  renderWorlds(); renderDirectOut(); renderAll();
+  $('viewlink').classList.toggle('hidden', S.mode === 'mock' || !name);
+  $('viewlink').href = '/view?world=' + encodeURIComponent(name);
+  await Promise.all([loadPack(), loadRecipe()]);
+}
+async function loadPack(){
+  const w = S.world;
+  try {
+    const pack = await api('GET', `/api/pack?world=${encodeURIComponent(w)}`);
+    if (S.world !== w) return;
+    S.pack = pack; S.packErr = null; derivePack();
+  } catch (err){
+    if (S.world !== w) return;
+    S.pack = null; S.packErr = err.message;
+  }
+  renderAll(); draw();
+}
+async function loadRecipe(){
+  const w = S.world;
+  try {
+    const r = await api('GET', `/api/recipe?world=${encodeURIComponent(w)}`);
+    if (S.world !== w) return;
+    S.recipe = r; S.draft = deep(r.normalized); S.recipeDirty = false;
+  } catch (err){
+    if (S.world !== w) return;
+    S.recipe = null; S.draft = null; setMsg('recipe', err.message, 'bad');
+  }
+  renderRecipe(); renderInspect();
+}
+
+/* ============================== verbs ============================== */
+function setBusy(on){
+  S.busy = on; document.body.classList.toggle('busy', on);
+  $('busy').classList.toggle('hidden', !on);
+  $('busyT1').textContent = `Directing ${S.world}…`;
+  renderEmpty();
+}
+async function doDirect(){
+  if (!S.world || S.busy) return;
+  setBusy(true); setMsg('direct', '', 'good'); delete S.msgs.direct; renderDirectOut();
+  try {
+    const strict = $('strict').checked;
+    const res = await api('POST', `/api/direct?world=${encodeURIComponent(S.world)}${strict ? '&strict=1' : ''}`);
+    S.gen++;
+    S.pending[S.world] = [];
+    const c = res.counts;
+    setMsg('direct', `ok — ${c.placements} placements · ${c.territories} territories · ` +
+      `${c.placementFailures + c.territoryFailures} failures · ${c.unboundAnchors} unbound anchors`, 'good');
+    S.lastGates = res.gates;
+    await Promise.all([refreshWorlds(), loadPack(), loadRecipe()]);
+  } catch (err){
+    setMsg('direct', err.message, 'bad'); S.lastGates = null;
+  }
+  setBusy(false); renderDirectOut(); renderStale(); renderWorlds();
+}
+$('btnDirect').addEventListener('click', doDirect);
+
+function renderDirectOut(){
+  const g = S.lastGates;
+  $('directOut').innerHTML = msgSlot('direct') + (g ? `<div class="gates">${g.map((x) =>
+    `<span class="chip ${esc(x.status)}" title="${esc(x.name)}: ${esc(x.status)}">${esc(x.id)}</span>`).join('')}</div>` : '');
+}
+
+async function doLock(id, verb){
+  try {
+    const res = await api('POST', '/api/' + verb, { world: S.world, placementId: id });
+    const receipt = verb === 'lock' ? `locked ${res.locked?.id ?? id}` : `unlocked ${res.released ?? id}`;
+    pendList().push(receipt);
+    setMsg('plc:' + id, receipt + ' — saved to the recipe. Direct to apply.', 'note');
+    await Promise.all([refreshWorlds(), loadRecipe()]);
+  } catch (err){ setMsg('plc:' + id, err.message, 'bad'); }
+  renderAll();
+}
+async function doReroll(rid){
+  try {
+    const res = await api('POST', '/api/reroll', { world: S.world, regionId: rid });
+    const receipt = `reroll ${res.regionId} → iteration ${res.iteration}`;
+    pendList().push(receipt);
+    setMsg('reg:' + rid, receipt + ' — saved to the recipe. Direct to apply.', 'note');
+    await Promise.all([refreshWorlds(), loadRecipe()]);
+  } catch (err){ setMsg('reg:' + rid, err.message, 'bad'); }
+  renderAll();
+}
+
+/* ====================== stale banner / empty state ====================== */
+function renderStale(){
+  const list = pendList();
+  const el = $('stale');
+  if (!S.world || list.length === 0){ el.classList.add('hidden'); el.innerHTML = ''; return; }
+  el.classList.remove('hidden');
+  el.innerHTML = `<div class="bar">
+      <span>◍ ${list.length} recipe change${list.length > 1 ? 's' : ''} pending — the map shows the last export</span>
+      <button class="btn small verb" data-act="direct">Direct to apply</button>
+      <details style="margin-left:auto"><summary>show changes</summary></details>
+    </div>
+    <ul class="hidden">${list.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>`;
+  const det = el.querySelector('details'), ul = el.querySelector('ul');
+  det.addEventListener('toggle', () => ul.classList.toggle('hidden', !det.open));
+  el.querySelector('[data-act=direct]').addEventListener('click', doDirect);
+}
+function renderEmpty(){
+  const el = $('mapempty');
+  if (S.pack || S.busy){ el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  if (!S.world){ el.innerHTML = '<div class="hint">pick a world on the left</div>'; return; }
+  el.innerHTML = `
+    ${S.packErr ? `<div class="err-line">${esc(S.packErr)}</div>` : ''}
+    <div class="hint">Direct runs generation + export for <span class="mono">${esc(S.world)}</span>:
+      placements, territories, audit gates and the four map renders.</div>
+    <button class="btn primary verb" data-act="direct">Direct ${esc(S.world)}</button>`;
+  el.querySelector('[data-act=direct]')?.addEventListener('click', doDirect);
+}
+
+/* ============================ cursor bar ============================ */
+function renderCursor(){
+  const parts = [];
+  if (S.hover){
+    parts.push(`cell ${cellS(S.hover.cell)}`);
+    if (S.hover.tid) parts.push(`<span class="cid">${esc(S.hover.tid)}</span>`);
+    if (S.hover.pid) parts.push(`<span class="cid">${esc(S.hover.pid)}</span>`);
+  } else if (S.sel) parts.push(`selected <span class="cid">${esc(S.sel.id)}</span> — esc to clear`);
+  $('cursorbar').innerHTML = parts.join(' · ');
+  const m = S.pack?.manifest;
+  $('stamp').innerHTML = m ? `${esc(m.world)} · ${esc(m.recipeName)} · behavior ${esc(m.directorBehaviorVersion)} · ${esc(String(m.directorRecipeSha256).slice(0, 12))}…` : '';
+}
+
+/* ============================ inspector ============================ */
+function kv(rows){
+  return `<div class="kv">${rows.filter(Boolean).map(([k, v, left]) =>
+    `<span class="k">${k}</span><span class="v ${left ? 'l' : ''}">${v}</span>`).join('')}</div>`;
+}
+const regionLink = (rid) => `<a href="#" data-act="sel-reg" data-id="${esc(rid)}">${esc(rid)}</a>`;
+
+function plcCard(p, pinned){
+  const kind = p.rule.startsWith('world_boss') ? 'boss' : 'dungeon';
+  const col = p.locked ? 'var(--gold)' : kind === 'boss' ? 'var(--boss)' : 'var(--dun)';
+  const inRecipe = recipeLockIds().has(p.id); // the verb edits the recipe, so the button follows it
+  let scoreBlock;
+  if (p.locked){
+    scoreBlock = `<div class="sent">held by recipe lock<div class="cap">scores are not computed for locked placements — unlock to re-score on the next direct</div></div>`;
+  } else {
+    scoreBlock = `
+    <table class="t"><tr><th>term</th><th class="r">value</th><th class="r">weight ‰</th><th class="r">→</th></tr>
+      ${p.scoreTerms.map((s) => `<tr><td>${esc(s.term)}</td><td class="r">${esc(s.value)}</td><td class="r">${esc(s.weightPermille)}</td><td class="r">${esc(s.contribution)}</td></tr>`).join('')}
+      <tr class="tot"><td>score</td><td></td><td></td><td class="r">${esc(p.score)}</td></tr></table>
+    <div class="subh">candidate funnel</div>
+    <div class="funnel">${(() => {
+      const max = Math.max(1, ...(p.candidateFunnel.map((f) => f.remaining)));
+      return p.candidateFunnel.map((f) => `<div class="fr"><span>${esc(f.stage)}</span><span class="r" style="text-align:right">${esc(f.remaining)}</span></div>
+        <div class="fbar"><i style="width:${(f.remaining / max) * 100}%"></i></div>`).join('');
+    })()}</div>
+    <div class="subh">top candidates</div>
+    <div class="cands">${p.topCandidates.map((c) => `<span class="chip" data-act="flash" data-cell="${c.cell[0]},${c.cell[1]}" title="flash on map">${cellS(c.cell)} · ${esc(c.score)}</span>`).join('')}</div>`;
+  }
+  return `<div class="card">
+    <div class="chiprow">
+      <span class="chip"><span class="dot" style="background:${col};${kind === 'boss' ? 'transform:rotate(45deg)' : ''}"></span>${esc(p.rule)}</span>
+      ${p.locked ? '<span class="chip gold">locked</span>' : ''}
+      ${inRecipe && !p.locked ? '<span class="chip warn">lock pending — Direct to apply</span>' : ''}
+      ${!inRecipe && p.locked ? '<span class="chip warn">unlock pending — Direct to apply</span>' : ''}
+      ${p.inSafeZone ? '<span class="chip warn">in safe zone</span>' : ''}
+      ${pinned ? '<button class="xbtn" data-act="desel" title="deselect (esc)">✕</button>' : '<span class="chip" style="margin-left:auto">hover — click to pin</span>'}
+    </div>
+    <h3>${esc(p.id)}</h3>
+    ${kv([
+      ['cell', esc(cellS(p.cell))], ['access', esc(cellS(p.accessCell))],
+      ['region', regionLink(p.regionId)],
+      ['anchor', p.anchorPoiId === null ? '—' : `${esc(p.anchorPoiType)} #${esc(p.anchorPoiId)}`],
+      ['arena', p.arenaOrigin ? `${esc(cellS(p.arenaOrigin))} side ${esc(p.arenaSide)}` : '—'],
+      ['exclusion', esc(p.exclusionRadius) + ' cells'],
+      ['channel', esc(p.channel)], ['draw', esc(p.draw)],
+    ])}
+    ${scoreBlock}
+    <div class="actions">
+      <button class="btn verb" data-act="${inRecipe ? 'unlock' : 'lock'}" data-id="${esc(p.id)}">${inRecipe ? 'Unlock' : 'Lock'} placement</button>
+      <span class="hintline" style="margin:0">${inRecipe ? 'removes the lock from the recipe' : 'pins this exact placement in the recipe'}</span>
+    </div>
+    ${msgSlot('plc:' + p.id)}
+  </div>`;
+}
+function terrCard(t, pinned){
+  return `<div class="card">
+    <div class="chiprow">
+      <span class="chip"><span class="dot" style="background:${D.tColors[t.id]}"></span>territory</span>
+      ${bandChip(t.dangerBand)}
+      ${pinned ? '<button class="xbtn" data-act="desel" title="deselect (esc)">✕</button>' : '<span class="chip" style="margin-left:auto">hover — click to pin</span>'}
+    </div>
+    <h3>${esc(t.id)}</h3>
+    ${kv([
+      ['region', regionLink(t.regionId)],
+      ['cells', esc(t.cellCount)], ['seed', esc(cellS(t.seedCell))],
+      ['pack size', `${esc(t.packSize[0])}–${esc(t.packSize[1])}`],
+      ['max active', esc(t.maxActive)],
+      ['respawn', esc(t.respawnPressure)],
+      ['elite', esc(t.elitePermille) + ' ‰'],
+      ['channel', esc(t.channel)], ['draw', esc(t.draw)],
+    ])}
+    <table class="t"><tr><th>enemy</th><th class="r">weight %</th><th class="r">night</th></tr>
+      ${t.roster.map((r) => `<tr><td>${esc(r.enemyId)}</td><td class="r">${esc(r.weightPercent)}</td><td class="r">${r.nightOnly ? 'night' : '—'}</td></tr>`).join('')}
+    </table>
+    <div class="hintline">rosters come from the recipe's enemy library — reroll the region to redraw, or edit the library below</div>
+  </div>`;
+}
+function regCard(r, pinned){
+  const cov = D.covByRegion[r.id];
+  const target = S.recipe?.normalized?.territoryRule?.targetHostileCoveragePermille ?? 350;
+  const plcs = S.pack.placements.placements.filter((p) => p.regionId === r.id);
+  const terrs = S.pack.territories.territories.filter((t) => t.regionId === r.id);
+  const it = rerollIter(r.id);
+  return `<div class="card">
+    <div class="chiprow">
+      <span class="chip acc">region</span>
+      <span class="chip">${esc(r.biome)}</span>
+      ${bandChip(r.dangerBand)}
+      <span class="chip">${esc(r.regionClass)}</span>
+      ${pinned ? '<button class="xbtn" data-act="desel" title="deselect (esc)">✕</button>' : ''}
+    </div>
+    <h3>${esc(r.id)}</h3>
+    ${kv([
+      ['cells', esc(r.cellCount)],
+      ['hostile walkable', esc(r.hostileWalkableCells)],
+      ['budgets', `T ${esc(r.budgets.territories)} · E ${esc(r.budgets.encounterSites)} · D ${esc(r.budgets.dungeonBindings)} · B ${esc(r.budgets.worldBosses)}`],
+      r.waivers?.length ? ['waivers', r.waivers.map((w) => `<span class="chip warn">${esc(w)}</span>`).join(' ')] : null,
+      cov ? ['coverage', `${esc(cov.covered)}/${esc(cov.hostileWalkable)} · ${esc(cov.coveragePermille)} ‰ (target ${esc(target)} ‰)`] : null,
+    ])}
+    ${plcs.length ? `<div class="subh">placements here</div><div class="rowlist">${plcs.map((p) =>
+      `<div class="rowitem" data-act="sel-plc" data-id="${esc(p.id)}"><span style="color:${p.locked ? 'var(--gold)' : p.rule.startsWith('world_boss') ? 'var(--boss)' : 'var(--dun)'}">${p.rule.startsWith('world_boss') ? '◆' : '■'}</span><span class="grow">${esc(p.id)}</span><span class="sub">${esc(cellS(p.cell))}</span></div>`).join('')}</div>` : ''}
+    ${terrs.length ? `<div class="subh">territories here</div><div class="rowlist">${terrs.map((t) =>
+      `<div class="rowitem" data-act="sel-terr" data-id="${esc(t.id)}"><span class="dot" style="width:8px;height:8px;border-radius:2px;background:${D.tColors[t.id]};flex:none"></span><span class="grow">${esc(t.id)}</span><span class="sub">${esc(t.cellCount)} cells</span></div>`).join('')}</div>` : ''}
+    <div class="actions">
+      <button class="btn verb" data-act="reroll" data-id="${esc(r.id)}">Reroll region</button>
+      <span class="hintline" style="margin:0">reroll iteration: ${esc(it)} — bumps this region's random draw</span>
+    </div>
+    ${msgSlot('reg:' + r.id)}
+  </div>`;
+}
+function overviewCard(){
+  const m = S.pack.manifest, c = m.counts, wb = S.pack.plan.worldBudget;
+  const target = S.recipe?.normalized?.territoryRule?.targetHostileCoveragePermille ?? 350;
+  const warns = S.pack.plan.checks?.progressionWarnings || [];
+  return `<div class="card">
+    <div class="chiprow"><span class="chip acc">${esc(m.world)}</span><span class="chip">${esc(m.recipeName)}</span></div>
+    ${kv([
+      ['placements', esc(c.placements)], ['territories', esc(c.territories)],
+      ['failures', esc(c.placementFailures + c.territoryFailures)],
+      ['unbound anchors', esc(c.unboundAnchors)],
+      ['world budget', `T ${esc(wb.territories)} · E ${esc(wb.encounterSites)} · D ${esc(wb.dungeonBindings)} · B ${esc(wb.worldBosses.allocated)}/${esc(wb.worldBosses.target)}`],
+      ['spawn region', regionLink(S.pack.plan.spawnRegionId)],
+    ])}
+    ${warns.length ? `<div class="msg note">${warns.map(esc).join('\n')}</div>` : ''}
+    <div class="subh">budgeted regions — reroll what you don't like</div>
+    <div class="rowlist">${D.budgeted.map((r) => {
+      const cov = D.covByRegion[r.id];
+      return `<div class="rowitem" data-act="sel-reg" data-id="${esc(r.id)}">
+        <span class="grow">${esc(r.id)}</span>
+        ${cov ? `<span class="covbar" title="${esc(cov.coveragePermille)} ‰ of ${esc(cov.hostileWalkable)} hostile cells covered (target ${esc(target)} ‰)"><i style="width:${clamp(cov.coveragePermille / 10, 0, 100)}%"></i><b style="left:${clamp(target / 10, 0, 100)}%"></b></span>` : ''}
+        ${bandChip(r.dangerBand)}
+        <button class="btn small verb" data-act="reroll" data-id="${esc(r.id)}" title="bump this region's random draw">reroll</button>
+      </div>${S.msgs['reg:' + r.id] ? `<div style="padding:0 7px">${msgSlot('reg:' + r.id)}</div>` : ''}`;
+    }).join('')}</div>
+    <div class="hintline">hover the map to inspect a cell — click a marker or territory to pin it here</div>
+  </div>`;
+}
+function renderInspect(){
+  const ctx = $('inspectCtx'), body = $('inspectBody');
+  if (!S.pack){
+    ctx.textContent = '';
+    body.innerHTML = `<div class="hintline">${S.world ? 'nothing to inspect — no export yet. Direct the world first.' : 'pick a world to begin.'}</div>`;
+    return;
+  }
+  const hov = S.hover && (S.hover.pid || S.hover.tid);
+  if (hov){
+    ctx.innerHTML = '<span class="chip">hovering</span>';
+    body.innerHTML = S.hover.pid ? plcCard(getPlc(S.hover.pid), false) : terrCard(getTerr(S.hover.tid), false);
+    return;
+  }
+  if (S.hover){
+    ctx.innerHTML = '<span class="chip">hovering</span>';
+    body.innerHTML = `<div class="hintline mono">cell ${esc(cellS(S.hover.cell))} — no placement or territory here</div>` +
+      (S.sel ? '' : overviewMaybe());
+    if (S.sel) body.innerHTML += selCard();
+    return;
+  }
+  if (S.sel){ ctx.innerHTML = '<span class="chip acc">selected</span>'; body.innerHTML = selCard(); return; }
+  ctx.innerHTML = '<span class="chip">world overview</span>';
+  body.innerHTML = overviewCard();
+}
+const overviewMaybe = () => overviewCard();
+function selCard(){
+  if (S.sel.t === 'placement'){ const p = getPlc(S.sel.id); if (p) return plcCard(p, true); }
+  if (S.sel.t === 'territory'){ const t = getTerr(S.sel.id); if (t) return terrCard(t, true); }
+  if (S.sel.t === 'region'){ const r = getReg(S.sel.id); if (r) return regCard(r, true); }
+  S.sel = null; return overviewCard();
+}
+$('side').addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if (act === 'sel-reg'){ e.preventDefault(); S.sel = { t: 'region', id }; renderInspect(); draw(); }
+  else if (act === 'sel-plc'){ S.sel = { t: 'placement', id }; renderInspect(); draw(); }
+  else if (act === 'sel-terr'){ S.sel = { t: 'territory', id }; renderInspect(); draw(); }
+  else if (act === 'desel'){ S.sel = null; renderInspect(); draw(); }
+  else if (act === 'lock' || act === 'unlock') doLock(id, act);
+  else if (act === 'reroll') doReroll(id);
+  else if (act === 'flash'){
+    const [x, y] = el.dataset.cell.split(',').map(Number);
+    S.flash = { cell: [x, y], until: Date.now() + 1400 }; draw();
+  }
+});
+
+/* ============================== audit ============================== */
+function renderAudit(){
+  const body = $('auditBody');
+  if (!S.pack){ body.innerHTML = '<div class="hintline">audit report appears after the first direct.</div>'; return; }
+  const rep = S.pack.report;
+  const pf = S.pack.placements.failures || [], tf = S.pack.territories.failures || [];
+  const ub = S.pack.placements.unboundAnchors || [];
+  const byReason = {};
+  for (const u of ub) (byReason[u.reason] = byReason[u.reason] || []).push(u);
+  body.innerHTML = `
+    <div class="chiprow">
+      <span class="chip ${rep.ok ? 'pass' : 'fail'}">${rep.ok ? 'report ok' : 'report failed'}</span>
+      <span class="chip">${rep.strict ? 'strict' : 'non-strict'}</span>
+      <span class="chip">${esc(rep.recipeName)}</span>
+    </div>
+    <div class="subh">gates</div>
+    ${rep.gates.map((g) => `<div class="gaterow"><span class="gid">${esc(g.id)}</span><span class="gnm">${esc(g.name)}</span><span class="chip ${esc(g.status)}">${esc(g.status)}</span></div>
+      ${(g.details && g.details.length) ? `<div class="gatedet">${g.details.map((d) => esc(typeof d === 'string' ? d : JSON.stringify(d))).join('\n')}</div>` : ''}`).join('')}
+    <div class="subh">failures</div>
+    ${pf.length + tf.length === 0 ? '<div class="hintline" style="margin-top:2px">none — every budget placed</div>'
+      : [...pf, ...tf].map((f) => `<div class="msg bad">${esc(typeof f === 'string' ? f : JSON.stringify(f))}</div>`).join('')}
+    <div class="subh">unbound anchors (${ub.length})</div>
+    ${Object.entries(byReason).map(([reason, list]) => `
+      <details><summary class="mono" style="cursor:pointer;color:var(--mut);font-size:12px">${esc(reason)} × ${list.length}</summary>
+      ${list.map((u) => `<div class="gaterow"><span class="gnm">${esc(u.poiType)} #${esc(u.poiId)} at ${esc(cellS(u.cell))}</span><a href="#" data-act="sel-reg" data-id="${esc(u.regionId)}" class="mono" style="font-size:11px">${esc(u.regionId)}</a></div>`).join('')}
+      </details>`).join('') || '<div class="hintline" style="margin-top:2px">none</div>'}
+  `;
+}
+
+/* ============================== recipe ============================== */
+const NUM_FIELDS = {
+  danger: [['bandCount', 'band count'], ['maxBandJump', 'max band jump'], ['safeZoneShareForBand0Permille', 'safe share, band 0 ‰']],
+  budgets: [['minRegionCells', 'min region cells'], ['majorRegionCells', 'major region cells'],
+    ['territoriesPer1000Walkable', 'territories / 1000 walkable'], ['territoryCapPerRegion', 'territory cap / region'],
+    ['encountersPer1000Walkable', 'encounters / 1000 walkable'], ['encounterCapPerRegion', 'encounter cap / region'],
+    ['dungeonCapPerRegion', 'dungeon cap / region'], ['worldBossCount', 'world boss count'], ['minWorldBossBand', 'min world boss band']],
+  worldBossRule: [['minClearance', 'min clearance'], ['minSettlementPathDistance', 'min settlement path dist'],
+    ['minPeerPathDistance', 'min peer path dist'], ['exclusionRadius', 'exclusion radius'],
+    ['clearancePermille', 'clearance weight ‰'], ['settlementFarPermille', 'settlement-far weight ‰'], ['roadFarPermille', 'road-far weight ‰']],
+  dungeonRule: [['exclusionRadius', 'exclusion radius'], ['settlementFarPermille', 'settlement-far weight ‰']],
+  territoryRule: [['targetHostileCoveragePermille', 'target hostile coverage ‰'], ['minCells', 'min cells'], ['maxCells', 'max cells'],
+    ['packSizeMin', 'pack size min'], ['packSizeMax', 'pack size max'], ['maxActivePer100Cells', 'max active / 100 cells'],
+    ['elitePermille', 'elite ‰']],
+};
+function numRow(group, key, label){
+  const v = S.draft?.[group]?.[key];
+  return `<label for="rf-${group}-${key}">${esc(label)}</label>
+    <input id="rf-${group}-${key}" type="number" data-path="${group}.${key}" value="${v === undefined ? '' : esc(v)}">`;
+}
+function renderRecipe(){
+  const body = $('recipeBody');
+  if (!S.recipe || !S.draft){
+    body.innerHTML = msgSlot('recipe') || '<div class="hintline">recipe loads when a world is selected.</div>';
+    return;
+  }
+  const r = S.recipe, d = S.draft;
+  const locksN = d.locks?.placements?.length ?? 0;
+  const rollsN = d.rerolls?.length ?? 0;
+  const paintN = (d.paint?.noContent?.length ?? 0) + (d.paint?.preferContent?.length ?? 0);
+  const head = `
+    <div class="chiprow">
+      <span class="chip ${r.own ? 'gold' : ''}">${r.own ? 'own recipe' : 'example recipe'}</span>
+      <span class="dirty ${S.recipeDirty ? '' : 'hidden'}" id="dirtyChip">unsaved edits</span>
+      <button class="btn small" id="rawToggle" style="margin-left:auto">${S.rawMode ? 'form' : 'raw JSON'}</button>
+    </div>
+    <div class="hintline mono" style="margin-top:4px;word-break:break-all">${esc(r.path)}</div>
+    ${r.own ? '' : '<div class="hintline">saving creates this world\'s own recipe file</div>'}`;
+  if (S.rawMode){
+    body.innerHTML = head + `
+      <div id="rawwrap" style="margin-top:8px"><textarea id="rawTa" spellcheck="false">${esc(S.rawText ?? JSON.stringify(d, null, 2))}</textarea></div>
+      <div class="rfoot"><button class="btn primary verb" id="saveRecipe">Validate + save</button>
+        <span class="hintline" style="margin:0">the engine validates on save</span></div>
+      ${msgSlot('recipe')}`;
+  } else {
+    body.innerHTML = head + `
+      <div class="rgrid">
+        <label for="rf-name">name</label><input id="rf-name" type="text" data-path="name" value="${esc(d.name ?? '')}">
+        <label for="rf-seed">director seed</label><input id="rf-seed" type="number" data-path="directorSeed" value="${esc(d.directorSeed ?? '')}">
+      </div>
+      <div class="subh">danger</div><div class="rgrid">${NUM_FIELDS.danger.map(([k, l]) => numRow('danger', k, l)).join('')}</div>
+      <div class="subh">budgets</div><div class="rgrid">${NUM_FIELDS.budgets.map(([k, l]) => numRow('budgets', k, l)).join('')}</div>
+      <div class="subh">world boss rule</div><div class="rgrid">${NUM_FIELDS.worldBossRule.map(([k, l]) => numRow('worldBossRule', k, l)).join('')}</div>
+      <div class="subh">dungeon rule</div><div class="rgrid">${NUM_FIELDS.dungeonRule.map(([k, l]) => numRow('dungeonRule', k, l)).join('')}</div>
+      <div class="subh">territory rule</div><div class="rgrid">${NUM_FIELDS.territoryRule.map(([k, l]) => numRow('territoryRule', k, l)).join('')}
+        <label for="rf-resp">respawn pressure</label>
+        <select id="rf-resp" data-path="territoryRule.respawnPressure">
+          ${['low', 'medium', 'high'].map((o) => `<option ${d.territoryRule?.respawnPressure === o ? 'selected' : ''}>${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="subh">dungeon anchor poi types</div>
+      <textarea data-path="dungeonAnchors.poiTypes" data-kind="lines" rows="4" spellcheck="false">${esc((d.dungeonAnchors?.poiTypes || []).join('\n'))}</textarea>
+      <div class="subh">enemy library</div>
+      <table class="enemies"><tr><th>id</th><th class="bio">biomes (comma)</th><th>band</th><th></th><th>wt %</th><th>night</th><th></th></tr>
+        ${(d.contentLibrary?.enemies || []).map((en, i) => `<tr>
+          <td><input type="text" data-path="contentLibrary.enemies.${i}.id" value="${esc(en.id)}"></td>
+          <td class="bio"><input type="text" data-path="contentLibrary.enemies.${i}.biomes" data-kind="csv" value="${esc((en.biomes || []).join(', '))}"></td>
+          <td><input type="number" data-path="contentLibrary.enemies.${i}.minBand" value="${esc(en.minBand)}" title="min band"></td>
+          <td><input type="number" data-path="contentLibrary.enemies.${i}.maxBand" value="${esc(en.maxBand)}" title="max band"></td>
+          <td><input type="number" data-path="contentLibrary.enemies.${i}.weightPercent" value="${esc(en.weightPercent)}"></td>
+          <td><input type="checkbox" data-path="contentLibrary.enemies.${i}.nightOnly" data-kind="bool" ${en.nightOnly ? 'checked' : ''}></td>
+          <td><button class="xbtn" data-ract="delEnemy" data-i="${i}" title="remove">✕</button></td></tr>`).join('')}
+      </table>
+      <button class="btn small" data-ract="addEnemy">+ add enemy</button>
+      <div class="chiprow" style="margin-top:12px">
+        <span class="chip" title="managed by the Lock/Unlock verbs">locks: ${locksN}</span>
+        <span class="chip" title="managed by the Reroll verb">rerolls: ${rollsN}</span>
+        <span class="chip" title="painted zones — edited outside this studio">paint zones: ${paintN}</span>
+        ${(d.danger?.overrides?.length ?? 0) ? `<span class="chip" title="edit via raw JSON">danger overrides: ${d.danger.overrides.length}</span>` : ''}
+      </div>
+      <div class="rfoot">
+        <button class="btn primary verb" id="saveRecipe">Validate + save</button>
+        <span class="hintline" style="margin:0">the engine validates on save</span>
+      </div>
+      ${msgSlot('recipe')}`;
+  }
+  $('rawToggle')?.addEventListener('click', toggleRaw);
+  $('saveRecipe')?.addEventListener('click', saveRecipe);
+}
+function setPath(obj, path, val){
+  const ks = path.split('.'); let t = obj;
+  for (let i = 0; i < ks.length - 1; i++) t = t[ks[i]] ?? (t[ks[i]] = {});
+  t[ks[ks.length - 1]] = val;
+}
+$('recipeBody').addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.id === 'rawTa'){ S.rawText = el.value; S.recipeDirty = true; return; }
+  const path = el.dataset.path; if (!path) return;
+  let v;
+  if (el.dataset.kind === 'bool') v = el.checked;
+  else if (el.dataset.kind === 'lines') v = el.value.split('\n').map((s) => s.trim()).filter(Boolean);
+  else if (el.dataset.kind === 'csv') v = el.value.split(',').map((s) => s.trim()).filter(Boolean);
+  else if (el.type === 'number'){ const s = el.value.trim(); v = s === '' ? '' : (isFinite(+s) ? +s : s); }
+  else v = el.value;
+  setPath(S.draft, path, v);
+  if (!S.recipeDirty){ S.recipeDirty = true; $('dirtyChip')?.classList.remove('hidden'); }
+});
+$('recipeBody').addEventListener('click', (e) => {
+  const el = e.target.closest('[data-ract]'); if (!el) return;
+  if (el.dataset.ract === 'addEnemy'){
+    (S.draft.contentLibrary ?? (S.draft.contentLibrary = { enemies: [] })).enemies.push(
+      { id: 'enemy.', biomes: [], minBand: 0, maxBand: 15, weightPercent: 20, nightOnly: false });
+    S.recipeDirty = true; renderRecipe();
+  }
+  if (el.dataset.ract === 'delEnemy'){
+    S.draft.contentLibrary.enemies.splice(+el.dataset.i, 1);
+    S.recipeDirty = true; renderRecipe();
+  }
+});
+function toggleRaw(){
+  if (!S.rawMode){ S.rawText = JSON.stringify(S.draft, null, 2); S.rawMode = true; }
+  else {
+    try { S.draft = JSON.parse(S.rawText ?? ''); delete S.msgs.recipe; }
+    catch (err){ setMsg('recipe', 'not valid JSON — ' + err.message, 'bad'); renderRecipe(); return; }
+    S.rawMode = false;
+  }
+  renderRecipe();
+}
+async function saveRecipe(){
+  let bodyObj;
+  if (S.rawMode){
+    try { bodyObj = JSON.parse($('rawTa').value); }
+    catch (err){ setMsg('recipe', 'not valid JSON — ' + err.message, 'bad'); renderRecipe(); return; }
+  } else bodyObj = S.draft;
+  try {
+    await api('PUT', `/api/recipe?world=${encodeURIComponent(S.world)}`, bodyObj);
+    pendList().push('recipe saved');
+    setMsg('recipe', 'saved — Direct to apply.', 'note');
+    S.recipeDirty = false; S.rawMode = false; S.rawText = null;
+    await Promise.all([refreshWorlds(), loadRecipe()]);
+  } catch (err){ setMsg('recipe', err.message, 'bad'); }
+  renderRecipe(); renderStale(); renderWorlds();
+}
+
+/* ======================== map controls wiring ======================== */
+$('backdropSeg').innerHTML = BACKDROPS.map((b) =>
+  `<button data-bd="${b}" aria-pressed="${b === S.backdrop}">${b}</button>`).join('');
+$('backdropSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-bd]'); if (!b) return;
+  S.backdrop = b.dataset.bd;
+  document.querySelectorAll('#backdropSeg button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.bd === S.backdrop));
+  draw();
+});
+$('ovs').addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.dataset.ov){ S.ov[el.dataset.ov] = el.checked; draw(); }
+});
+$('alpha').addEventListener('input', () => { S.alpha = +$('alpha').value / 100; draw(); });
+
+/* ============================== boot ============================== */
+function renderAll(){
+  renderStale(); renderEmpty(); renderInspect(); renderAudit(); renderRecipe(); renderCursor(); draw();
+}
+async function boot(){
+  let live = false;
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 1600);
+    const res = await fetch('/api/worlds', { signal: ctl.signal });
+    clearTimeout(t);
+    if (res.ok){ const j = await res.json(); if (j && Array.isArray(j.worlds)) live = true; }
+  } catch { /* fall through to demo */ }
+  S.mode = live ? 'live' : 'mock';
+  const mc = $('modechip');
+  mc.className = live ? 'live' : 'mock';
+  mc.innerHTML = live
+    ? '<span class="led" style="background:var(--green)"></span>live — wf-fill serve'
+    : '<span class="led" style="background:var(--amber)"></span><span title="The wf-fill server was not reachable, so this session replays the captured sample responses (fen-hollow). Every action works; directs replay the same captured result.">demo data — server not reachable</span>';
+  await refreshWorlds();
+  if (S.worlds.length) await selectWorld(S.worlds[0].name);
+  else renderAll();
+}
+boot();
 </script>
 </body>
 </html>

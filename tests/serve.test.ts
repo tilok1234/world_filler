@@ -49,7 +49,7 @@ describe("director studio API", () => {
   it("serves the UI page and discovers the fixture worlds", async () => {
     const page = await fetch(origin + "/");
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /director studio/);
+    assert.match(await page.text(), /director studio/i);
 
     const { status, data } = await api("GET", "/api/worlds");
     assert.equal(status, 200);
