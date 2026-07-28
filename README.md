@@ -62,9 +62,22 @@ World Filler mirrors the WorldForge compiler doctrine:
 
 ## Repository status
 
-**Planning.** This repository currently contains the researched assessment,
-architecture and contracts, and the milestone roadmap. Implementation begins
-at milestone F0.
+**F0 complete (2026-07-28).** The clean-room pack reader, walkability ladder,
+flood, and parity suite are implemented and green: derived walkability grids
+are bit-identical to the reference grids of all committed fixture packs
+(spawn and flood counts equal), canonical-JSON serialization round-trips
+upstream bytes exactly, and every refusal gate has a named test. Verified at
+full scale against the canonical 256² world (65,536 cells bit-identical,
+flood 33893, all 15 ladder rungs exercised). Next: F1 (deterministic
+kernel).
+
+```sh
+# Node >= 24.15 required (matches the upstream toolchain pin)
+npm install
+npm test                                   # build + full suite
+node dist/src/cli.js inspect fixtures/packs/fen-hollow
+node dist/src/cli.js parity fixtures/packs/fen-hollow
+```
 
 ## Required reading
 

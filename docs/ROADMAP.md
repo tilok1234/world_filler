@@ -1,6 +1,9 @@
 # World Filler Roadmap
 
-Status: **Draft, planning stage**
+Status: **F0 complete and green (2026-07-28)** — clean-room reader, ladder,
+flood, and parity suite implemented; all exit criteria below verified,
+including bit-for-bit reference-grid parity on the three committed fixtures
+and (locally) the canonical 256² world at flood 33893. F1 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

@@ -1,0 +1,56 @@
+{
+  "__documentedGaps": [
+    "crossing_route_walk"
+  ],
+  "dust-hollow": {
+    "crossing_route_walk": 0,
+    "crossing_street_ford_walk": 13,
+    "default_walk": 2734,
+    "fence_block": 0,
+    "material_block_deep_water": 0,
+    "material_block_rock": 41,
+    "material_block_swamp": 0,
+    "pier_walk": 4,
+    "prop_block": 471,
+    "river_major_block": 16,
+    "river_stream_block": 65,
+    "shallow_wade": 306,
+    "structure_block": 314,
+    "structure_pass": 12,
+    "trail_walk": 120
+  },
+  "fen-hollow": {
+    "crossing_route_walk": 0,
+    "crossing_street_ford_walk": 2,
+    "default_walk": 2417,
+    "fence_block": 0,
+    "material_block_deep_water": 18,
+    "material_block_rock": 43,
+    "material_block_swamp": 222,
+    "pier_walk": 3,
+    "prop_block": 460,
+    "river_major_block": 24,
+    "river_stream_block": 31,
+    "shallow_wade": 508,
+    "structure_block": 304,
+    "structure_pass": 6,
+    "trail_walk": 58
+  },
+  "tiny-temperate": {
+    "crossing_route_walk": 0,
+    "crossing_street_ford_walk": 3,
+    "default_walk": 2549,
+    "fence_block": 13,
+    "material_block_deep_water": 7,
+    "material_block_rock": 131,
+    "material_block_swamp": 13,
+    "pier_walk": 0,
+    "prop_block": 709,
+    "river_major_block": 6,
+    "river_stream_block": 41,
+    "shallow_wade": 461,
+    "structure_block": 155,
+    "structure_pass": 6,
+    "trail_walk": 2
+  }
+}

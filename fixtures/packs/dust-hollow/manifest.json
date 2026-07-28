@@ -1,0 +1,50 @@
+{
+  "adapter": {
+    "tileforge": 6
+  },
+  "artifactFormat": 8,
+  "baseArtifactSha256": "58d848ef5cd1aa9f826570e2549c0c354c7665dafb90d3b17c46b1037e7ec516",
+  "dimensions": {
+    "chunkHeight": 16,
+    "chunkWidth": 16,
+    "height": 64,
+    "width": 64
+  },
+  "files": {
+    "minimap.png": "e7fe3302670813fc7cc27c28ad28e94b17eaca35767d2a4050dcac172cce9f3b",
+    "normalized-recipe.json": "ca40a6906cc79f9004a3cc79b0f7d816522e0d9ea9782b772cd61a60ba72d553",
+    "resolved/resolved-map.tmj": "fccf5ba428f1ae36865af599767b9d0305f387d57b36d63932a2db7199818eef",
+    "resolved/tileforge-map-data.json": "d0093e47df48a4d7a3b2d1a579b66e9a4b338bf3db42926ef1af908198005e8e",
+    "resolved/tileforge-slice.json": "79e3e44baa0eb797ab97cba56829a8ccbe12a66af9da21415e0bc2cad0b8f362",
+    "validation-report.json": "c71bf4e38d7098a190ab41a0e516e0f1fb23002ea3d4ab542270d4a36acf9809",
+    "walkability.json": "135c0ee19b54605453a20754319e54752aea36362ccbc69c50c43a744d731c8d",
+    "world.json": "58d848ef5cd1aa9f826570e2549c0c354c7665dafb90d3b17c46b1037e7ec516"
+  },
+  "generator": {
+    "behaviorVersion": 47,
+    "generationIdentitySha256": "37908db38c9dcd58631d269c93683115830e8c31e73c3f568bbfbe09eb20c81d",
+    "name": "worldforge",
+    "recipeCompilerVersion": 28,
+    "recipeSha256": "ca40a6906cc79f9004a3cc79b0f7d816522e0d9ea9782b772cd61a60ba72d553",
+    "resolvedConfigSha256": "65e89dc9b71373f225bb28ddcb3473699de1159367bbfc86413f09d4c3bb235d",
+    "seed": 20093,
+    "version": "0.1.0"
+  },
+  "pack": "worldforge-game-pack",
+  "packFormat": 1,
+  "tileforge": {
+    "manifestSha256": "bb10a0aafe6b8fb14be1d3a41bce325202d57a6b277306ae5e6ef9c57f3b2b11",
+    "packageId": "dusk-ae1eecb-seed103991",
+    "packageSha256": "395c16929e3a678668b82f10f952c55c5315f3938450891db2ac3ae1dd4dc1eb",
+    "theme": "dusk"
+  },
+  "walkability": {
+    "floodCount": 3181,
+    "format": 1,
+    "spawnCell": [
+      60,
+      3
+    ]
+  },
+  "world": "dust-hollow"
+}

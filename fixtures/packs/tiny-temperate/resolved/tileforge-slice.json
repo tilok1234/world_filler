@@ -1,0 +1,212 @@
+{
+  "baseArtifactFormat": 8,
+  "baseGenerationIdentitySha256": "e1ee2052a25f7392d28ace0df5986b55445297c99f4d124b766fa62e572f3a45",
+  "decals": {
+    "1": "cracks",
+    "10": "waterfall",
+    "11": "lilypads",
+    "12": "steppingstones",
+    "13": "driftwood",
+    "14": "frost",
+    "15": "ford",
+    "16": "geyser",
+    "17": "steamvent",
+    "18": "crater",
+    "19": "arrows",
+    "2": "leaves",
+    "20": "battlegear",
+    "21": "runecircle",
+    "22": "crystalfield",
+    "23": "apron",
+    "3": "rubble",
+    "4": "scorch",
+    "5": "puddles",
+    "6": "blood",
+    "7": "webs",
+    "8": "bones",
+    "9": "rapids"
+  },
+  "destinations": [
+    {
+      "id": 0,
+      "kind": "settlement_candidate",
+      "x": 57,
+      "y": 7
+    }
+  ],
+  "mapH": 64,
+  "mapW": 64,
+  "materials": {
+    "0": "soil",
+    "1": "grass",
+    "10": "muck",
+    "11": "snow",
+    "12": "ice",
+    "13": "gravel",
+    "14": "crackedearth",
+    "15": "ash",
+    "16": "basalt",
+    "17": "cavedirt",
+    "18": "cavestone",
+    "19": "fungal",
+    "2": "water",
+    "20": "dungeonfloor",
+    "21": "templefloor",
+    "22": "shallow",
+    "23": "deep",
+    "24": "bog",
+    "25": "hotspring",
+    "26": "corrupt",
+    "27": "packedroad",
+    "3": "sand",
+    "4": "rock",
+    "5": "stone",
+    "6": "lava",
+    "7": "cobble",
+    "8": "drygrass",
+    "9": "mud"
+  },
+  "pois": [
+    {
+      "id": 0,
+      "type": "poi.cave",
+      "x": 42,
+      "y": 32
+    },
+    {
+      "id": 1,
+      "type": "poi.cave",
+      "x": 24,
+      "y": 17
+    },
+    {
+      "id": 2,
+      "type": "poi.graveyard",
+      "x": 48,
+      "y": 22
+    },
+    {
+      "id": 3,
+      "type": "poi.prospector_camp",
+      "x": 41,
+      "y": 50
+    },
+    {
+      "id": 4,
+      "type": "poi.abandoned_homestead",
+      "x": 10,
+      "y": 40
+    },
+    {
+      "id": 5,
+      "type": "poi.fishing_spot",
+      "x": 25,
+      "y": 28
+    },
+    {
+      "id": 6,
+      "type": "poi.trapper_camp",
+      "x": 53,
+      "y": 38
+    },
+    {
+      "id": 7,
+      "type": "poi.abandoned_homestead",
+      "x": 20,
+      "y": 52
+    },
+    {
+      "id": 8,
+      "type": "poi.fishing_spot",
+      "x": 19,
+      "y": 44
+    },
+    {
+      "id": 9,
+      "type": "poi.mine",
+      "x": 38,
+      "y": 58
+    },
+    {
+      "id": 10,
+      "type": "poi.trapper_camp",
+      "x": 46,
+      "y": 40
+    },
+    {
+      "id": 11,
+      "type": "poi.lone_cottage",
+      "x": 19,
+      "y": 37
+    }
+  ],
+  "roadTypes": {
+    "1": "road",
+    "2": "dirtpath",
+    "3": "ruinedroad"
+  },
+  "routes": [],
+  "structures": {
+    "1": "house",
+    "10": "well",
+    "11": "stall",
+    "12": "rtower",
+    "13": "fisherhut",
+    "14": "wbridge",
+    "15": "wbridgev",
+    "16": "sbridge",
+    "17": "sbridgev",
+    "18": "cavemouth",
+    "19": "mineshaft",
+    "2": "ruin",
+    "20": "farmhouse",
+    "21": "barn",
+    "22": "windmill",
+    "23": "watermill",
+    "24": "sawmill",
+    "25": "quarry",
+    "26": "bakery",
+    "27": "store",
+    "28": "warehouse",
+    "29": "chapel",
+    "3": "monolith",
+    "30": "townhall",
+    "31": "guardhouse",
+    "32": "manor",
+    "33": "fountain",
+    "34": "house_abandoned",
+    "35": "house_burned",
+    "36": "gate_drawbridge",
+    "37": "keep",
+    "38": "gate_ruined",
+    "39": "tent",
+    "4": "cottage",
+    "40": "dock",
+    "41": "lighthouse",
+    "42": "stonecircle",
+    "43": "hunterlodge",
+    "44": "hermithut",
+    "45": "den",
+    "46": "crypt",
+    "47": "ruintemple",
+    "48": "giantskeleton",
+    "49": "buriedstatue",
+    "5": "dungeon",
+    "50": "portal",
+    "51": "crystalspire",
+    "52": "worldtree",
+    "6": "tower",
+    "7": "gate",
+    "8": "tavern",
+    "9": "smithy"
+  },
+  "tileforgeAdapterVersion": 6,
+  "wallTypes": {
+    "1": "wall",
+    "2": "palisade",
+    "3": "ruinedwall",
+    "4": "seawall",
+    "5": "cavewall",
+    "6": "dungeonwall"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "authoredStamps": [],
+  "biases": {
+    "moisturePermille": 0,
+    "northElevationPermille": 0,
+    "temperaturePermille": 0
+  },
+  "budgets": {
+    "landmarkCount": 0,
+    "primaryRouteCount": 0,
+    "regionCount": 4,
+    "settlementCount": 0
+  },
+  "cellOverrides": [],
+  "decoration": {
+    "densityPermille": 400
+  },
+  "landmarks": [],
+  "recipeFormat": 1,
+  "seed": 1,
+  "settlements": [],
+  "toggles": {},
+  "world": {
+    "climatePreset": "temperate",
+    "densityPreset": "balanced",
+    "sizePreset": "tiny"
+  },
+  "zones": null
+}

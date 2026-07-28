@@ -1,0 +1,60 @@
+{
+  "authoredStamps": [],
+  "biases": {
+    "moisturePermille": 0,
+    "northElevationPermille": 0,
+    "temperaturePermille": 0
+  },
+  "budgets": {
+    "landmarkCount": 3,
+    "primaryRouteCount": 1,
+    "regionCount": 3,
+    "settlementCount": 3
+  },
+  "cellOverrides": [],
+  "decoration": {
+    "densityPermille": 550
+  },
+  "landmarks": [
+    {
+      "at": null,
+      "near": null,
+      "relation": "far_from_town",
+      "type": "ancient_fortress"
+    },
+    {
+      "at": null,
+      "near": null,
+      "relation": "remote_corner",
+      "type": "hunters_lodge"
+    },
+    {
+      "at": null,
+      "near": null,
+      "relation": "far_from_town",
+      "type": "world_tree"
+    }
+  ],
+  "recipeFormat": 1,
+  "seed": 20093,
+  "settlements": [
+    {
+      "at": null,
+      "near": {
+        "cell": [
+          30,
+          50
+        ],
+        "radius": 10
+      },
+      "rank": 2
+    }
+  ],
+  "toggles": {},
+  "world": {
+    "climatePreset": "arid_steppe",
+    "densityPreset": "dense",
+    "sizePreset": "tiny"
+  },
+  "zones": null
+}

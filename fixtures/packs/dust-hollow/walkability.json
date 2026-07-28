@@ -1,0 +1,12 @@
+{
+  "encoding": "base64-bitpacked-row-major-lsb-first",
+  "floodCount": 3181,
+  "grid": "fwDG///q///7zXP//p4k/ufP+/0fnjz+/vj26///J/LzGPP5+3/m854Y7fz//z//nx////9/J///8f/n/989x9nRr76//+AA5fGe//+/IsfmHl3/Of8j/z4Rpf///f+RMRH7/f9/xPEx8fX8/39EkfGfi/v/f8SfH5/f/P//f/wf/8D//29EZB////v/f0Tk//328v9/xD/f+3f7////nf//+P+///9d/37wB/D//z3/2/j39/87B7/r/Pc3/vb2////97d/+7/////39/9f2P/f//f39x/7/+//99f/X/K/4//31/s/Iv/v74fwWz8O6////v//f2T///+//7d//Pf+///5h//we+759+X7//z/9P+P/fv3bbvz/4/9RfpnG//f+/LHYZ7/+//7/8T8/b/v//+b/Onx2////5Wv73//+v//n28a1d//+///AYH3v/prG5thgfb/v/+WlyFZ4P+e+NDm72HP/5P+otWs5J//z38ib8tPt/Pv/z/rs/Y8+Gf+da+f9X3///9Xdn///v8f/1/+f9///9fvT/3C3/3/Hvuz/Sfr/3Ye/197/fv//8//V3+////7yer9+f//ff3sH///Xv//0b0f+/9fu//n9/e//19//LB//v///3/8/k/////3nd+O////+///X8/9/////7/ff3/4//////8=",
+  "height": 64,
+  "spawnCell": [
+    60,
+    3
+  ],
+  "walkabilityFormat": 1,
+  "width": 64
+}
