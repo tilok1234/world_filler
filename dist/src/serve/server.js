@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { readGamePack } from "../pack/readPack.js";
 import { WorldModel } from "../world/model.js";
@@ -61,15 +61,94 @@ export function createStudioServer(options = {}) {
     function outDirOf(name) {
         return join(outputsRoot, "export", `${name}-content`);
     }
-    /** Save a recipe object for a world: validate first, write pretty JSON. */
+    /**
+     * Save a recipe object for a world: validate first, write pretty JSON.
+     * The previous version (when one exists) is kept as a sequentially
+     * numbered snapshot under recipes/.history/<world>/ — no timestamps,
+     * sequence numbers only — so every edit is undoable via /api/restore.
+     */
     function saveRecipe(name, raw) {
         normalizeRecipe(raw); // throws RecipeError with the exact field on failure
         mkdirSync(recipesDir, { recursive: true });
-        writeFileSync(join(recipesDir, `${name}.json`), JSON.stringify(raw, null, 2) + "\n");
+        const target = join(recipesDir, `${name}.json`);
+        if (existsSync(target)) {
+            const dir = join(recipesDir, ".history", name);
+            mkdirSync(dir, { recursive: true });
+            const next = historyEntries(name).length + 1;
+            copyFileSync(target, join(dir, `${String(next).padStart(4, "0")}.json`));
+        }
+        writeFileSync(target, JSON.stringify(raw, null, 2) + "\n");
+    }
+    function historyEntries(name) {
+        const dir = join(recipesDir, ".history", name);
+        if (!existsSync(dir))
+            return [];
+        return readdirSync(dir)
+            .filter((entry) => /^[0-9]{4}\.json$/.test(entry))
+            .map((entry) => Number(entry.slice(0, 4)))
+            .sort((a, b) => a - b);
     }
     function loadRawRecipe(name) {
         const { path } = recipePathOf(name);
         return JSON.parse(readFileSync(path, "utf8"));
+    }
+    /** Run-length encode an integer grid, row-major: [[value, count], …]. */
+    function runLengthEncode(values) {
+        const runs = [];
+        for (let i = 0; i < values.length; i += 1) {
+            const value = values[i];
+            const last = runs[runs.length - 1];
+            if (last !== undefined && last[0] === value)
+                last[1] += 1;
+            else
+                runs.push([value, 1]);
+        }
+        return runs;
+    }
+    /** Bit-pack a 0/1 grid to base64, row-major LSB-first (the pack encoding). */
+    function packBits(values) {
+        const bytes = Buffer.alloc((values.length + 7) >> 3);
+        for (let i = 0; i < values.length; i += 1) {
+            if (values[i] === 1)
+                bytes[i >> 3] = bytes[i >> 3] | (1 << (i & 7));
+        }
+        return bytes.toString("base64");
+    }
+    // Analysis responses are deterministic per world identity; cache them.
+    const analysisCache = new Map();
+    /**
+     * Read-only analysis maps for the studio's manual-intent tools: which
+     * region every cell belongs to, clearance (largest walkable square
+     * anchored at the cell — the boss-pin advisory), safe zones, and
+     * walkability. Encodings: runs = [[value, count], …] row-major
+     * (label -1 = no region); masks = base64-bitpacked-row-major-lsb-first.
+     */
+    function analysisFor(name) {
+        const worldDir = worldDirOf(name);
+        const pack = readGamePack(worldDir);
+        const model = new WorldModel(pack.artifact);
+        const identity = model.generator.generationIdentitySha256;
+        const cached = analysisCache.get(`${name}|${identity}`);
+        if (cached !== undefined)
+            return cached;
+        const bundle = analyzeWorld(model);
+        const body = JSON.stringify({
+            world: name,
+            generationIdentitySha256: identity,
+            width: model.dimensions.width,
+            height: model.dimensions.height,
+            regions: bundle.regions.map((region, label) => ({ label, id: region.id, biome: region.biome })),
+            regionLabels: { encoding: "runs-row-major", runs: runLengthEncode(bundle.regionLabels) },
+            clearance: { encoding: "runs-row-major", runs: runLengthEncode(bundle.clearance) },
+            safeZone: { encoding: "base64-bitpacked-row-major-lsb-first", grid: packBits(bundle.safeZone) },
+            walkable: { encoding: "base64-bitpacked-row-major-lsb-first", grid: packBits(bundle.bits) },
+        });
+        analysisCache.set(`${name}|${identity}`, body);
+        return body;
+    }
+    const PAYLOAD_NAMES = ["manifest.json", "content-plan.json", "placements.json", "territories.json", "report.json"];
+    function previousDirOf(name) {
+        return join(outputsRoot, "export", ".previous", name);
     }
     /**
      * The same pipeline as `wf-fill export` (byte-identical output —
@@ -110,6 +189,13 @@ export function createStudioServer(options = {}) {
             report,
         });
         const outDir = outDirOf(name);
+        // Keep the outgoing pack for /api/diff before it is replaced.
+        if (existsSync(join(outDir, "manifest.json"))) {
+            const previousDir = previousDirOf(name);
+            mkdirSync(previousDir, { recursive: true });
+            for (const payload of PAYLOAD_NAMES)
+                copyFileSync(join(outDir, payload), join(previousDir, payload));
+        }
         writeContentPack(built, outDir);
         const terrain = renderAnalysis(model, bundle).find((map) => map.name === "terrain");
         const dangerPng = renderDanger(model, bundle, plan, recipe.danger.bandCount);
@@ -197,6 +283,79 @@ export function createStudioServer(options = {}) {
         }
         if (route === "POST /api/direct") {
             json(res, 200, direct(world, url.searchParams.get("strict") === "1"));
+            return;
+        }
+        if (route === "GET /api/analysis") {
+            worldDirOf(world);
+            res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+            res.end(analysisFor(world));
+            return;
+        }
+        if (route === "GET /api/history") {
+            worldDirOf(world);
+            json(res, 200, { world, entries: historyEntries(world), hasOwnRecipe: existsSync(join(recipesDir, `${world}.json`)) });
+            return;
+        }
+        if (route === "POST /api/restore") {
+            const args = JSON.parse(body === "" ? "{}" : body);
+            const name = String(args["world"] ?? "");
+            worldDirOf(name);
+            const entry = Number(args["entry"]);
+            if (!Number.isInteger(entry) || !historyEntries(name).includes(entry)) {
+                throw new HttpError(404, `no history entry ${String(args["entry"])} for ${name}`);
+            }
+            const snapshot = JSON.parse(readFileSync(join(recipesDir, ".history", name, `${String(entry).padStart(4, "0")}.json`), "utf8"));
+            // saveRecipe snapshots the current recipe first, so a restore is
+            // itself undoable.
+            saveRecipe(name, snapshot);
+            json(res, 200, { ok: true, restored: entry });
+            return;
+        }
+        if (route === "GET /api/diff") {
+            const currentDir = outDirOf(world);
+            if (!existsSync(join(currentDir, "manifest.json")))
+                throw new HttpError(404, `no export for ${world} yet — direct it first`);
+            const previousDir = previousDirOf(world);
+            if (!existsSync(join(previousDir, "manifest.json"))) {
+                json(res, 200, { world, hasPrevious: false });
+                return;
+            }
+            const load = (dir) => ({
+                placements: JSON.parse(readFileSync(join(dir, "placements.json"), "utf8")).placements,
+                territories: JSON.parse(readFileSync(join(dir, "territories.json"), "utf8")),
+                report: JSON.parse(readFileSync(join(dir, "report.json"), "utf8")),
+            });
+            const previous = load(previousDir);
+            const current = load(currentDir);
+            const prevById = new Map(previous.placements.map((entry) => [String(entry["id"]), entry]));
+            const curById = new Map(current.placements.map((entry) => [String(entry["id"]), entry]));
+            const cellOf = (entry) => JSON.stringify([entry["cell"], entry["arenaOrigin"], entry["anchorPoiId"]]);
+            const placements = {
+                added: [...curById.values()].filter((entry) => !prevById.has(String(entry["id"]))).map((entry) => ({ id: entry["id"], cell: entry["cell"] })),
+                removed: [...prevById.values()].filter((entry) => !curById.has(String(entry["id"]))).map((entry) => ({ id: entry["id"], cell: entry["cell"] })),
+                moved: [...curById.values()]
+                    .filter((entry) => prevById.has(String(entry["id"])) && cellOf(prevById.get(String(entry["id"]))) !== cellOf(entry))
+                    .map((entry) => ({ id: entry["id"], from: prevById.get(String(entry["id"]))["cell"], to: entry["cell"], locked: entry["locked"] === true })),
+                unchanged: [...curById.values()].filter((entry) => prevById.has(String(entry["id"])) && cellOf(prevById.get(String(entry["id"]))) === cellOf(entry)).length,
+            };
+            const prevTerr = new Map(previous.territories.territories.map((entry) => [String(entry["id"]), entry]));
+            const curTerr = new Map(current.territories.territories.map((entry) => [String(entry["id"]), entry]));
+            const territories = {
+                added: [...curTerr.keys()].filter((id) => !prevTerr.has(id)),
+                removed: [...prevTerr.keys()].filter((id) => !curTerr.has(id)),
+                resized: [...curTerr.values()]
+                    .filter((entry) => {
+                    const before = prevTerr.get(String(entry["id"]));
+                    return before !== undefined && (before["cellCount"] !== entry["cellCount"] || JSON.stringify(before["cells"]) !== JSON.stringify(entry["cells"]));
+                })
+                    .map((entry) => ({ id: entry["id"], from: prevTerr.get(String(entry["id"]))["cellCount"], to: entry["cellCount"] })),
+                coverage: { from: previous.territories.coverage.totalCovered, to: current.territories.coverage.totalCovered },
+            };
+            const prevGates = new Map(previous.report.gates.map((gate) => [gate.id, gate.status]));
+            const gates = current.report.gates
+                .filter((gate) => prevGates.get(gate.id) !== gate.status)
+                .map((gate) => ({ id: gate.id, from: prevGates.get(gate.id) ?? null, to: gate.status }));
+            json(res, 200, { world, hasPrevious: true, placements, territories, gates });
             return;
         }
         if (route === "GET /api/pack") {

@@ -118,6 +118,55 @@ describe("director studio API", () => {
         const missing = await api("POST", "/api/unlock", { world: "fen-hollow", placementId: boss.id });
         assert.equal(missing.status, 404);
     });
+    it("serves analysis maps that agree with the world pack's reference data", async () => {
+        const { status, data } = await api("GET", "/api/analysis?world=fen-hollow");
+        assert.equal(status, 200);
+        assert.equal(data.width, 64);
+        assert.ok(data.regions.length > 0);
+        const cellCount = data.width * data.height;
+        const decodeRuns = (runs) => runs.reduce((sum, [, count]) => sum + count, 0);
+        assert.equal(decodeRuns(data.regionLabels.runs), cellCount, "region labels cover every cell");
+        assert.equal(decodeRuns(data.clearance.runs), cellCount, "clearance covers every cell");
+        // Walkability parity holds, so the packed mask must equal the world
+        // pack's reference grid byte-for-byte.
+        const reference = JSON.parse(readFileSync(join(FEN, "walkability.json"), "utf8"));
+        assert.equal(data.walkable.grid, reference.grid, "walkable mask equals the reference bitgrid");
+    });
+    it("keeps recipe history and restores it, restore itself undoable", async () => {
+        const before = await api("GET", "/api/history?world=fen-hollow");
+        const raw = JSON.parse((await api("GET", "/api/recipe?world=fen-hollow")).data.raw);
+        raw.name = "history-edit";
+        await api("PUT", "/api/recipe?world=fen-hollow", raw);
+        const after = await api("GET", "/api/history?world=fen-hollow");
+        assert.equal(after.data.entries.length, before.data.entries.length + 1, "each save snapshots the previous recipe");
+        const entry = after.data.entries[after.data.entries.length - 1];
+        const restored = await api("POST", "/api/restore", { world: "fen-hollow", entry });
+        assert.equal(restored.status, 200);
+        const recipe = await api("GET", "/api/recipe?world=fen-hollow");
+        assert.notEqual(recipe.data.normalized.name, "history-edit", "restore rolled the edit back");
+        const again = await api("GET", "/api/history?world=fen-hollow");
+        assert.equal(again.data.entries.length, after.data.entries.length + 1, "restore snapshotted the pre-restore state");
+        const missing = await api("POST", "/api/restore", { world: "fen-hollow", entry: 9999 });
+        assert.equal(missing.status, 404);
+    });
+    it("diffs the previous export against the current one, exactly", async () => {
+        // fen-hollow was directed at least once above; a seed change moves things.
+        const raw = JSON.parse((await api("GET", "/api/recipe?world=fen-hollow")).data.raw);
+        raw.directorSeed = 424242;
+        delete raw.locks;
+        delete raw.rerolls;
+        await api("PUT", "/api/recipe?world=fen-hollow", raw);
+        const redo = await api("POST", "/api/direct?world=fen-hollow");
+        assert.equal(redo.status, 200, JSON.stringify(redo.data));
+        const { status, data } = await api("GET", "/api/diff?world=fen-hollow");
+        assert.equal(status, 200);
+        assert.equal(data.hasPrevious, true);
+        const pack = await api("GET", "/api/pack?world=fen-hollow");
+        const total = pack.data.placements.placements.length;
+        assert.equal(data.placements.added.length + data.placements.moved.length + data.placements.unchanged, total, "diff accounts for every current placement");
+        assert.ok(data.placements.moved.length + data.placements.added.length + data.territories.resized.length + data.territories.added.length > 0, "a seed change visibly changes the layout");
+        assert.ok(typeof data.territories.coverage.from === "number" && typeof data.territories.coverage.to === "number");
+    });
     it("refuses bad inputs by name", async () => {
         assert.equal((await api("GET", "/api/pack?world=no-such-world")).status, 404);
         assert.equal((await api("GET", "/api/recipe?world=..%2F..%2Fetc")).status, 400);
