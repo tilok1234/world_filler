@@ -498,10 +498,12 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     outArg ?? join(repoRoot(), "outputs", "export", `${basename(dir)}-${recipe.name}-content`),
   );
   writeContentPack(built, outDir);
+  const terrain = renderAnalysis(model, bundle).find((map) => map.name === "terrain");
   const dangerPng = renderDanger(model, bundle, plan, recipe.danger.bandCount);
   const placementsPng = renderPlacements(model, bundle, placements);
   const territoriesPng = renderTerritories(model, bundle, territories, placements);
   mkdirSync(join(outDir, "renders"), { recursive: true });
+  if (terrain !== undefined) writeFileSync(join(outDir, "renders", "terrain.png"), terrain.png);
   writeFileSync(join(outDir, "renders", "danger.png"), dangerPng);
   writeFileSync(join(outDir, "renders", "placements.png"), placementsPng);
   writeFileSync(join(outDir, "renders", "territories.png"), territoriesPng);
@@ -513,7 +515,6 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
   const viewerTemplate = join(repoRoot(), "viewer", "index.html");
   let viewHint = "";
   if (existsSync(viewerTemplate)) {
-    const terrain = renderAnalysis(model, bundle).find((map) => map.name === "terrain");
     const embedded = {
       jsons: {
         "manifest.json": canonicalJson(built.manifest),
