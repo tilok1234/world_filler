@@ -44,7 +44,7 @@ export function renderTerritories(
 
   for (const territory of territoriesDoc.territories) {
     const color = hashColor(territory.id);
-    for (const index of decodeRuns(territory.cells.runs, width)) {
+    for (const index of decodeRuns(territory.cells.runs, width, height)) {
       const offset = index * 4;
       rgba[offset] = color[0];
       rgba[offset + 1] = color[1];

@@ -35,13 +35,22 @@ describe("run encoding", () => {
     const cells = new Set([0, 1, 2, 10, 12, 13, 27, 64, 65]);
     const runs = encodeRuns(cells, 8);
     assert.deepEqual(runs, [[0, 0, 3], [2, 1, 1], [4, 1, 2], [3, 3, 1], [0, 8, 2]]);
-    assert.deepEqual([...decodeRuns(runs, 8)].sort((a, b) => a - b), [...cells].sort((a, b) => a - b));
+    assert.deepEqual([...decodeRuns(runs, 8, 16)].sort((a, b) => a - b), [...cells].sort((a, b) => a - b));
   });
 
   it("never merges runs across a row boundary", () => {
     const cells = new Set([7, 8]); // (7,0) and (0,1) are index-adjacent but different rows
     const runs = encodeRuns(cells, 8);
     assert.deepEqual(runs, [[7, 0, 1], [0, 1, 1]]);
+  });
+
+  it("refuses malformed runs by name instead of wrapping into the next row", () => {
+    assert.throws(() => decodeRuns([[6, 0, 5]], 8, 8), /runs never cross rows/);
+    assert.throws(() => decodeRuns([[-1, 0, 2]], 8, 8), /runs never cross rows/);
+    assert.throws(() => decodeRuns([[0, -1, 1]], 8, 8), /runs never cross rows/);
+    assert.throws(() => decodeRuns([[0, 8, 1]], 8, 8), /runs never cross rows/);
+    assert.throws(() => decodeRuns([[0, 0, 0]], 8, 8), /runs never cross rows/);
+    assert.throws(() => decodeRuns([[0.5, 0, 1]], 8, 8), /not integer/);
   });
 });
 
@@ -61,7 +70,7 @@ describe("spawn territories", () => {
 
       for (let t = 0; t < doc.territories.length; t += 1) {
         const territory = doc.territories[t] as TerritoriesDoc["territories"][number];
-        const cells = decodeRuns(territory.cells.runs, width);
+        const cells = decodeRuns(territory.cells.runs, width, model.dimensions.height);
         assert.equal(cells.size, territory.cellCount, `${territory.id} cellCount matches encoding`);
         const label = labelById.get(territory.regionId);
         for (const index of cells) {

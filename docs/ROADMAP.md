@@ -28,8 +28,16 @@ F7 landed: content pack format 1 frozen (docs/CONTENT_PACK_FORMAT.md),
 gate-refusing byte-stable export, and the consumption proof in both
 lanes — the TypeScript verifier and a headless Godot 4.6.2 run of
 consumers/godot-proof/verify_content_pack.gd, green on fen-hollow and
-the canonical world. **Visual verdicts on the F2–F5 renders pending
-user review.** F8 is next.
+the canonical world. The F7 freeze review is resolved (2026-07-28): all
+38 salvaged findings verified and fixed as 13 defects — both reference
+verifiers now implement every importer obligation and agree
+refusal-for-refusal, the format doc passed the importer-buildability
+lens (shapes, closed/open enums, id opacity, reader rules), exports
+stage atomically and refuse stale pins and incoherent inputs, a golden
+content pack pins the frozen serialization, and the Godot battery
+re-ran green (behavior 6; docs/FREEZE_REVIEW_FINDINGS.md carries the
+disposition). **Content pack format 1 is final.** **Visual verdicts on
+the F2–F5 renders pending user review.** F8 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
@@ -255,6 +263,18 @@ Exit criteria:
   territory cell walkable, agreeing with `wf-fill validate`;
 - pack format v1 documented well enough that the future game-side importer
   can be written from the doc alone.
+
+Freeze review resolution (2026-07-28): the post-freeze adversarial
+review's 38 findings were verified and fixed (13 distinct defects — see
+docs/FREEZE_REVIEW_FINDINGS.md for the full disposition). The exit
+criteria above are now enforced by construction: both reference
+verifiers implement all six importer obligations identically (files
+completeness, hashed-byte parsing, report.ok, payload-format pins,
+closed-enum refusals, manifest/payload agreement), a committed golden
+pack (fixtures/golden/content-pack-fen-hollow) pins the frozen
+serialization byte-for-byte, export stages atomically and refuses stale
+pins in every mode, and the format doc carries every payload shape.
+Format 1 is final.
 
 ## Milestone F8 — Director UX loop
 

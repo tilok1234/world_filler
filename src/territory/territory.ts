@@ -103,9 +103,31 @@ export function encodeRuns(cells: ReadonlySet<number>, width: number): Array<[nu
   return runs;
 }
 
-export function decodeRuns(runs: readonly (readonly [number, number, number])[], width: number): Set<number> {
+export class TerritoryRunError extends Error {}
+
+/**
+ * Decode [x, y, length] runs into a cell-index set. Runs never cross
+ * rows — the frozen format 1 reader rule (docs/CONTENT_PACK_FORMAT.md):
+ * a run with x < 0, y < 0, length < 1, x + length > width, or
+ * y >= height is refused with a named error, never silently wrapped
+ * into the next row.
+ */
+export function decodeRuns(
+  runs: readonly (readonly [number, number, number])[],
+  width: number,
+  height: number,
+): Set<number> {
   const cells = new Set<number>();
-  for (const [x, y, length] of runs) {
+  for (const run of runs) {
+    const [x, y, length] = run;
+    if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(length)) {
+      throw new TerritoryRunError(`territory run [${String(x)}, ${String(y)}, ${String(length)}] is not integer [x, y, length]`);
+    }
+    if (x < 0 || y < 0 || length < 1 || y >= height || x + length > width) {
+      throw new TerritoryRunError(
+        `territory run [${x}, ${y}, ${length}] leaves the ${width}x${height} grid (runs never cross rows)`,
+      );
+    }
     for (let i = 0; i < length; i += 1) cells.add(y * width + x + i);
   }
   return cells;
@@ -168,7 +190,19 @@ export function growTerritories(
 
   for (const region of plan.regions) {
     const budget = region.budgets.territories;
-    if (budget <= 0) continue;
+    if (budget <= 0) {
+      // Zero-budget regions still appear in coverage so the totals are
+      // world totals, not budgeted-regions-only totals.
+      coverage.push({
+        regionId: region.id,
+        hostileWalkable: region.hostileWalkableCells,
+        covered: 0,
+        coveragePermille: 0,
+        budget,
+        emitted: 0,
+      });
+      continue;
+    }
     const label = labelById.get(region.id) as number;
     const band = region.dangerBand ?? 0;
 

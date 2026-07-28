@@ -11,8 +11,11 @@ describe("output path guard", () => {
     assert.ok(allowed.endsWith("outputs/test-run"));
   });
 
-  it("refuses protected repository trees", () => {
-    for (const tree of ["src", "fixtures", "docs", "tests"]) {
+  it("refuses every repository tree except outputs/", () => {
+    // consumers/ holds the frozen GDScript reference verifier; dist/ and
+    // node_modules/ are build state — the freeze review found the old
+    // deny-list left all three writable.
+    for (const tree of ["src", "fixtures", "docs", "tests", "tools", "consumers", "dist", "node_modules", ".github", "anything-new"]) {
       assert.throws(() => assertOutputRoot(join(repoRoot(), tree, "x")), /protected repository tree/);
     }
     assert.throws(() => assertOutputRoot(repoRoot()), /repository root itself/);

@@ -120,9 +120,22 @@ timestamps), with two independent consumption verifiers proving packs
 from nothing but the files on disk: `wf-fill verify-pack` (TypeScript)
 and `consumers/godot-proof/verify_content_pack.gd` — both ran green
 against fen-hollow and the canonical 256² world, the latter inside the
-official Godot 4.6.2 headless engine. Render **visual verdicts pending
-user review** (F2 heatmaps, F3 danger bands, F4 placements, F5
-territories). Next: F8 (viewer + director UX loop).
+official Godot 4.6.2 headless engine. The F7 freeze review is resolved
+and **content pack format 1 is final** (2026-07-28): all 38 review
+findings were verified and fixed as 13 defects — both reference
+verifiers now implement every importer obligation (files-table
+completeness, hashed-byte parsing, report.ok, payload-format pins,
+closed-enum refusals, manifest/payload identity + count agreement,
+dungeon-anchor and run-bounds checks) and agree refusal-for-refusal,
+proven by an adversarial tamper battery in both lanes; exports stage
+atomically, refuse stale base pins in every mode, and refuse
+incoherent pipeline inputs; recipe lock ids must match the frozen id
+scheme; the output guard is an outputs/-only allow-list; and a
+committed golden pack pins the frozen serialization byte-for-byte
+(director behavior 6 — docs/FREEZE_REVIEW_FINDINGS.md has the full
+disposition). Render **visual verdicts pending user review** (F2
+heatmaps, F3 danger bands, F4 placements, F5 territories). Next: F8
+(viewer + director UX loop).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

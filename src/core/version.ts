@@ -5,15 +5,18 @@
  */
 
 export const DIRECTOR_VERSION = "0.1.0";
-export const DIRECTOR_BEHAVIOR_VERSION = 5;
+// 6: freeze-review resolution — coverage rows for every plan region,
+// boss slots skip held lock ids, malformed territory runs refuse by name,
+// export refuses incoherent inputs and stale pins.
+export const DIRECTOR_BEHAVIOR_VERSION = 6;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
   plan: 1,
-  placement: 2,
-  territory: 2,
-  validate: 1,
-  export: 1,
+  placement: 3,
+  territory: 3,
+  validate: 2,
+  export: 2,
 } as const;
 
 export const RECIPE_FORMAT = 1;

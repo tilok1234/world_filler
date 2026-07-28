@@ -141,7 +141,13 @@ export function runGates(inputs: ValidationInputs): ValidationReportDoc {
     const owner = new Map<number, string>();
     const labelById = new Map(bundle.regions.map((region, label) => [region.id, label]));
     for (const territory of territories.territories) {
-      const cells = decodeRuns(territory.cells.runs, width);
+      let cells: Set<number>;
+      try {
+        cells = decodeRuns(territory.cells.runs, width, height);
+      } catch (error) {
+        details.push(`${territory.id} has malformed runs: ${error instanceof Error ? error.message : String(error)}`);
+        continue;
+      }
       if (cells.size !== territory.cellCount) details.push(`${territory.id} cellCount mismatch`);
       const label = labelById.get(territory.regionId);
       for (const index of cells) {
@@ -240,7 +246,13 @@ export function runGates(inputs: ValidationInputs): ValidationReportDoc {
       }
     }
     for (const territory of territories.territories) {
-      for (const index of decodeRuns(territory.cells.runs, width)) {
+      let cells: Set<number>;
+      try {
+        cells = decodeRuns(territory.cells.runs, width, height);
+      } catch {
+        continue; // G3 already reports malformed runs as a failure.
+      }
+      for (const index of cells) {
         const x = index % width;
         const y = (index - x) / width;
         if (inNoContent(x, y)) {

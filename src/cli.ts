@@ -413,6 +413,18 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     return 1;
   }
   const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  // The shipping verb honors a base pin unconditionally, exactly like
+  // plan/place/territories — never export a pack directed at the wrong
+  // world. (validate intentionally still runs on a stale pin: its G7
+  // gate is the diagnosis; strict mode makes it a failure.)
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(
+      `export: refusing — recipe pins base ${pin} but the pack's generation identity is ` +
+        `${model.generator.generationIdentitySha256} (stale base; re-pin deliberately)`,
+    );
+    return 1;
+  }
   const bundle = analyzeWorld(model);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
@@ -467,6 +479,15 @@ function runVerifyPack(worldPackDir: string, contentPackDir: string): number {
 
 function main(argv: readonly string[]): number {
   const strict = argv.includes("--strict");
+  // Refuse unrecognized flags instead of letting a typo ("--stric")
+  // silently become a positional out-dir argument.
+  const unknownFlags = argv.filter(
+    (entry) => entry.startsWith("-") && entry !== "--strict" && entry !== "--help",
+  );
+  if (unknownFlags.length > 0) {
+    console.error(`unknown flag: ${unknownFlags.join(", ")} (supported: --strict)`);
+    return 1;
+  }
   const positional = argv.filter((entry) => entry !== "--strict");
   const [command, target, extra, extra2] = positional;
   if (command === undefined || command === "help" || command === "--help") {

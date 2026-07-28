@@ -1,12 +1,18 @@
-# F7 freeze review — RAW FINDINGS (UNVERIFIED)
+# F7 freeze review — RESOLVED (2026-07-28)
 
-Status: salvaged from the interrupted adversarial review (4 of 5 lenses
-completed; the fifth and the entire verification phase never ran — the
-session hit its usage limit). Every finding below is a REVIEWER CLAIM,
-not a confirmed defect: the F4 review refuted none of 16, but this batch
-was never adversarially checked. Next session: verify each (read the code,
-try to refute), fix what survives, then declare content pack format 1
-final. Until then the freeze is provisional (HANDOFF.md section 1).
+Status: **RESOLVED.** Every finding was verified against the code
+(solo adversarial read plus empirical tamper probes — see the Resolution
+section at the end of this file), fixed where confirmed, and the missing
+fifth lens (importer-buildability of docs/CONTENT_PACK_FORMAT.md) was
+run and folded into the doc. **Content pack format 1 is now final** —
+the freeze is no longer provisional. Verdict summary: all 38 findings
+confirmed in substance (they deduplicate to 13 distinct defects, all
+fixed); one piece of cited evidence was refuted (finding 12's
+"checked-in behavior-2 output" — outputs/ has always been gitignored and
+nothing under it was ever committed), without weakening that finding's
+actual claim.
+
+The raw findings below are preserved verbatim as the review record.
 
 Findings: 38 raw, sorted by claimed severity.
 
@@ -276,3 +282,102 @@ Findings: 38 raw, sorted by claimed severity.
 - evidence: docs/CONTENT_PACK_FORMAT.md:89-91 and 123-124 name the arrays without any field documentation; line 112 elides the explanation entries entirely; line 169 directs users to lockReport. The actual shapes live in src/place/solver.ts (PlacementFailure, UnboundAnchor with six reason values, LockReportEntry) and src/territory/territory.ts (TerritoryFailure, RegionCoverage) — 'other worldfiller source' by the doc's own definition.
 - suggested fix: Append the field lists (with the reason/status vocabularies) for those arrays to the doc, or explicitly declare them opaque diagnostic data that importers must ignore and that is exempt from obligation 5.
 
+
+---
+
+## Resolution (2026-07-28)
+
+Method: every finding re-read against the source; the headline verifier
+claims were additionally confirmed empirically before fixing (a tampered
+fen-hollow export with an empty files table, a failing report, a missing
+report, an unknown placement rule, and a row-crossing run — all five
+were ACCEPTED by the pre-fix TS verifier and are now refused by name in
+both lanes). The 38 findings deduplicate to 13 defects:
+
+1. **report.json never checked** (findings 1, 2, 8, 20 — confirmed).
+   Both verifiers now require report.json listed + hashed, reportFormat
+   1, and `ok === true`. Adversarial tests cover ok:false, deleted, and
+   delisted report.
+2. **files-table completeness unspecified/unchecked** (2, 3, 4, 10 —
+   confirmed). The doc now states files MUST list exactly the four
+   payload names (bare names, no paths); both verifiers enforce the
+   exact set and parse payloads from the same bytes they hash-verified.
+3. **Row-crossing runs: TS wrapped, GDScript refused** (5, 15, 19, 24 —
+   confirmed). `decodeRuns` now takes height and refuses x<0 / y<0 /
+   length<1 / x+length>width / y>=height with a named error; the
+   verifier wraps it as a VerifyError, gates G3/G9 report it as a named
+   failure, the GDScript refusal is kept, and the doc makes the reader
+   rule normative. The references now agree: refuse.
+4. **GDScript verifier gaps and crash/hang paths** (6, 21, 22, 23, 25,
+   plus the divergence halves of 15/19 — confirmed). Full rework:
+   dungeon anchor existence/moved checks against world.json, deduped
+   cellCount check, base artifactFormat/width/height cross-checks,
+   walkability encoding pin and base64 length validation, strict
+   packFormat comparison (no int() coercion), validation-before-access
+   everywhere, and a single quit() on every path (no hangs). Re-proven
+   in headless Godot 4.6.2: positive runs green on fen-hollow and
+   dust-hollow with cell counts identical to the TS lane; eight
+   tampered/mismatched packs all exit 1 with named refusals, including
+   the null-arena case that previously crashed and the dangling-anchor
+   case that previously passed.
+5. **Obligation 5 unimplemented and unscoped** (7, 9, 26, 34 —
+   confirmed). The doc now enumerates the closed format-frozen enums
+   (rule, cells.encoding, respawnPressure, gate status, lock status,
+   payload format numbers) and declares everything else open
+   behavior-versioned vocabulary exempt from refusal; both verifiers
+   refuse unknown closed-enum values and non-1 payload formats.
+6. **Doc sufficiency gaps** (11, 12, 14, 29, 33, 37, 38 — confirmed;
+   finding 12's cited "checked-in behavior-2 output" evidence refuted,
+   claim upheld). The doc now carries: full entry shapes for
+   failures[], unboundAnchors[], lockReport[], coverage, and the
+   explanation arrays (with the explanation-data reliance clause);
+   content-plan.json and report.json top-level shapes; id opacity with
+   the guaranteed prefix/slot structure and the informative region-id
+   scheme; manifest.json canonicality; packFormat-1 payload-format
+   pins; inSafeZone semantics for every rule; locked-row sentinel
+   values.
+7. **Lock ids bypass the frozen id scheme** (13, 28 — confirmed).
+   normalizeRecipe now requires lock ids to match
+   `placement.<world_boss|dungeon>.<regionId>.<slot>` with the tag and
+   regionId agreeing with the lock's own fields and a canonical decimal
+   slot; the fresh-boss pass consults held ids symmetrically with the
+   dungeon pass.
+8. **buildContentPack trusts an unrelated report** (16 — confirmed).
+   It now refuses unless recipe hash, recipe name, behavior version,
+   rule packs, analysis version, and base identity agree across all
+   four payload documents; importer obligation 6 (manifest/payload
+   agreement + counts) closes the same hole at the consumer end.
+9. **Non-atomic in-place export writes** (17 — confirmed). Exports now
+   stage into a sibling temp directory (manifest last) and rename over
+   the destination; the manifest-as-commit-record rule and clean-replace
+   semantics are documented and pinned by test.
+10. **Stale pin exportable in default mode** (18, 27, 36 — confirmed).
+    `export` now refuses a stale base pin unconditionally, pre-flight,
+    like plan/place/territories. Deliberate divergence from the
+    findings' suggestion: `validate` still runs on a stale pin — G7 is
+    the diagnosis verb's staleness report (warn by default, failure
+    under --strict), and refusing to run it would delete the diagnostic.
+    The strict-only gates (G6 invalid locks, G7 staleness) are now
+    documented in CONTENT_PACK_FORMAT.md, and the lenient-mode G6 path
+    is pinned by test.
+11. **Guard leaves consumers//dist//node_modules writable; typo'd flags
+    become out-dirs** (35 — confirmed, including the stale
+    schemas//vendor entries). The guard is now an outputs/-only
+    allow-list inside the repository (matching its own docstring), and
+    the CLI refuses unrecognized dash-prefixed arguments.
+12. **No golden pack fixture** (32 — confirmed).
+    `fixtures/golden/content-pack-fen-hollow/` now pins all five files
+    byte-for-byte with a test; re-recording goes through
+    `node dist/tools/updateGolden.js` only. First recording made this
+    session together with the behavior-6 bump (kernel.json re-recorded
+    byte-identical, verified).
+13. **Coverage totals silently exclude zero-budget regions** (31 —
+    confirmed). Coverage now emits a row for every plan region
+    (budget 0, covered 0, emitted 0), so totalHostileWalkable is a true
+    world total; semantics documented.
+
+Version identity after the resolution: director behavior **6**; rule
+packs placement 3, territory 3, validate 2, export 2 (analysis 1, plan 1
+unchanged); all pack/payload formats remain **1** — every fix is
+verifier-side tightening, documentation, or export-refusal hardening,
+legal within the freeze. Full suite: 129 tests green.

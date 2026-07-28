@@ -96,7 +96,7 @@ describe("content pack export", () => {
     }
   });
 
-  it("refuses to export when a gate fails (strict stale pin)", () => {
+  it("refuses a stale base pin in every mode — the shipping verb honors pins unconditionally", () => {
     const base = mkdtempSync(join(tmpdir(), "wf-export-gate-"));
     try {
       const staleRecipe = join(base, "stale.json");
@@ -110,10 +110,86 @@ describe("content pack export", () => {
         }),
       );
       const out = join(base, "pack");
-      const run = runCli(["export", FEN, staleRecipe, out, "--strict"], base);
-      assert.notEqual(run.status, 0);
-      assert.match(run.stderr, /export: refusing — the audit failed: .*G7/);
+      for (const args of [["export", FEN, staleRecipe, out], ["export", FEN, staleRecipe, out, "--strict"]]) {
+        const run = runCli(args, base);
+        assert.notEqual(run.status, 0);
+        assert.match(run.stderr, /export: refusing — recipe pins base/);
+        assert.throws(() => readdirSync(out), /ENOENT/);
+      }
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses to export when a gate fails (strict invalid lock) but exports with the warn in default mode", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-lock-"));
+    try {
+      // A lock naming a region that does not exist: G6 diagnoses it as
+      // invalid — a warning by default, a failing gate under --strict.
+      const badLockRecipe = join(base, "bad-lock.json");
+      writeFileSync(
+        badLockRecipe,
+        JSON.stringify({
+          recipeFormat: 1,
+          name: "bad-lock",
+          directorSeed: 1,
+          locks: {
+            placements: [{
+              id: "placement.world_boss.region.ghost.999.0",
+              rule: "world_boss.v1",
+              regionId: "region.ghost.999",
+              cell: [10, 10],
+              exclusionRadius: 4,
+              arenaOrigin: [8, 8],
+              arenaSide: 3,
+            }],
+          },
+        }),
+      );
+      const out = join(base, "pack");
+      const strictRun = runCli(["export", FEN, badLockRecipe, out, "--strict"], base);
+      assert.notEqual(strictRun.status, 0);
+      assert.match(strictRun.stderr, /export: refusing — the audit failed: .*G6/);
       assert.throws(() => readdirSync(out), /ENOENT/);
+
+      const lenientRun = runCli(["export", FEN, badLockRecipe, out], base);
+      assert.equal(lenientRun.status, 0, lenientRun.stderr);
+      const report = JSON.parse(readFileSync(join(out, "report.json"), "utf8")) as {
+        gates: ReadonlyArray<{ id: string; status: string }>;
+      };
+      assert.equal(report.gates.find((gate) => gate.id === "G6")?.status, "warn");
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("re-export replaces the destination atomically via staging (no partial packs)", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-stage-"));
+    try {
+      const out = join(base, "pack");
+      assert.equal(runCli(["export", FEN, RECIPE, out], base).status, 0);
+
+      // Corrupt the pack in place and plant a stray file: a re-export must
+      // fully replace the directory (stale bytes gone) and leave no
+      // staging directory behind.
+      writeFileSync(join(out, "junk.txt"), "leftover");
+      writeFileSync(join(out, "placements.json"), "corrupted");
+      assert.equal(runCli(["export", FEN, RECIPE, out], base).status, 0);
+      assert.ok(!readdirSync(out).includes("junk.txt"), "stray files are dropped on re-export");
+      assert.ok(!readdirSync(base).includes("pack.staging"), "staging directory is renamed away");
+      const summary = verifyContentPack(FEN, out);
+      assert.ok(summary.placements >= 1);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses unknown flags instead of treating them as output directories", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-export-flag-"));
+    try {
+      const run = runCli(["export", FEN, RECIPE, join(base, "pack"), "--stric"], base);
+      assert.notEqual(run.status, 0);
+      assert.match(run.stderr, /unknown flag: --stric/);
     } finally {
       rmSync(base, { recursive: true, force: true });
     }

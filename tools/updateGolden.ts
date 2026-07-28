@@ -1,14 +1,26 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalJson } from "../src/core/canonicalJson.js";
 import { combine32, fold53, hashCell32, hashString32, mix32 } from "../src/core/hash.js";
 import { Channel } from "../src/core/channel.js";
 import { repoRoot } from "../src/core/guard.js";
+import { readGamePack } from "../src/pack/readPack.js";
+import { WorldModel } from "../src/world/model.js";
+import { analyzeWorld } from "../src/analysis/analyze.js";
+import { normalizeRecipe } from "../src/recipe/schema.js";
+import { compilePlan } from "../src/plan/plan.js";
+import { solvePlacements } from "../src/place/solver.js";
+import { growTerritories } from "../src/territory/territory.js";
+import { runGates } from "../src/validate/validate.js";
+import { buildContentPack } from "../src/export/export.js";
 
 /**
- * Re-record the kernel golden vectors. Running this is an explicit,
- * logged decision: it redefines the deterministic identity of every
- * stream the director will ever draw. Commit messages must say why.
+ * Re-record the golden fixtures. Running this is an explicit, logged
+ * decision. The kernel vectors redefine the deterministic identity of
+ * every stream the director will ever draw; the golden content pack
+ * redefines the frozen format-1 serialization tripwire (an accidental
+ * field rename or type change fails the golden test — a deliberate
+ * behavior bump re-records here). Commit messages must say why.
  */
 
 const MIX_INPUTS = [0, 1, 2, 0x7fffffff, 0xdeadbeef, 0xffffffff];
@@ -52,3 +64,41 @@ const goldenDir = join(repoRoot(), "fixtures", "golden");
 mkdirSync(goldenDir, { recursive: true });
 writeFileSync(join(goldenDir, "kernel.json"), canonicalJson(vectors));
 console.log(`recorded ${join(goldenDir, "kernel.json")}`);
+
+// The golden content pack: fen-hollow directed by the fixture recipe,
+// byte-for-byte. Pins the frozen format-1 serialization of all five
+// files (the manifest's files table pins the payload hashes twice over).
+const fenDir = join(repoRoot(), "fixtures", "packs", "fen-hollow");
+const pack = readGamePack(fenDir);
+const model = new WorldModel(pack.artifact);
+const recipe = normalizeRecipe(
+  JSON.parse(readFileSync(join(repoRoot(), "fixtures", "recipes", "basic-direction.json"), "utf8")),
+);
+const bundle = analyzeWorld(model);
+const plan = compilePlan(model, bundle, recipe);
+const placements = solvePlacements(model, bundle, plan, recipe);
+const territories = growTerritories(model, bundle, plan, placements, recipe);
+const report = runGates({
+  model, bundle, plan, placements, territories, recipe, strict: false,
+  resolveAgain: () => {
+    const again = solvePlacements(model, bundle, plan, recipe);
+    return { placements: again, territories: growTerritories(model, bundle, plan, again, recipe) };
+  },
+});
+const built = buildContentPack({
+  model,
+  worldName: "fen-hollow",
+  baseArtifactSha256: pack.manifest.baseArtifactSha256,
+  recipe,
+  plan,
+  placements,
+  territories,
+  report,
+});
+const goldenPackDir = join(goldenDir, "content-pack-fen-hollow");
+mkdirSync(goldenPackDir, { recursive: true });
+for (const [name, bytes] of built.files) {
+  writeFileSync(join(goldenPackDir, name), bytes);
+}
+writeFileSync(join(goldenPackDir, "manifest.json"), canonicalJson(built.manifest));
+console.log(`recorded ${goldenPackDir}`);

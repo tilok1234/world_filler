@@ -6,11 +6,12 @@ import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "no
  * Allowed: `<repoRoot>/outputs` (plus roots listed in the
  * WORLD_FILLER_EXTRA_OUT_ROOTS environment variable, delimiter-separated).
  * Any path that resolves into an upstream checkout (a directory owned by
- * a `worldforge` package) or into this repository's source/fixture/doc
- * trees is refused with a named error.
+ * a `worldforge` package) or anywhere else inside this repository —
+ * source, fixtures, docs, the frozen reference verifiers in consumers/,
+ * build output, node_modules — is refused with a named error. Inside the
+ * repo, outputs/ is the ONLY writable tree (the freeze review found the
+ * previous deny-list left consumers/ and dist/ writable).
  */
-
-const PROTECTED_SUBDIRS = ["src", "tests", "tools", "docs", "fixtures", "schemas", ".git", "vendor"];
 
 export function repoRoot(): string {
   let dir = resolve(import.meta.dirname ?? ".");
@@ -81,13 +82,12 @@ export function assertOutputRoot(requested: string): string {
     throw new Error(`guard: refusing output root ${absolute}: the repository root itself is not writable output`);
   }
   if (isInside(root, absolute)) {
+    const outputsRoot = join(root, "outputs");
+    if (absolute === outputsRoot || isInside(outputsRoot, absolute)) return absolute;
     const first = relative(root, absolute).split(sep)[0] as string;
-    if (PROTECTED_SUBDIRS.includes(first)) {
-      throw new Error(
-        `guard: refusing output root ${absolute}: ${first}/ is a protected repository tree, use outputs/`,
-      );
-    }
-    return absolute;
+    throw new Error(
+      `guard: refusing output root ${absolute}: ${first}/ is a protected repository tree, use outputs/`,
+    );
   }
 
   for (const extra of extraOutRoots()) {
