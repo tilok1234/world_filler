@@ -80,9 +80,16 @@ settlements / roads / water), clearance, corridor chokepoints, safe zones,
 biome region segmentation with adjacency and dead-end scoring, a canonical
 hashed analysis summary with a drift-detecting cache, and eleven heatmap
 renders per world via a zero-dependency PNG encoder (`wf-fill analyze`).
-Structural exit criteria verified on fixtures and the canonical 256² world;
-the render **visual verdict is pending user review**. Next: F3
-(DirectorRecipe + regional content plan).
+F3 is implemented and green: the versioned DirectorRecipe (strict
+vocabulary, defaults, normalization, identity hash), danger bands from
+per-region median path-distance with overrides, region classes and budgets
+(territories/encounters count hostile-walkable ground only; dungeon-anchor
+candidates counted from the world's own POIs; world bosses allocated to the
+largest eligible high-band regions), named waivers everywhere something is
+impossible, a minimax progression-trap check over the region graph, and the
+danger-band render (`wf-fill plan <pack> <recipe>`). Render **visual
+verdicts pending user review** (F2 heatmaps + F3 danger bands). Next: F4
+(placement solver: bosses + dungeon bindings).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

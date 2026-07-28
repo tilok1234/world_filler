@@ -9,8 +9,14 @@ workflow (first cross-platform run pending on GitHub). F2 spatial analysis
 landed: components, distance fields, clearance, corridors, safe zones,
 region segmentation + adjacency, hashed cached summaries, and heatmap
 renders (`wf-fill analyze`); structural exit criteria verified, island
-behavior proven on a synthetic detached-landmass test, **visual verdict on
-the renders pending user review**. F3 is next.
+behavior proven on a synthetic detached-landmass test. F3 landed: strict
+versioned DirectorRecipe with identity hashing, median-path-distance danger
+bands + overrides, hostile-walkable-scaled budgets with named waivers,
+world-boss allocation, the minimax progression-trap check (proven on a
+synthetic override trap), and the danger render (`wf-fill plan`). Verified
+on fixtures and the canonical 256² world (3/3 bosses to the largest
+eligible high-band regions, zero progression warnings). **Visual verdicts
+on the F2/F3 renders pending user review.** F4 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

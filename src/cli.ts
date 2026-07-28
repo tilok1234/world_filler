@@ -1,10 +1,13 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { readGamePack } from "./pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
 import { checkParity } from "./parity.js";
 import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary } from "./analysis/analyze.js";
 import { renderAnalysis } from "./render/heatmaps.js";
+import { renderDanger } from "./render/planRender.js";
+import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
+import { compilePlan } from "./plan/plan.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
 
@@ -17,6 +20,8 @@ function usage(): void {
       "  wf-fill inspect <pack-dir>            identity, dimensions, records, parity summary",
       "  wf-fill parity <pack-dir>             full bit-for-bit walkability parity + rung coverage",
       "  wf-fill analyze <pack-dir> [out-dir]  spatial analysis bundle + heatmap renders",
+      "  wf-fill plan <pack-dir> <recipe.json> [out-dir]",
+      "                                        compile the regional content plan + danger render",
       "",
       "inspect and parity are read-only. analyze writes under outputs/ (or the",
       "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -130,8 +135,66 @@ function runAnalyze(dir: string, outArg: string | undefined): number {
   return 0;
 }
 
+function runPlan(dir: string, recipePath: string, outArg: string | undefined): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("plan: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(
+      `plan: refusing — recipe pins base ${pin} but the pack's generation identity is ` +
+        `${model.generator.generationIdentitySha256} (stale base; re-pin deliberately)`,
+    );
+    return 1;
+  }
+
+  const bundle = analyzeWorld(model);
+  const plan = compilePlan(model, bundle, recipe);
+
+  const outDir = assertOutputRoot(
+    outArg ?? join(repoRoot(), "outputs", "plan", `${basename(dir)}-${recipe.name}`),
+  );
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  writeFileSync(join(outDir, "content-plan.json"), canonicalJson(plan));
+  writeFileSync(join(outDir, "renders", "danger.png"), renderDanger(model, bundle, plan, recipe.danger.bandCount));
+
+  console.log(`plan: ${recipe.name} (${recipeSha256(recipe).slice(0, 12)}…) over ${basename(dir)}`);
+  console.log(`spawn region: ${plan.spawnRegionId}`);
+  const boss = plan.worldBudget.worldBosses;
+  console.log(
+    `world budget: ${boss.allocated}/${boss.target} world bosses, ${plan.worldBudget.territories} territories, ` +
+      `${plan.worldBudget.encounterSites} encounter sites, ${plan.worldBudget.dungeonBindings} dungeon bindings`,
+  );
+  const byCells = [...plan.regions].sort((a, b) => b.cellCount - a.cellCount).slice(0, 12);
+  console.log("largest regions:");
+  for (const region of byCells) {
+    const bossMark = region.budgets.worldBosses > 0 ? ", WORLD BOSS" : "";
+    const waivers = region.waivers.length > 0 ? ` [${region.waivers.join(", ")}]` : "";
+    console.log(
+      `  ${region.id} (${region.biome}, ${region.cellCount} cells, band ${region.dangerBand ?? "-"}, ` +
+        `${region.regionClass}): ${region.budgets.territories} territories, ${region.budgets.encounterSites} encounters, ` +
+        `${region.budgets.dungeonBindings}/${region.dungeonAnchorCandidates} dungeons${bossMark}${waivers}`,
+    );
+  }
+  if (plan.checks.progressionWarnings.length > 0) {
+    console.log("progression warnings:");
+    for (const warning of plan.checks.progressionWarnings) {
+      console.log(`  ${warning.regionId}: band ${warning.dangerBand} behind choke band ${warning.chokeBand}`);
+    }
+  } else {
+    console.log("progression: no wilderness region sits behind a harsher choke than its band allows");
+  }
+  for (const waiver of plan.checks.worldWaivers) console.log(`world waiver: ${waiver}`);
+  console.log(`wrote ${outDir}`);
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
-  const [command, target, extra] = argv;
+  const [command, target, extra, extra2] = argv;
   if (command === undefined || command === "help" || command === "--help") {
     usage();
     return command === undefined ? 1 : 0;
@@ -144,6 +207,13 @@ function main(argv: readonly string[]): number {
     if (command === "inspect") return runInspect(target);
     if (command === "parity") return runParity(target);
     if (command === "analyze") return runAnalyze(target, extra);
+    if (command === "plan") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runPlan(target, extra, extra2);
+    }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return 1;
