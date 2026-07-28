@@ -289,6 +289,76 @@ Exit criteria:
   read-only by contract;
 - the user has run the loop and issued a design verdict on the result.
 
+## Milestone F9 — Manual intent in the Director Studio
+
+The manual-editability milestone (planned 2026-07-28 with the user, after
+the studio landed): surface the recipe's three spatial-intent tools —
+painted zones, hand-authored pins (locks), danger overrides — directly on
+the studio map, make every authored edit legible as an "intent layer",
+and give the loop a diff and an undo. **Zero pack- or recipe-format
+changes**: everything in F9 uses the existing schema; the one feature
+that needs new schema (per-region budget overrides) is explicitly parked
+as an F10 decision.
+
+Phases (dependency-ordered; A/B/D are worldfiller work, C is the user's
+external design session — the same split that shipped the studio):
+
+- **Phase A — server foundations.**
+  - A1 `/api/analysis?world=`: read-only analysis maps the UI needs to
+    make manual intent feel good — region-label grid, region id table,
+    clearance grid, safe-zone mask, walkability — run/bitpack encoded
+    (256² worlds must stay light; lazy-loaded by the UI).
+  - A2 recipe snapshots: every server-side recipe write keeps a
+    sequentially numbered backup under `recipes/.history/<world>/`
+    (no timestamps — sequence numbers only); `GET /api/history`,
+    `POST /api/restore`.
+  - A3 pack diff: before each direct overwrites an export, snapshot the
+    payloads; `GET /api/diff?world=` reports placements
+    added/removed/moved/held, territory count/coverage deltas, and gate
+    changes between the previous and current pack. Determinism makes
+    the diff exact.
+  - Tests for every endpoint; the server-vs-CLI byte-equality invariant
+    stays untouched.
+- **Phase B — design brief addendum.** `docs/DESIGN_BRIEF_2.md` +
+  captured `sample-api-2.json`: zone drawing (drag rect → noContent /
+  preferContent+bonus; G9 enforces), pin flow (right-click cell → pin
+  boss, with a "valid sites" glow computed from clearance/safe-zone/
+  region maps; click unbound anchor → bind dungeon; invalid pins show
+  the engine's named lockReport reason — never silently fudged),
+  danger-override control per region, the intent layer (one toggleable
+  overlay of everything the user authored + pending-changes list with
+  per-item revert), the diff panel, enemy-library table editor with
+  pre-direct roster-coverage warnings, history/undo UI, seed control
+  (explicit confirm). Hard rule carried over: the only verbs are
+  recipe edits + direct — no free-form placement editing.
+- **Phase C — external design session** (user-driven): extend `ui.html`
+  per the addendum; deliverable is again the single file.
+- **Phase D — integration + proof.** Install, extend the headless
+  studio smoke: paint a noContent zone over the previous boss site →
+  direct → boss provably moves and the diff names the move; pin a boss
+  at a valid cell → direct → held at that cell; pin at an invalid cell
+  → named refusal shown; danger override round-trips; **undo restores
+  the previous recipe and re-direct reproduces the prior pack
+  byte-identically** (determinism makes undo real). Full suite green;
+  dist rebuilt; push.
+- **Phase E — user acceptance.** The user directs a real world through
+  the finished studio and issues the standing design verdicts (the
+  F2–F5 visual verdicts fold into this).
+
+Exit criteria:
+
+- a zone painted in the studio provably excludes/attracts content and
+  every determinism/byte-stability test still passes;
+- a hand-pinned placement exports held at the pinned cell, or is
+  refused with the exact lockReport reason in the UI;
+- the diff after every direct accounts for every placement change;
+- restore + direct reproduces the pre-edit pack byte-for-byte;
+- no pack-format or recipe-format changes anywhere in the milestone;
+- the user has driven the loop and issued a verdict.
+
+Parked for F10 (needs a schema decision, not free): per-region budget
+overrides; named recipe variants.
+
 ## Deferred beyond F8 (explicitly out of the first arc)
 
 - minibosses, elites, and patrol routes;

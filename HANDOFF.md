@@ -90,6 +90,16 @@ The user tested the flow on Windows; the friction findings drove these
   is produced externally from **docs/DESIGN_BRIEF.md** +
   **docs/sample-api.json** and swaps that one file (phase 2, pending).
 
+## 1c. NEXT: F9 — manual intent in the studio (planned with the user)
+
+The designed studio UI landed (phase 2) and the user green-lit planning
+the manual-editability milestone. **The full F9 plan lives in
+docs/ROADMAP.md (Milestone F9)** — phases A (server: analysis endpoint,
+recipe history, pack diff), B (DESIGN_BRIEF_2 addendum + samples),
+C (user's external design session), D (integration + extended headless
+proof), E (user acceptance + the standing design verdicts). Zero format
+changes; per-region budget overrides parked as an F10 schema decision.
+
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
 - F0 clean-room reader + walkability ladder + flood; bit-for-bit parity
