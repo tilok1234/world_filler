@@ -1,0 +1,253 @@
+# World Filler Roadmap
+
+Status: **Draft, planning stage**
+
+Milestones are gated: a milestone does not expand until its exit criteria
+pass, and every milestone leaves inspectable evidence (tests, reports,
+renders). The style deliberately mirrors the upstream roadmap that carried
+WorldForge from empty repository to playable consumer proof.
+
+Fixture strategy used throughout: at F0 a small fixture world pack (tiny 64²
+for fast tests, plus one small 256² "canonical" world) is generated **once**
+from the local WorldForge checkout into this repository's fixtures, with
+upstream provenance recorded (generator behavior version, recipe identity,
+`generationIdentitySha256`, pack hashes). From then on, clean clones build
+and test against committed fixtures with no WorldForge checkout present —
+the same pattern WorldForge uses for its committed TileForge package.
+
+## Milestone F0 — Repository, contracts, and the reading proof
+
+The milestone that makes everything else safe: prove we can read a world
+correctly before planning anything on top of it.
+
+Deliverables:
+
+- TypeScript project skeleton on the pinned toolchain (Node >= 24, zero
+  runtime dependencies, `tsc`, `node --test`), CLI entry point (`wf-fill`),
+  source/test/fixture/schema/output directory layout, output-path guard
+  (refuse writes outside repo-owned roots, refuse any path into a WorldForge
+  or game checkout);
+- vendored public loader under `vendor/worldforge/` with recorded upstream
+  commit + file hash, and a policy test that the vendored file is unmodified;
+- committed fixture packs (tiny + small) with provenance sidecars;
+- pack reader: manifest hash verification, format-version gates,
+  `baseArtifactSha256` cross-check, validation-report status check;
+- walkability + flood implementation to the exact upstream spec (nudge scan
+  radius 0..7 dy-outer/dx-inner, 4-connected N/E/S/W BFS);
+- `wf-fill inspect <pack>` printing identity, dimensions, vocabularies,
+  record counts, and the recomputed flood.
+
+Exit criteria:
+
+- clean clone builds and tests offline, no WorldForge checkout present;
+- recomputed flood equals each fixture pack's `floodCount` and `spawnCell`
+  (cell-exact parity with the upstream consumers, by construction);
+- corrupted manifest, wrong `formatVersion`, failing validation report, and
+  tampered payload each produce a named refusal;
+- no write path can resolve into an upstream repository.
+
+## Milestone F1 — Deterministic kernel
+
+Deliverables:
+
+- uint32 mixing/combining primitives with documented wrapping (murmur3-
+  fmix32-style finalizer, FNV-style combine), `hashCells`-shaped helpers;
+- named hierarchical seed channels (`world/<region>/<system>/<slot>`) and
+  channel-derivation rules;
+- deterministic weighted selection and shuffling utilities;
+- canonical JSON writer (sorted keys, 2-space indent, LF, trailing newline,
+  UTF-8, safe integers only) + sha256 identity helpers;
+- golden vectors for all of the above, committed and CI-enforced
+  cross-platform.
+
+Exit criteria:
+
+- repeated runs byte-identical; golden vectors reproduce on every CI
+  platform;
+- adding a new channel does not perturb existing channels' streams;
+- floats, `Math.random`, and unordered-iteration effects are structurally
+  absent (lint/test enforced).
+
+## Milestone F2 — Spatial analysis
+
+Deliverables:
+
+- connected walkable components (multi-component aware);
+- BFS path-distance fields: from spawn, settlements, roads/trails, water;
+- clearance field (largest free square per cell);
+- biome region segmentation with stable content-derived ids, region
+  adjacency graph, dead-end and chokepoint scoring;
+- safe-zone mask (settlement radius + approaches);
+- analysis cache keyed by base identity + analysis version;
+- heatmap PNG renders over the pack minimap for every field;
+- `wf-fill analyze <pack>` producing the analysis bundle + renders.
+
+Exit criteria:
+
+- analysis is deterministic (hash-stable) and cache round-trips losslessly;
+- renders visually sane on both fixtures (verdict loop with the user);
+- component analysis proves correct on an island-world fixture (detached
+  landmass reported as separate component, not an error);
+- spot asserts hold (e.g. spawn cell distance 0 from spawn; road cells
+  distance 0 from roads; known clearing has expected clearance).
+
+## Milestone F3 — DirectorRecipe and the regional content plan
+
+Deliverables:
+
+- versioned DirectorRecipe schema + validation + normalization + identity
+  hash (seed, danger model, budgets, content definitions/library reference,
+  rule bindings; pins/locks vocabulary present but inert until F6);
+- danger model: per-region bands from path-distance curve + recipe
+  overrides;
+- regional plan compiler: per-region budgets (bosses, dungeon bindings,
+  territories, encounter sites) scaled by area/class, with named waivers
+  where a budget cannot apply;
+- readable `content-plan.json` + a danger/plan render;
+- `wf-fill plan <pack> <recipe>`.
+
+Exit criteria:
+
+- same pack + same recipe → byte-identical plan; unknown recipe vocabulary
+  rejected with named errors;
+- danger bands monotone-sane along the route graph from spawn on fixtures;
+- plan document readable enough to review region briefs without a viewer
+  (user verdict).
+
+## Milestone F4 — Placement solver: bosses and dungeon bindings
+
+Deliverables:
+
+- candidate enumeration + hard filters + integer soft scoring + seeded
+  selection + reservations (arena/exclusion) + explanations;
+- world-boss placement rule v1 (clearance, distances, danger band, dead-end
+  preference);
+- dungeon-binding rule v1 over existing structure-bearing anchors (caves,
+  crypts, mines, ruins, portals), including reachability verification and
+  unbound-anchor reporting;
+- named, located, rendered failures on exhaustion;
+- `wf-fill place <pack> <recipe>` producing `placements.json` + placement
+  render.
+
+Exit criteria:
+
+- all fixture budgets place or explain; zero placements on unwalkable or
+  spawn-unreachable cells (when required); reservations never overlap safe
+  zones or each other;
+- determinism: identical inputs → identical placements; changing one
+  region's seed changes only that region's placements (channel-scoping
+  proof test);
+- every placement carries a human-readable explanation retrievable via
+  `wf-fill explain <placement-id>`.
+
+## Milestone F5 — Spawn territories
+
+Deliverables:
+
+- territory growth over walkable wilderness (excluding safe zones,
+  reservations, and other territories), rect-run encoded cell sets;
+- roster assignment from biome × danger tables in the recipe's content
+  library; budget parameters (pack size, maxActive, respawn pressure, elite
+  permille, night modifiers) passed through, schema-validated;
+- coverage metrics (wilderness covered / deliberately empty) in the plan
+  report;
+- territory render layer.
+
+Exit criteria:
+
+- territories never overlap each other, safe zones, or arena reservations;
+  every territory cell is walkable and in the intended component;
+- coverage meets recipe targets or reports waivers; deterministic and
+  channel-scoped like F4;
+- roster references all resolve within the recipe's content library.
+
+## Milestone F6 — Validation gates, audit report, and developer control
+
+Deliverables:
+
+- full gate suite as a single `wf-fill validate` phase: reachability,
+  overlap, coverage, danger-progression sanity, id resolution, lock
+  validity, pack round-trip;
+- `report.json` + human-readable report render (the "world gameplay audit");
+- pins and locks live: lock placements/regions, reroll region subtrees,
+  painted no-content / preferred-content zone overrides honored by the
+  solver;
+- staleness handling: warn/strict modes when base identity differs from the
+  recipe's pin; per-lock invalidity diagnosis.
+
+Exit criteria:
+
+- a seeded suite of deliberately bad configurations trips every gate with a
+  named, located error;
+- lock → regenerate → locked placements byte-identical, unlocked ones
+  re-solved; reroll scoping proven at region granularity;
+- directing a fixture against a mutated base produces the staleness report
+  naming each invalidated lock.
+
+## Milestone F7 — Content pack export and consumption proof
+
+Deliverables:
+
+- canonical exporter: manifest with base identity + recipe hash + rule-pack
+  versions + file hashes; byte-stable, no timestamps; refuses on any failed
+  gate;
+- `wf-fill export <pack> <recipe> --out <dir>` (the one-command pipeline);
+- consumption proof harness: a tiny standalone reader (TypeScript, and a
+  minimal headless Godot script in this repository's own scratch scene — not
+  the game repo) that loads world pack + content pack, cross-checks base
+  identity, and walks every placement cell verifying walkability agreement;
+- pack-format documentation frozen at v1.
+
+Exit criteria:
+
+- export twice → byte-identical; tampering any payload fails the reader;
+  mismatched world/content base identities refuse at load;
+- the consumption harness reports every placement reachable and every
+  territory cell walkable, agreeing with `wf-fill validate`;
+- pack format v1 documented well enough that the future game-side importer
+  can be written from the doc alone.
+
+## Milestone F8 — Director UX loop
+
+Deliverables:
+
+- single-file, no-build, read-only browser viewer: minimap backdrop, layer
+  toggles (analysis heatmaps, danger, plan, placements, territories), hover
+  inspection showing each placement's explanation;
+- iteration verbs polished: `inspect`, `analyze`, `plan`, `place`,
+  `validate`, `export`, `explain`, `reroll --region`, `lock`/`unlock`;
+- workflow documentation: the direct → review → lock → reroll → export loop,
+  including the upstream-regenerated-world (staleness) workflow.
+
+Exit criteria:
+
+- a full direct-review-lock-reroll-export cycle on the canonical fixture
+  runs end to end through documented commands;
+- the viewer opens both fixtures' outputs with no build step and stays
+  read-only by contract;
+- the user has run the loop and issued a design verdict on the result.
+
+## Deferred beyond F8 (explicitly out of the first arc)
+
+- minibosses, elites, and patrol routes;
+- faction territories and territory conflict;
+- event sites, rare encounters, treasure/resource nodes;
+- quest hooks and progression dependencies (keys, gates, unlocks);
+- multi-world campaigns; content migration between artifact format versions;
+- interior/dungeon-layout generation (World Filler binds entrances; interiors
+  are a separate concern, likely game-side or a future tool);
+- the game-repo `worldfiller_importer` addon (needs the game repo separately
+  scoped writable — a user decision);
+- any AI-assisted recipe authoring (same posture as upstream W9: optional
+  client, never in the deterministic path);
+- editors that write world or content data by hand.
+
+## Standing risks to watch
+
+1. Walkability drift: any upstream behavior bump can move cells — the F0
+   parity test against fixture `floodCount` is the tripwire; re-vendoring
+   the loader is an explicit, logged decision.
+2. Scope gravity toward quests/factions/economy before F4–F5 are approved.
+3. Territory/danger tuning is taste: keep the verdict loop human, exactly as
+   upstream treats visual baselines.
+4. Multi-component worlds: never assume the spawn flood covers the map.

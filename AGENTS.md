@@ -29,6 +29,26 @@ Before changing World Filler, an AI agent must:
 5. Confirm that no planned write resolves into the WorldForge repository, a
    TileForge checkout, or the game repository.
 
+## Isolation contract
+
+World Filler is a separate, isolated project. It lives in its own repository
+and folder, permanently distinct from the WorldForge checkout.
+
+- **The only coupling to WorldForge is the versioned world-artifact file
+  format.** World Filler reads a world directory it is pointed at, exactly as
+  the Godot and TypeScript consumers do. It is a third consumer lane.
+- No source imports from WorldForge paths — no relative imports into another
+  checkout, no `npm link`, no shared build outputs, no copying private
+  generator modules.
+- World Filler must build, test, and run on a clean clone **without a
+  WorldForge checkout present**, using small committed fixture artifacts whose
+  WorldForge generator version, recipe identity, and artifact hash are
+  recorded as provenance (the same pattern WorldForge uses for its committed
+  TileForge package fixtures).
+- A locally available WorldForge checkout is a convenience for generating
+  fresh reference worlds into World-Filler-owned output directories — never a
+  build or runtime dependency.
+
 ## Absolute upstream rules
 
 - **WorldForge is read-only upstream.** Browse, inspect, and run its CLI to
