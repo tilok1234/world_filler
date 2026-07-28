@@ -5,7 +5,12 @@ rem exports a first content pack for each fixture world, and opens the
 rem viewer. Safe to re-run from a newer ZIP: it updates the Documents
 rem copy in place and rebuilds. Requires Node.js >= 24.15 (nodejs.org).
 setlocal
-set "dest=%USERPROFILE%\Documents\world_filler"
+rem Resolve the REAL Documents folder: with OneDrive, "Documents" in
+rem Explorer is often OneDrive\Documents, not %USERPROFILE%\Documents.
+set "docs="
+for /f "usebackq delims=" %%D in (`powershell -NoProfile -Command "[Environment]::GetFolderPath('MyDocuments')"`) do set "docs=%%D"
+if not defined docs set "docs=%USERPROFILE%\Documents"
+set "dest=%docs%\world_filler"
 
 where node >nul 2>nul
 if errorlevel 1 (
