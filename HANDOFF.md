@@ -22,26 +22,27 @@ verify in the TypeScript lane AND inside headless Godot 4.6.2
 
 ## 1. IN FLIGHT at handoff time — the F7 freeze review
 
-An ultracode adversarial review of the FROZEN content-pack format 1 was
-launched in the closing session (5 lenses: freeze-safety of serialized
-fields, spec-vs-code, TS/GDScript verifier parity, refusal atomicity,
-importer-buildability; findings adversarially verified, max 8 agents
-concurrent — the user's standing cap). **Workflow results do not carry
-across sessions.** Decide by evidence, not memory:
+An ultracode adversarial review of the FROZEN content-pack format 1 ran
+in the closing session. It was STOPPED when the session hit its usage
+limit: **4 of 5 review lenses completed; the fifth lens and the entire
+adversarial verification phase never ran.** The 38 raw findings (3
+claimed-critical, 23 major, 12 minor) were salvaged into
+**`docs/FREEZE_REVIEW_FINDINGS.md`** — every one is an UNVERIFIED
+reviewer claim.
 
-- If a commit AFTER `9a1178d` addresses freeze-review findings (look for
-  "freeze review" in `git log`), the review was processed — trust the log.
-- If NOT: the freeze is **provisional**. Re-run an equivalent adversarial
-  review (the F4 review pattern: independent lenses -> dedup -> adversarial
-  verifiers; ask the user for ultracode opt-in) over
-  `docs/CONTENT_PACK_FORMAT.md`, `src/export/export.ts`,
-  `src/consume/verifyPack.ts`, `consumers/godot-proof/verify_content_pack.gd`
-  BEFORE building the F8 viewer or any game-side importer on top. Known
-  candidate soft spots to check even without a swarm: does any verifier
-  actually enforce `report.json .ok == true` (doc obligation 4); extra
-  stale files in a re-exported pack dir are not detected; explanation
-  fields (scoreTerms/candidateFunnel/topCandidates) are frozen payload —
-  deliberate? GDScript `quit(1)` exit-code semantics.
+Next session, before building F8 or any game-side importer:
+
+1. Verify each finding in that file (read the code, actively try to
+   refute — the F4 verification pass was worth it; ask the user for
+   ultracode opt-in if a swarm is wanted, max 8 concurrent).
+2. Fix what survives, note refuted ones, commit as the freeze-review
+   resolution, and only then declare content pack format 1 final.
+3. The missing fifth lens was importer-buildability ("can the game
+   importer be built from docs/CONTENT_PACK_FORMAT.md + the two
+   reference verifiers alone?") — run that read yourself and fold any
+   gaps into the doc.
+
+Until then the freeze is **provisional**.
 
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
