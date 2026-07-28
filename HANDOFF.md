@@ -1,5 +1,13 @@
 # World Filler — handoff (2026-07-28, format 1 FINAL, studio live, F9 in flight)
 
+> **ECOSYSTEM POINTER (2026-07-29, designer-accepted doc 16).** This
+> repo is one of seven in the Wildshot project (it directs content onto
+> WorldForge worlds; the game consumes its packs post-Gate-1 per
+> planning docs/17). The shared map — repo ownership, authority docs,
+> hard cross-repo rules — lives at
+> `Wildshot_adventure_final_planning/docs/16-ECOSYSTEM_MAP.md`.
+> Read your repo's row before working here.
+
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
