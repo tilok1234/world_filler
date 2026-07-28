@@ -348,6 +348,11 @@ function runValidate(dir: string, recipePath: string, outArg: string | undefined
     return 1;
   }
   const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(`validate: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256} (stale base; re-pin deliberately)`);
+    return 1;
+  }
   const bundle = analyzeWorld(model);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
@@ -413,6 +418,13 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     return 1;
   }
   const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  // The shipping verb honors a base pin unconditionally — the same
+  // refusal plan/place/territories perform, independent of --strict.
+  const pin = recipe.base.generationIdentitySha256;
+  if (pin !== null && pin !== model.generator.generationIdentitySha256) {
+    console.error(`export: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256} (stale base; re-pin deliberately)`);
+    return 1;
+  }
   const bundle = analyzeWorld(model);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
@@ -467,6 +479,14 @@ function runVerifyPack(worldPackDir: string, contentPackDir: string): number {
 
 function main(argv: readonly string[]): number {
   const strict = argv.includes("--strict");
+  // Unknown flags are refusals, not positionals: a mistyped `--stric`
+  // must never silently become an output directory.
+  for (const entry of argv) {
+    if (entry.startsWith("-") && entry !== "--strict" && entry !== "--help") {
+      console.error(`unknown flag: ${entry} (the only flag is --strict)`);
+      return 1;
+    }
+  }
   const positional = argv.filter((entry) => entry !== "--strict");
   const [command, target, extra, extra2] = positional;
   if (command === undefined || command === "help" || command === "--help") {

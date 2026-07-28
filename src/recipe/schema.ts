@@ -431,14 +431,22 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     const id = record["id"];
     const rule = record["rule"];
     const regionId = record["regionId"];
-    if (typeof id !== "string" || !id.startsWith("placement.")) {
-      throw new RecipeError(`recipe: $.locks.placements[${i}].id must be a placement id`);
-    }
     if (rule !== "world_boss.v1" && rule !== "dungeon_binding.v1") {
       throw new RecipeError(`recipe: $.locks.placements[${i}].rule must be world_boss.v1 or dungeon_binding.v1`);
     }
     if (typeof regionId !== "string" || regionId === "") {
       throw new RecipeError(`recipe: $.locks.placements[${i}].regionId must be a region id`);
+    }
+    // Lock ids must follow the frozen placement id scheme and agree with
+    // the lock's own rule and regionId — locks re-emit their id verbatim
+    // into the pack, so a looser id here would ship a scheme-violating
+    // placement id in an otherwise audited export.
+    const idPrefix = `placement.${rule === "world_boss.v1" ? "world_boss" : "dungeon"}.${regionId}.`;
+    const slotPart = typeof id === "string" && id.startsWith(idPrefix) ? id.slice(idPrefix.length) : null;
+    if (typeof id !== "string" || slotPart === null || !/^(0|[1-9][0-9]*)$/.test(slotPart)) {
+      throw new RecipeError(
+        `recipe: $.locks.placements[${i}].id must match ${idPrefix}<slot> (the placement id scheme for its rule and region)`,
+      );
     }
     const cell = parseCellPair(record["cell"], `$.locks.placements[${i}].cell`);
     const exclusionRadius = record["exclusionRadius"];

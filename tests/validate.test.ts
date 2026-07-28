@@ -268,14 +268,14 @@ describe("locks", () => {
   it("rejects malformed locks in the recipe", () => {
     assert.throws(
       () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "x", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4, arenaOrigin: [0, 0], arenaSide: 3 }] } }),
-      /id must be a placement id/,
+      /id must match placement\.world_boss\.r\.<slot>/,
     );
     assert.throws(
-      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.x", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
+      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.world_boss.r.0", rule: "world_boss.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
       /world_boss locks require arenaOrigin and arenaSide/,
     );
     assert.throws(
-      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.x", rule: "dungeon_binding.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
+      () => normalizeRecipe({ ...MINIMAL, locks: { placements: [{ id: "placement.dungeon.r.0", rule: "dungeon_binding.v1", regionId: "r", cell: [0, 0], exclusionRadius: 4 }] } }),
       /dungeon locks require anchorPoiId/,
     );
   });

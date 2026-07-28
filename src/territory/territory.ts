@@ -103,9 +103,24 @@ export function encodeRuns(cells: ReadonlySet<number>, width: number): Array<[nu
   return runs;
 }
 
+/**
+ * Decode [x, y, length] runs into a cell-index set. Runs never cross rows
+ * (frozen contract): a run with x + length > width, a non-positive length,
+ * or negative coordinates is malformed and throws — readers must refuse it,
+ * never wrap it into the next row.
+ */
 export function decodeRuns(runs: readonly (readonly [number, number, number])[], width: number): Set<number> {
   const cells = new Set<number>();
-  for (const [x, y, length] of runs) {
+  for (const run of runs) {
+    const [x, y, length] = run;
+    if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(length)) {
+      throw new Error(`decodeRuns: run [${String(x)}, ${String(y)}, ${String(length)}] has non-integer members`);
+    }
+    if (x < 0 || y < 0 || length < 1 || x + length > width) {
+      throw new Error(
+        `decodeRuns: run [${x}, ${y}, ${length}] is malformed (needs x >= 0, y >= 0, length >= 1, x + length <= width ${width})`,
+      );
+    }
     for (let i = 0; i < length; i += 1) cells.add(y * width + x + i);
   }
   return cells;

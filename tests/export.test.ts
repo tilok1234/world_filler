@@ -96,7 +96,7 @@ describe("content pack export", () => {
     }
   });
 
-  it("refuses to export when a gate fails (strict stale pin)", () => {
+  it("refuses a stale base pin before any write, strict or not", () => {
     const base = mkdtempSync(join(tmpdir(), "wf-export-gate-"));
     try {
       const staleRecipe = join(base, "stale.json");
@@ -110,10 +110,15 @@ describe("content pack export", () => {
         }),
       );
       const out = join(base, "pack");
-      const run = runCli(["export", FEN, staleRecipe, out, "--strict"], base);
-      assert.notEqual(run.status, 0);
-      assert.match(run.stderr, /export: refusing — the audit failed: .*G7/);
-      assert.throws(() => readdirSync(out), /ENOENT/);
+      for (const args of [
+        ["export", FEN, staleRecipe, out, "--strict"],
+        ["export", FEN, staleRecipe, out],
+      ]) {
+        const run = runCli(args, base);
+        assert.notEqual(run.status, 0);
+        assert.match(run.stderr, /export: refusing — recipe pins base/);
+        assert.throws(() => readdirSync(out), /ENOENT/);
+      }
     } finally {
       rmSync(base, { recursive: true, force: true });
     }

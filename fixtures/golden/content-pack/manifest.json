@@ -1,0 +1,42 @@
+{
+  "adapter": {
+    "name": "worldfiller",
+    "version": "0.1.0"
+  },
+  "analysisVersion": 1,
+  "base": {
+    "artifactFormat": 8,
+    "artifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
+    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "height": 64,
+    "width": 64
+  },
+  "counts": {
+    "placementFailures": 0,
+    "placements": 2,
+    "territories": 13,
+    "territoryFailures": 0,
+    "unboundAnchors": 3
+  },
+  "directorBehaviorVersion": 5,
+  "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+  "directorSeed": 103991,
+  "files": {
+    "content-plan.json": "c35d6f541d4ea027cbab43a44f35a6e8696f1e8b3fd1a69ff30f467b45494a7f",
+    "placements.json": "938db26ba7d7d6968991692f330e7c09d5c4eec5a8d229534ee13b60b5700124",
+    "report.json": "a9de83f702fc1d7012f862c7a006b334ad12ffa05c08201da883e5bcf797dd8a",
+    "territories.json": "3ce9d2394b3c37e7dfc14845ff899b195598820c53963b39d4dcb949ada84c73"
+  },
+  "pack": "worldfiller-content-pack",
+  "packFormat": 1,
+  "recipeName": "basic-direction",
+  "rulePacks": {
+    "analysis": 1,
+    "export": 1,
+    "placement": 2,
+    "plan": 1,
+    "territory": 2,
+    "validate": 1
+  },
+  "world": "fen-hollow"
+}

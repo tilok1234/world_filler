@@ -1,48 +1,53 @@
-# World Filler — handoff (2026-07-28, F0–F7 complete)
+# World Filler — handoff (2026-07-28, F0–F7 complete, freeze review RESOLVED)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 ## 0. State right now
 
-**F0–F7 complete, committed, and pushed** to
-`tilok1234/world_filler`, branch `claude/world-director-planning-vvvudl`
-(head at "F7: content pack format 1 (frozen), gate-refusing export, dual
-consumption proof", `9a1178d`). **114 tests green** (`npm test`).
-WorldForge checkout untouched throughout — verified clean after every
-milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
-contract; the user has re-confirmed this twice).
+**F0–F7 complete AND the F7 freeze review resolved**, committed and pushed
+to `tilok1234/world_filler`, branch `claude/freeze-review-resolution-tf6bkf`
+(branched from `claude/world-director-planning-vvvudl`). **134 tests green**
+(`npm test`). WorldForge checkout untouched throughout — verified clean
+after every milestone; it is READ-ONLY upstream, forever (AGENTS.md
+isolation contract; the user has re-confirmed this twice).
 
-Pipeline that exists end to end, all deterministic, explained, rendered:
+**Content pack format 1 is FINAL.** The interrupted F7 adversarial review
+was resolved: all 38 salvaged findings were verified empirically (tamper
+experiments in both verifier lanes) and **all 38 confirmed, zero refuted**;
+every fix landed; the missing fifth lens (importer buildability) ran
+against the rewritten doc. See `docs/FREEZE_REVIEW_FINDINGS.md` for the
+cluster-by-cluster resolution. Key facts:
+
+- Both reference verifiers now enforce the full blessed-check battery
+  (report.ok, exact-four files table, payload format pins, closed enums,
+  manifest self-consistency, run-shape refusals) and agree
+  refusal-for-refusal — a 20-case cross-verifier battery proved alignment,
+  no hangs, in TS and headless Godot 4.6.2.
+- A pre-fix export is byte-identical to a post-fix export (compared
+  directly), so no behavior/rule-pack version bump was needed: every fix
+  is refusal-side, verifier-side, or documentation.
+- The frozen serialization is pinned by `fixtures/golden/content-pack/`
+  (five files, byte-asserted in tests). Re-record ONLY via
+  `node dist/tools/recordGoldenPack.js` — an explicit, logged decision.
+- `wf-fill export`/`validate` now refuse stale base pins pre-flight
+  (unconditionally, like plan/place/territories); unknown CLI flags are
+  refusals; consumers/, dist/, node_modules/ are guard-protected;
+  exports are staged with manifest.json as the commit record.
+
+Pipeline unchanged end to end, all deterministic, explained, rendered:
 `inspect | parity | analyze | plan | place | explain | territories |
 validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
 Both proof worlds pass the nine-gate audit and export content packs that
 verify in the TypeScript lane AND inside headless Godot 4.6.2
-(`consumers/godot-proof/verify_content_pack.gd`).
+(`consumers/godot-proof/verify_content_pack.gd`), strict mode included.
 
-## 1. IN FLIGHT at handoff time — the F7 freeze review
+## 1. Next: F8
 
-An ultracode adversarial review of the FROZEN content-pack format 1 ran
-in the closing session. It was STOPPED when the session hit its usage
-limit: **4 of 5 review lenses completed; the fifth lens and the entire
-adversarial verification phase never ran.** The 38 raw findings (3
-claimed-critical, 23 major, 12 minor) were salvaged into
-**`docs/FREEZE_REVIEW_FINDINGS.md`** — every one is an UNVERIFIED
-reviewer claim.
-
-Next session, before building F8 or any game-side importer:
-
-1. Verify each finding in that file (read the code, actively try to
-   refute — the F4 verification pass was worth it; ask the user for
-   ultracode opt-in if a swarm is wanted, max 8 concurrent).
-2. Fix what survives, note refuted ones, commit as the freeze-review
-   resolution, and only then declare content pack format 1 final.
-3. The missing fifth lens was importer-buildability ("can the game
-   importer be built from docs/CONTENT_PACK_FORMAT.md + the two
-   reference verifiers alone?") — run that read yourself and fold any
-   gaps into the doc.
-
-Until then the freeze is **provisional**.
+**F8** — single-file read-only browser viewer (layer toggles, hover
+explanations), iteration-verb polish, workflow docs — per
+`docs/ROADMAP.md`. Then the first-arc close-out (deferred list stays
+deferred). No blockers.
 
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
@@ -72,18 +77,18 @@ Until then the freeze is **provisional**.
 - F6 nine-gate audit (`validate`, report.json/txt), locks (`lock` prints
   recipe entries; held locks byte-stable + reroll-immune; per-lock
   invalidity diagnosis; `--strict`), painted noContent/preferContent.
-- F7 export (`export` refuses on failed gates; byte-stable) + frozen
-  format doc `docs/CONTENT_PACK_FORMAT.md` + dual verifiers.
-
-**Next: F8** — single-file read-only browser viewer (layer toggles,
-hover explanations), iteration-verb polish, workflow docs. Then the
-first-arc close-out per ROADMAP (deferred list stays deferred).
+- F7 export (`export` refuses on failed gates; staged writes; byte-stable)
+  + frozen format doc `docs/CONTENT_PACK_FORMAT.md` + dual verifiers.
+  **Freeze review resolved 2026-07-28; format 1 FINAL** — 38/38 findings
+  confirmed and fixed (`docs/FREEZE_REVIEW_FINDINGS.md`), lock id grammar
+  enforced, fresh-boss slots consult held locks, export cross-checks the
+  identity of every payload it is handed.
 
 ## 3. Toolchain and environment gotchas
 
 - Node **>= 24.15 required** (engines pin, matches upstream). Container
-  default node is 22 — use `/opt/nvm/versions/node/v24.18.0/bin` in PATH,
-  or `source /opt/nvm/nvm.sh && nvm install 24`.
+  default node is 22 — `source /opt/nvm/nvm.sh && nvm install 24` (the
+  bare `/opt/nvm` tree may not have 24 preinstalled).
 - `npm install && npm test` from a clean clone works offline with no
   WorldForge checkout present — that is a tested isolation invariant.
 - CLI writes only under `outputs/` unless
@@ -100,7 +105,7 @@ first-arc close-out per ROADMAP (deferred list stays deferred).
   `outputs/local-packs/` (parity tests auto-pick it up).
 - Official Godot 4.6.2 Linux zip downloads and runs headless in this
   container (godotengine GitHub releases) — used for the GDScript
-  consumption proof.
+  consumption proof. The GDScript lane is a manual proof step, not in CI.
 - Upstream behavior bumps move walkable cells (flood history 33845→33893).
   The parity suite + pinned `fixtures/expected-coverage.json` are the
   tripwires; adopting a new upstream base = regenerate fixtures +
@@ -110,30 +115,33 @@ first-arc close-out per ROADMAP (deferred list stays deferred).
 
 - world_filler is a separate isolated repo; WorldForge is read-only
   reference. Never mix.
-- Standing permission to commit and push to world_filler (this branch).
+- Standing permission to commit and push to world_filler (current branch).
 - Ultracode swarms: user opts in per-turn, wants them for hard
-  review/audit milestones, **max 8 agents concurrent**.
+  review/audit milestones, **max 8 agents concurrent**. (The freeze-review
+  resolution was done solo with empirical tamper experiments instead — the
+  user's message said to ask first, so no swarm was spawned.)
 - Verdict loop: send upscaled renders (terrain/danger/placements/
-  territories) for visual approval; scratch script pattern lives in the
-  session log — re-render via the render modules at scale 3x (256²) or
-  8x (64²). **Visual verdicts on F2–F5 renders are still PENDING** —
-  structural success ≠ design approval (AGENTS.md).
+  territories) for visual approval; re-render via the render modules at
+  scale 3x (256²) or 8x (64²). **Visual verdicts on F2–F5 renders are
+  still PENDING** — structural success ≠ design approval (AGENTS.md).
 
 ## 5. Versions at handoff
 
 director behavior **5** · rule packs: analysis 1, plan 1, placement 2,
 territory 2, validate 1, export 1 · recipe format 1 · plan/placements/
-territories/report formats 1 · content pack format 1 (frozen, pending
-review outcome) · supported upstream: artifact format 8, game pack 1,
-walkability 1. Bump doctrine in `src/core/version.ts` + AGENTS.md
-(append-only vocabularies; sequential bumps; stamp everything).
+territories/report formats 1 · **content pack format 1 (FINAL)** ·
+supported upstream: artifact format 8, game pack 1, walkability 1.
+Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
+vocabularies; sequential bumps; stamp everything). The freeze-review
+fixes required no bumps: pre-fix and post-fix exports are byte-identical.
 
 ## 6. Commands
 
-    export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test                                   # build + 114 tests
+    source /opt/nvm/nvm.sh && nvm use 24
+    npm test                                   # build + 134 tests
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js verify-pack fixtures/packs/fen-hollow outputs/export/fen-hollow-basic-direction-content
     godot --headless --script consumers/godot-proof/verify_content_pack.gd -- <world-pack> <content-pack>
+    node dist/tools/recordGoldenPack.js        # re-record frozen pack fixture (logged decision only)

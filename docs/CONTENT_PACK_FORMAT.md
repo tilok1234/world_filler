@@ -5,7 +5,8 @@ never change shape within format 1; later format versions may append fields
 but never repurpose them. This document plus the reference verifiers
 (`src/consume/verifyPack.ts`, `consumers/godot-proof/verify_content_pack.gd`)
 are sufficient to build a game-side importer without reading any other
-worldfiller source.
+worldfiller source. The two verifiers implement the same checks and accept
+and refuse the same packs; where this document says MUST, both enforce it.
 
 ## What a content pack is
 
@@ -29,9 +30,15 @@ against the world pack alone.
   renders/             OPTIONAL inspection PNGs — never hashed, never payload
 ```
 
-All payload files are canonical JSON: keys sorted (UTF-16 code-unit order),
-two-space indent, LF, one trailing newline, UTF-8, safe integers only.
-No timestamps exist anywhere; identity is hashes.
+All payload files — and `manifest.json` itself — are canonical JSON: keys
+sorted (UTF-16 code-unit order), two-space indent, LF, one trailing newline,
+UTF-8, safe integers only. Entire packs are byte-stable: no timestamps exist
+anywhere; identity is hashes.
+
+Write/commit rule: the exporter stages payload files first and writes
+`manifest.json` strictly last. **`manifest.json` is the commit record — a
+directory without one is not a content pack** and importers must refuse it;
+a torn or interrupted export therefore never yields a loadable pack.
 
 ## manifest.json
 
@@ -64,31 +71,112 @@ No timestamps exist anywhere; identity is hashes.
 }
 ```
 
+In format 1 `files` MUST contain exactly the four names shown — no more, no
+fewer (later formats may append names). Keys are bare file names, never
+paths. An importer refuses a table with missing or extra entries; this is
+what makes hash verification meaningful rather than vacuous.
+
+`manifest.json` is the one file no hash covers. Every identity field it
+duplicates (`directorRecipeSha256`, `directorBehaviorVersion`, `rulePacks`,
+`analysisVersion`, `recipeName`, `directorSeed`,
+`base.generationIdentitySha256`) MUST agree with the hashed payload
+documents, and `counts` MUST equal the actual array lengths
+(`placements[]`, `territories[]`, `failures[]` in each doc,
+`unboundAnchors[]`). The reference verifiers enforce all of these, so a
+hand-edited manifest cannot re-label an audited payload. The only manifest
+fields with no cross-check are `world` and `adapter` — they are provenance
+labels (the directory name and tool version at export time), not verified
+identity; never key logic on them.
+
 ## Importer obligations (the blessed checks)
 
 An importer MUST, in order:
 
 1. Require `pack == "worldfiller-content-pack"` and `packFormat == 1`;
-   refuse anything else (no best-effort reads of unknown formats).
-2. Hash-verify every entry in `files` against the payload bytes.
-3. Cross-check the base pairing against the world pack it is loading
+   refuse anything else (no best-effort reads of unknown formats, no lossy
+   numeric coercion — `"1"` and `1.9` are refusals).
+2. Require `files` to list exactly the four payload names, hash-verify
+   every entry against the payload bytes, and parse the payloads from the
+   same bytes that were hashed.
+3. Require the payload format pins: packFormat 1 fixes
+   `planFormat == 1`, `placementsFormat == 1`, `territoriesFormat == 1`,
+   `reportFormat == 1`; refuse any other value.
+4. Cross-check the base pairing against the world pack it is loading
    beside: `base.generationIdentitySha256 ==
    worldManifest.generator.generationIdentitySha256` AND
-   `base.artifactSha256 == worldManifest.baseArtifactSha256`. A mismatched
-   pair refuses at import, not at play time.
-4. Require `report.json` `.ok == true` (the pack was audited; a hand-built
+   `base.artifactSha256 == worldManifest.baseArtifactSha256`, plus
+   `base.artifactFormat`/`width`/`height` against the world pack. A
+   mismatched pair refuses at import, not at play time.
+5. Require `report.json` `.ok == true` (the pack was audited; a hand-built
    pack without a passing report is not a valid pack).
-5. Treat unknown ids and enum values as errors, never as defaults.
+6. Require manifest self-consistency with the hashed payloads (identity
+   fields and counts, listed above).
+7. Treat unknown values of the **closed enums** (below) as errors, never
+   as defaults.
 
 Walkability truth is the world pack's `walkability.json` bitgrid
-(`base64-bitpacked-row-major-lsb-first`, bit i = y*width+x, walkable = 1).
-The reference verifiers re-check every placement and territory cell against
-it; an importer may repeat that spot-check cheaply at load.
+(`base64-bitpacked-row-major-lsb-first`, bit i = y*width+x, walkable = 1,
+exactly `ceil(width*height/8)` bytes). The reference verifiers re-check
+every placement and territory cell against it; an importer may repeat that
+spot-check cheaply at load.
+
+## Closed enums vs open vocabularies
+
+Obligation 7 applies to exactly these **closed format-1 enums** — a new
+value in any of them requires a new pack format:
+
+- `placements[].rule`: `world_boss.v1 | dungeon_binding.v1`
+- `territories[].cells.encoding`: `runs`
+- `territories[].respawnPressure`: `low | medium | high`
+- `report.gates[].status`: `pass | warn | fail`
+- `placements` doc `lockReport[].status`: `held | invalid`
+
+All other string vocabularies are **open**: they are behavior-versioned and
+may gain values under a `directorBehaviorVersion` bump while `packFormat`
+stays 1. Importers MUST NOT hard-fail on unknown values of:
+`candidateFunnel[].stage`, `scoreTerms[].term`, every `reason`/`waivers`
+vocabulary (`failures[].reason`, `unboundAnchors[].reason`,
+`lockReport[].reasons[]`, plan waiver strings), `enemyId`, `anchorPoiType`,
+`biome`, `regionClass`, and `channel` path contents.
+
+**Explanation data is inspection-only.** `scoreTerms`, `candidateFunnel`,
+`topCandidates`, `draw`, `score`, and every `message` string are diagnostic
+explanation data: their shapes are documented below so tooling can read
+them, but importers MUST NOT make gameplay depend on their contents, and
+they are exempt from obligation 7.
+
+## Placement and territory ids
+
+Ids are **opaque unique keys**. The guaranteed structure in format 1 is
+exactly: placements start with `placement.world_boss.` or
+`placement.dungeon.` and end with `.<decimal slot>`; territories start with
+`territory.` and end with `.<decimal slot>`. Everything between is the
+`regionId`, which itself contains dots (informative: the current scheme is
+`region.<biome-short>.<anchorIndex>`, e.g. `region.mud.1245` — but
+`<biome-short>` derives from the upstream material vocabulary, which
+worldfiller does not control). **Never parse `regionId` or `slot` out of an
+id** — read them from the explicit `regionId` field and treat the id as an
+atom. Recipe locks re-emit their id verbatim, and lock ids are validated at
+recipe normalization to this same scheme (rule tag and regionId must agree
+with the lock's own fields), so scheme-violating ids cannot ship.
 
 ## placements.json (format 1)
 
-Top level: `placementsFormat`, version identity, `base`, `placements[]`,
-`failures[]`, `unboundAnchors[]`, `lockReport[]`.
+Top level:
+
+```jsonc
+{
+  "placementsFormat": 1,
+  "directorBehaviorVersion": 5, "rulePacks": { ... }, "analysisVersion": 1,   // version identity,
+  "recipeName": "basic-direction", "directorSeed": 103991,                    //   as in the manifest
+  "directorRecipeSha256": "<64 hex>",
+  "base": { "generationIdentitySha256": "<64 hex>", "artifactFormat": 8, "width": 64, "height": 64 },
+  "placements": [ ... ],
+  "failures": [ ... ],
+  "unboundAnchors": [ ... ],
+  "lockReport": [ ... ]
+}
+```
 
 Each placement:
 
@@ -101,7 +189,8 @@ Each placement:
   "accessCell": [31, 59],           // walk-up ground, always walkable+reachable
   "anchorPoiId": 3 | null,          // dungeon: the world pack poi id it binds
   "anchorPoiType": "poi.cave" | null,
-  "inSafeZone": false,              // dungeons: access cell inside a settlement safe zone
+  "inSafeZone": false,              // accessCell inside a settlement safe zone (all rules;
+                                    //   bosses are always false in format 1 by construction)
   "arenaOrigin": [28, 56] | null,   // boss: top-left of the reserved arena square
   "arenaSide": 6 | null,
   "exclusionRadius": 16,            // spacing buffer radius around cell
@@ -109,8 +198,41 @@ Each placement:
   "channel": "world/region.mud.1245/reroll.0/boss/0" | "locked",
   "draw": 3,
   "score": 1104,
-  "scoreTerms": [...], "candidateFunnel": [...], "topCandidates": [...]  // explanation data
+  "scoreTerms":      [ { "term": "clearance", "value": 875, "weightPermille": 400, "contribution": 350 } ],
+  "candidateFunnel": [ { "stage": "reachable", "remaining": 212 } ],
+  "topCandidates":   [ { "cell": [31, 59], "score": 1104 } ]
 }
+```
+
+Locked placements (`"locked": true`) carry sentinel explanation values:
+`channel` is the literal string `"locked"`, `draw` and `score` are `0`,
+`scoreTerms` and `topCandidates` are empty, and `candidateFunnel` is
+`[{ "stage": "locked", "remaining": 1 }]`. These are placeholders, not
+data — tooling must not interpret them as a real draw or score.
+
+`failures[]` entries (a budgeted slot that could not place):
+
+```jsonc
+{ "regionId": "region.mud.1245", "rule": "world_boss.v1", "slot": 0,
+  "candidateFunnel": [ { "stage": "reachable", "remaining": 0 } ], "message": "<human-readable>" }
+```
+
+`unboundAnchors[]` entries (dungeon-capable POIs that did not become
+dungeons; `regionId` may be `null`, `reason` is an open vocabulary —
+currently `not_selected_budget | unreachable_anchor | spacing_blocked |
+no_region | region_zero_budget | no_content_zone`):
+
+```jsonc
+{ "poiId": 7, "poiType": "poi.cave", "cell": [12, 40], "regionId": "region.rock.310" | null, "reason": "spacing_blocked" }
+```
+
+`lockReport[]` entries (one per recipe lock; `status` is a closed enum,
+`reasons` an open vocabulary — currently `region_missing | over_budget |
+cell_not_walkable | cell_unreachable | arena_blocked | anchor_missing |
+anchor_changed | in_no_content_zone`):
+
+```jsonc
+{ "id": "placement.world_boss.region.mud.1245.0", "status": "held" | "invalid", "reasons": [] }
 ```
 
 Runtime split: the pack carries permanent structure. Spawning the boss,
@@ -120,8 +242,8 @@ placement `id`.
 
 ## territories.json (format 1)
 
-Top level: `territoriesFormat`, version identity, `base`, `territories[]`,
-`failures[]`, `coverage`.
+Top level: `territoriesFormat`, the same version identity and `base` block
+as placements.json, then `territories[]`, `failures[]`, `coverage`.
 
 Each territory:
 
@@ -130,11 +252,11 @@ Each territory:
   "id": "territory.region.mud.1245.0",
   "regionId": "region.mud.1245",
   "dangerBand": 2,                          // 0 = safe heartland band
-  "seedCell": [18, 44],
+  "seedCell": [18, 44],                     // growth seed (diagnostic; always inside cells)
   "cells": { "encoding": "runs", "runs": [[16, 42, 5], ...] },  // [x, y, length], never crossing rows
   "cellCount": 65,
   "roster": [ { "enemyId": "enemy.mire_creeper", "weightPercent": 35, "nightOnly": false } ],
-  "packSize": [2, 6],
+  "packSize": [2, 6],                       // [min, max] spawn group size
   "maxActive": 5,
   "respawnPressure": "low" | "medium" | "high",
   "elitePermille": 30,
@@ -143,20 +265,94 @@ Each territory:
 }
 ```
 
+Run rule (normative for readers): a run is `[x, y, length]` with `x >= 0`,
+`y >= 0`, `length >= 1`, and `x + length <= width`. **Importers MUST refuse
+a run that violates any of these** — never wrap it into the next row. Both
+reference verifiers refuse, and `cellCount` MUST equal the number of
+distinct cells the runs decode to.
+
+`failures[]` entries: `{ "regionId", "slot", "reason", "message" }` with an
+open `reason` vocabulary (currently `insufficient_hostile_ground |
+fragmented_hostile_ground | no_matching_roster`).
+
+`coverage` covers **territory-budgeted regions only**: `coverage.regions`
+holds one entry per plan region whose territories budget was positive —
+`{ "regionId", "hostileWalkable", "covered", "coveragePermille", "budget",
+"emitted" }` — and `totalHostileWalkable`/`totalCovered` sum those entries,
+not the whole world. World-level denominators come from
+content-plan.json's `regions[].hostileWalkableCells`, which lists every
+region.
+
 `enemyId` values come from the DirectorRecipe's content library — game-owned
 vocabulary. The runtime interprets roster weights, pack sizes, `maxActive`,
 respawn pressure, and elite chance; the pack only fixes the ground and the
 budgets. Territory cells never overlap each other, safe zones, or any
 placement's exclusion radius.
 
-## content-plan.json and report.json
+## content-plan.json (format 1)
 
-`content-plan.json` (plan format 1) is the per-region brief: danger bands,
-classes, budgets, waivers, progression check results — useful for debug
-overlays and quest/level tuning. `report.json` (report format 1) is the
-audit that authorized the export: gate list with statuses and details.
-Neither is required at runtime, but both are hashed payload so tooling can
-trust them.
+The per-region brief compiled before any coordinate was chosen — useful for
+debug overlays and quest/level tuning. Top level: `planFormat`, the same
+version identity and `base` block as placements.json, then:
+
+```jsonc
+{
+  "spawnRegionId": "region.grass.882",
+  "regions": [ {
+    "id": "region.mud.1245", "biome": "mud",
+    "cellCount": 900, "walkableCells": 512, "hostileWalkableCells": 300, "reachableCells": 498,
+    "safeSharePermille": 120,
+    "medianSpawnDistance": 74 | null, "dangerBand": 2 | null, "dangerOverridden": false,
+    "regionClass": "minor" | "standard" | "major",
+    "budgets": { "territories": 2, "encounterSites": 1, "dungeonBindings": 1, "worldBosses": 0 },
+    "dungeonAnchorCandidates": 3,
+    "waivers": [ "<open vocabulary>" ]
+  } ],
+  "worldBudget": {
+    "worldBosses": { "target": 2, "allocated": 2 },
+    "territories": 13, "encounterSites": 4, "dungeonBindings": 5
+  },
+  "unassignedDungeonAnchors": 1,
+  "checks": {
+    "progressionWarnings": [ { "regionId": "…", "dangerBand": 3, "chokeBand": 1 } ],
+    "worldWaivers": [ "<open vocabulary>" ]
+  }
+}
+```
+
+## report.json (format 1)
+
+The audit that authorized the export:
+
+```jsonc
+{
+  "reportFormat": 1,
+  "directorBehaviorVersion": 5, "rulePacks": { ... }, "analysisVersion": 1,
+  "recipeName": "basic-direction", "directorRecipeSha256": "<64 hex>",
+  "base": { "generationIdentitySha256": "<64 hex>", "artifactFormat": 8 },
+  "strict": false,
+  "gates": [ { "id": "G1", "name": "placements on valid ground", "status": "pass" | "warn" | "fail", "details": [ "<strings>" ] } ],
+  "ok": true
+}
+```
+
+Neither content-plan.json nor report.json is required at runtime, but both
+are hashed payload so tooling can trust them.
+
+## Export refusal semantics
+
+`wf-fill export` (and `validate`) refuse **unconditionally, before running
+the audit**, when the recipe pins `base.generationIdentitySha256` and the
+pin does not match the world pack — the same pre-flight refusal `plan`,
+`place`, and `territories` perform. Within the gate battery itself, gates
+G1–G4, G8, and G9 are hard failures in every mode; **G6 (invalid locks) and
+G7 (base identity) fail only under `--strict` and are warnings otherwise**
+(with the pre-flight pin check, a stale pin can no longer reach the gates
+via the CLI; the distinction matters for module-level callers and for
+recipes with no pin). The exporter additionally refuses when the report or
+any payload document embeds a different recipe hash, base identity,
+behavior version, or rule-pack set than the inputs it was handed — a stale
+or unrelated audit can never authorize a pack.
 
 ## Versioning
 
@@ -167,3 +363,7 @@ replaceable derivatives, pinned by `directorRecipeSha256` +
 `base.generationIdentitySha256`. When the base world regenerates under a
 new upstream behavior, re-direct and re-export; locks carry survivable
 intent across that boundary (invalid ones are named in `lockReport`).
+
+The frozen serialization is pinned by a golden pack fixture
+(`fixtures/golden/content-pack/`); re-recording it is an explicit, logged
+decision, exactly like the kernel golden vectors.

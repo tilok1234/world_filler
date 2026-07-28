@@ -28,8 +28,13 @@ F7 landed: content pack format 1 frozen (docs/CONTENT_PACK_FORMAT.md),
 gate-refusing byte-stable export, and the consumption proof in both
 lanes — the TypeScript verifier and a headless Godot 4.6.2 run of
 consumers/godot-proof/verify_content_pack.gd, green on fen-hollow and
-the canonical world. **Visual verdicts on the F2–F5 renders pending
-user review.** F8 is next.
+the canonical world. The F7 adversarial freeze review was resolved
+2026-07-28: all 38 findings confirmed and fixed (verifier tightening,
+GDScript parity, export identity cross-checks, staged writes, lock id
+grammar, golden pack fixture — docs/FREEZE_REVIEW_FINDINGS.md), with
+zero exportable-pack byte changes; **content pack format 1 is FINAL**.
+**Visual verdicts on the F2–F5 renders pending user review.** F8 is
+next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

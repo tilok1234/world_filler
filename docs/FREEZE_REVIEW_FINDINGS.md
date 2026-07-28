@@ -1,13 +1,98 @@
-# F7 freeze review — RAW FINDINGS (UNVERIFIED)
+# F7 freeze review — RESOLVED (2026-07-28)
 
-Status: salvaged from the interrupted adversarial review (4 of 5 lenses
-completed; the fifth and the entire verification phase never ran — the
-session hit its usage limit). Every finding below is a REVIEWER CLAIM,
-not a confirmed defect: the F4 review refuted none of 16, but this batch
-was never adversarially checked. Next session: verify each (read the code,
-try to refute), fix what survives, then declare content pack format 1
-final. Until then the freeze is provisional (HANDOFF.md section 1).
+Status: **RESOLVED.** Every finding was verified empirically (tamper
+experiments against both reference verifiers — 17 module-level cases, 7
+Godot-lane cases — plus code inspection for the doc-shape claims), every
+fix landed, and the missing fifth lens (importer buildability) ran against
+the rewritten doc. **All 38 findings CONFIRMED, zero refuted** — the
+interrupted review's claims were accurate without exception. Content pack
+format 1 is now FINAL.
 
+## Resolution summary (by deduplicated cluster)
+
+The 38 findings collapse into 13 distinct defects; every one confirmed and
+fixed. A pack exported by the pre-fix build is byte-identical to one from
+the post-fix build (verified by direct comparison), so the freeze needed no
+version bump: every fix is refusal-side, verifier-side, or documentation.
+
+- **A. report.json .ok never checked** (1, 2, 8, 20 — the critical
+  cluster): confirmed — an ok:false pack passed both verifiers. Both now
+  parse report.json from hash-verified bytes and refuse unless
+  reportFormat 1 and ok true. Tests: `tests/freezeReview.test.ts`.
+- **B. files table completeness unspecified/unchecked** (2, 3, 4, 10):
+  confirmed — `"files": {}` with tampered payload verified; a
+  `../outside.json` key was followed out of the pack. Both verifiers now
+  require exactly the four payload names and parse the same bytes they
+  hashed; the doc states the exact-four rule normatively.
+- **C. Row-crossing runs: TS wrapped, GD refused** (5, 15, 19, 24):
+  confirmed — identical bytes passed TS and failed Godot. `decodeRuns` now
+  throws on x<0, y<0, length<1, x+length>width; both verifiers refuse by
+  name; the doc makes the reader rule normative.
+- **D. GDScript verifier gaps + crash/hang paths** (6, 15, 19, 21, 22, 23,
+  25): all confirmed — no anchor check, no cellCount check, no base
+  dims/format check, packFormat int() coercion accepted 1.9, and a null
+  arenaOrigin hung the process forever (timeout, no exit code). The
+  GDScript was rewritten as a full check-for-check mirror: every malformed
+  input is a named refusal through a single `_verify() -> String` path
+  that always exits; base64 grid length validated.
+- **E. Obligation-5 enums unenforced** (7, 9, 26, 34, 37): confirmed —
+  unknown rule/encoding/payload-format values all passed. Both verifiers
+  now refuse unknown placement.rule, cells.encoding, respawnPressure, and
+  non-1 payload format numbers.
+- **F. Doc shape elisions and ambiguities** (11, 12, 14, 29, 33, 38):
+  confirmed by inspection. The doc now enumerates the shapes of
+  failures[], unboundAnchors[], lockReport[], coverage, content-plan.json,
+  and report.json; declares the closed-enum set vs open vocabularies;
+  marks explanation data inspection-only; declares ids opaque with the
+  guaranteed prefix/suffix structure; states manifest.json is canonical
+  JSON; documents locked-placement sentinels and inSafeZone semantics.
+- **G. Lock ids bypass the frozen id scheme** (13, 28): confirmed —
+  `"placement.myboss"` shipped in a fully audited strict export.
+  `normalizeRecipe` now requires lock ids to match
+  `placement.<rule-tag>.<regionId>.<slot>` with rule/regionId agreement;
+  fresh boss slots consult held lock ids (dungeon-pass symmetry).
+- **H. buildContentPack trusted a caller-supplied report** (16): confirmed
+  — a passing report auditing a different recipe authorized an export.
+  buildContentPack now refuses unless recipe hash, base identity, behavior
+  version, analysis version, and rule packs agree across all five inputs.
+- **I. Non-atomic in-place export writes** (17): confirmed by code
+  structure. writeContentPack now stages into `<outDir>/.staging` and
+  commits by rename with manifest.json strictly last; the doc states the
+  manifest-is-the-commit-record rule.
+- **J. Non-strict export accepted stale pins** (18, 27, 36): confirmed —
+  default export shipped a pack from a recipe pinned to a different world
+  while plan/place/territories refused it. export and validate now perform
+  the same unconditional pre-flight pin refusal; the doc documents which
+  gates are strict-only.
+- **K. coverage totals exclude zero-budget regions** (31): confirmed —
+  fen-hollow: 130 plan regions (1960 hostile cells) vs 6 coverage rows
+  (1649). Resolved as documentation: coverage is normatively
+  budgeted-regions-only; world denominators come from content-plan.json.
+- **L. No golden pack fixture** (32): confirmed. `fixtures/golden/
+  content-pack/` now pins the full five-file frozen serialization,
+  byte-asserted in tests; re-record via `node dist/tools/recordGoldenPack.js`
+  (an explicit, logged decision).
+- **M. Guard gaps + flag typos become out-dirs** (35): confirmed — the
+  experiment literally created a `--stric/` report directory in the repo
+  root. consumers/, dist/, node_modules/ are now protected; unknown flags
+  are refusals.
+
+Fifth lens (importer buildability, run 2026-07-28 against the rewritten
+doc): three residual gaps found and folded in — `world`/`adapter` declared
+advisory provenance (the only un-cross-checked manifest fields), and
+`seedCell`/`packSize` glossed. The doc + verifiers now answer every
+question a second implementer needs; the sufficiency claim in the doc
+header is re-asserted with the verifiers actually agreeing.
+
+Post-fix evidence: 134 tests green (was 114); a 20-case cross-verifier
+battery confirms both lanes pass the honest pack and refuse all 19 tamper
+classes with aligned named refusals and no hangs; the strict dual
+consumption proof (TS + headless Godot 4.6.2) is green on fen-hollow and
+dust-hollow.
+
+---
+
+The original raw findings follow, unedited, as the review record.
 Findings: 38 raw, sorted by claimed severity.
 
 ## 1. [critical] Neither reference verifier enforces importer obligation 4: report.json .ok == true
