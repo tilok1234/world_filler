@@ -27,21 +27,32 @@ Deliverables:
   source/test/fixture/schema/output directory layout, output-path guard
   (refuse writes outside repo-owned roots, refuse any path into a WorldForge
   or game checkout);
-- vendored public loader under `vendor/worldforge/` with recorded upstream
-  commit + file hash, and a policy test that the vendored file is unmodified;
-- committed fixture packs (tiny + small) with provenance sidecars;
-- pack reader: manifest hash verification, format-version gates,
-  `baseArtifactSha256` cross-check, validation-report status check;
-- walkability + flood implementation to the exact upstream spec (nudge scan
-  radius 0..7 dy-outer/dx-inner, 4-connected N/E/S/W BFS);
+- committed fixture packs (tiny + small) with provenance sidecars, chosen so
+  every walkability-ladder rung appears in at least one fixture;
+- clean-room pack reader (no WorldForge code anywhere in this repository):
+  manifest hash verification, format-version gates, `baseArtifactSha256`
+  cross-check, validation-report status check, chunk decoding into flat
+  typed arrays;
+- clean-room walkability ladder + flood implementation to the exact
+  documented spec (nudge scan radius 0..7 dy-outer/dx-inner, 4-connected
+  N/E/S/W BFS), with ladder data tables carrying upstream-provenance notes;
+- bitgrid parity suite: our derived walkability grid compared bit-for-bit
+  against each fixture pack's reference `walkability.json` grid, plus
+  `floodCount`/`spawnCell` equality and per-rung fixture-coverage
+  reporting;
 - `wf-fill inspect <pack>` printing identity, dimensions, vocabularies,
   record counts, and the recomputed flood.
 
 Exit criteria:
 
-- clean clone builds and tests offline, no WorldForge checkout present;
-- recomputed flood equals each fixture pack's `floodCount` and `spawnCell`
-  (cell-exact parity with the upstream consumers, by construction);
+- clean clone builds and tests offline, no WorldForge checkout present and
+  no WorldForge source anywhere in the tree;
+- derived walkability grids match every fixture pack's reference grid
+  bit-for-bit, and recomputed floods equal each pack's `floodCount` and
+  `spawnCell` (cell-exact parity with the upstream consumers, proven — any
+  mismatch reports the exact cells);
+- every ladder rung is exercised by at least one fixture, or the gap is
+  reported honestly;
 - corrupted manifest, wrong `formatVersion`, failing validation report, and
   tampered payload each produce a named refusal;
 - no write path can resolve into an upstream repository.
@@ -244,9 +255,11 @@ Exit criteria:
 
 ## Standing risks to watch
 
-1. Walkability drift: any upstream behavior bump can move cells — the F0
-   parity test against fixture `floodCount` is the tripwire; re-vendoring
-   the loader is an explicit, logged decision.
+1. Walkability drift: any upstream behavior bump can move cells or append
+   blocking types — the F0 bit-for-bit parity suite against fixture
+   reference grids is the tripwire; updating the clean-room ladder tables
+   (and regenerating fixtures) is an explicit, logged decision with
+   recorded upstream provenance.
 2. Scope gravity toward quests/factions/economy before F4–F5 are approved.
 3. Territory/danger tuning is taste: keep the verdict loop human, exactly as
    upstream treats visual baselines.

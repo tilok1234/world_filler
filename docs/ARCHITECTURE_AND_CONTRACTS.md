@@ -118,16 +118,27 @@ seed at `destinations[0]`, nudged by expanding square scan radius 0..7,
 count = dequeued cells. Flood numbers are never hardcoded — always compared
 against the pack's own `floodCount`.
 
-**How we obtain the ladder:** vendor the upstream public loader file
-(`src/consumers/typescript/loader.ts`) into `vendor/worldforge/` as a
-pinned, read-only copy with recorded upstream commit and file hash. It is a
-single zero-import file, test-enforced upstream to stay that way, and is the
-documented public consumer surface. The vendored copy is never edited except
-by re-vendoring a newer pinned version (an explicit, logged decision). The
-loader does not expose `settlements`/`landmarks`/`regions`; World Filler
-reads those from raw `world.json` beside the handle. A standing parity test
-floods every committed fixture world through the vendored loader and compares
-against the fixture pack's `floodCount`.
+**How we obtain the ladder: 100% clean-room reimplementation.** World Filler
+ships its own reader and walkability implementation, written against the
+documented artifact schema and consumer contract — no vendored WorldForge
+code, no source imports, ever (adopted decision, 2026-07-28; upstream
+doctrine explicitly permits consumers to build on "the public loader **or
+artifact schema**"). The ladder's data tables (structure pass cells,
+blocking prop species, blocked materials, corridor materials) are published
+contract data; our copies carry provenance notes recording the upstream
+behavior version they were transcribed at, and updating them is an explicit,
+logged decision.
+
+Clean-room correctness is provable, not hoped for: the game pack's
+`walkability.json` carries the full reference bitgrid computed by the
+official exporter. The standing parity suite decodes it and compares our
+derived grid **bit-for-bit** on every committed fixture world — any
+divergence names the exact mismatching cells — and additionally checks
+`floodCount` and `spawnCell` equality. Fixture worlds are chosen to exercise
+every ladder rung (structures with pass cells, blocking props, fences,
+trails, piers, bridge and ford crossings, street fords, both river tiers,
+all three blocked materials); a rung no fixture exercises is reported as an
+honest gap, mirroring the upstream verifier's skip-reporting doctrine.
 
 ### Staleness contract
 
@@ -143,9 +154,12 @@ treat "the map changed under me" as a first-class workflow, not an error.
 
 ### 1. Pack reader and world model
 
-Loads and validates a pack (above), exposes a `WorldModel`: cell accessors
-via the vendored loader, plus typed access to settlements, landmarks, POIs,
-routes, destinations, hydrology, vocabularies, and the walkability bitgrid.
+Loads and validates a pack (above), exposes a `WorldModel`: our own
+clean-room decoder from artifact chunks into flat typed arrays (the shape
+spatial analysis wants), cell accessors, typed access to settlements,
+landmarks, POIs, routes, destinations, hydrology, and vocabularies, and the
+walkability bitgrid — derived by our ladder implementation and parity-proven
+against the pack's reference grid.
 
 ### 2. Deterministic kernel
 
@@ -389,8 +403,10 @@ a target from F1, enforced in CI like upstream.
 Distinguish, gate, and stamp: content pack format; director behavior
 version; rule-pack versions (analysis / plan / placement / territory);
 supported upstream artifact format (exactly 8 until a migration decision);
-supported game pack format; vendored loader provenance (upstream commit +
-file hash). Append-only vocabularies once shipped: content kinds, placement
+supported game pack format; walkability-contract provenance (the upstream
+behavior version the ladder tables were transcribed at, plus the fixture
+identities that prove parity). Append-only vocabularies once shipped:
+content kinds, placement
 rule ids, channel names, pack enums. A behavior change never silently
 rewrites an existing approved pack — approved packs stay pinned or go
 through an explicit re-direction decision, exactly as upstream treats worlds.

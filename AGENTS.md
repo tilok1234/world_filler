@@ -38,8 +38,13 @@ and folder, permanently distinct from the WorldForge checkout.
   format.** World Filler reads a world directory it is pointed at, exactly as
   the Godot and TypeScript consumers do. It is a third consumer lane.
 - No source imports from WorldForge paths — no relative imports into another
-  checkout, no `npm link`, no shared build outputs, no copying private
-  generator modules.
+  checkout, no `npm link`, no shared build outputs.
+- **No WorldForge source code in this repository at all, public or private,
+  vendored or pasted** (adopted decision, 2026-07-28). World Filler is a 100%
+  clean-room implementation against the documented artifact schema and
+  consumer contract. Contract *data* (semantic key tables, the walkability
+  ladder's published tables) may be transcribed with upstream-provenance
+  notes; contract *code* may not be copied.
 - World Filler must build, test, and run on a clean clone **without a
   WorldForge checkout present**, using small committed fixture artifacts whose
   WorldForge generator version, recipe identity, and artifact hash are
@@ -76,9 +81,11 @@ and folder, permanently distinct from the WorldForge checkout.
   normalized recipe + compiler version. It is never hand-edited to conceal a
   solver or validator failure; authored corrections go through recipe pins and
   locks.
-- Walkability and traversal semantics come from the WorldForge public loader
-  contract. World Filler must not invent its own interpretation of which cells
-  block movement; parity with the upstream flood check is a standing test.
+- Walkability and traversal semantics come from the documented upstream
+  consumer contract, implemented clean-room here. World Filler must not
+  invent its own interpretation of which cells block movement; bit-for-bit
+  parity against the reference walkability grids shipped in fixture game
+  packs (plus flood-count and spawn-cell equality) is a standing test.
 - When docs and code disagree, report the discrepancy; do not silently choose
   the more convenient behavior.
 

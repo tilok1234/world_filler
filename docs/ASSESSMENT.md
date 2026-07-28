@@ -110,11 +110,16 @@ adopts them:
    runtime owns actual spawning, respawn pressure, and kill-state (which
    upstream doctrine already routes into `user://` delta files, not the
    artifact).
-5. **Mirror the determinism kernel, do not import it.** Canonical JSON
-   (sorted keys, LF, safe integers only — permille instead of floats),
-   murmur3-style fixed-width integer mixing, named hierarchical seed
-   channels, golden-vector tests. Same doctrine, own implementation, proven
-   against committed fixtures.
+5. **Clean-room everything; import nothing (adopted decision, 2026-07-28).**
+   The whole tool — pack reader, walkability ladder, determinism kernel — is
+   reimplemented from the documented contracts, with zero WorldForge code in
+   this repository. This is affordable because correctness is externally
+   verifiable: the game pack ships the official reference walkability
+   bitgrid, so our clean-room ladder is proven bit-for-bit against upstream
+   output on every fixture, and canonical-JSON/hashing conventions are
+   proven by reproducing the pack's recorded hashes. Same doctrine
+   (sorted-key canonical JSON, safe integers only, fixed-width integer
+   mixing, named hierarchical channels, golden vectors), own implementation.
 
 ## Risks and honest warnings
 
