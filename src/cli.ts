@@ -13,6 +13,8 @@ import { solvePlacements, type PlacementsDoc, type Placement } from "./place/sol
 import { growTerritories } from "./territory/territory.js";
 import { renderTerritories } from "./render/territoryRender.js";
 import { runGates, formatReport } from "./validate/validate.js";
+import { buildContentPack, writeContentPack } from "./export/export.js";
+import { verifyContentPack } from "./consume/verifyPack.js";
 import { PLACEMENTS_FORMAT } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
@@ -38,6 +40,10 @@ function usage(): void {
       "                                        run the full gate battery + audit report",
       "  wf-fill lock <placements.json> <placement-id>",
       "                                        print the recipe lock entry for a placement",
+      "  wf-fill export <pack-dir> <recipe.json> [out-dir] [--strict]",
+      "                                        full pipeline -> audited content pack (refuses on failed gates)",
+      "  wf-fill verify-pack <world-pack-dir> <content-pack-dir>",
+      "                                        consumption proof: verify a content pack against its world pack",
       "",
       "inspect and parity are read-only. analyze writes under outputs/ (or the",
       "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -399,6 +405,66 @@ function runLock(placementsPath: string, placementId: string): number {
   return 0;
 }
 
+function runExport(dir: string, recipePath: string, outArg: string | undefined, strict: boolean): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("export: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const bundle = analyzeWorld(model);
+  const plan = compilePlan(model, bundle, recipe);
+  const placements = solvePlacements(model, bundle, plan, recipe);
+  const territories = growTerritories(model, bundle, plan, placements, recipe);
+  const report = runGates({
+    model, bundle, plan, placements, territories, recipe, strict,
+    resolveAgain: () => {
+      const placementsAgain = solvePlacements(model, bundle, plan, recipe);
+      return { placements: placementsAgain, territories: growTerritories(model, bundle, plan, placementsAgain, recipe) };
+    },
+  });
+
+  const built = buildContentPack({
+    model,
+    worldName: basename(dir),
+    baseArtifactSha256: pack.manifest.baseArtifactSha256,
+    recipe,
+    plan,
+    placements,
+    territories,
+    report,
+  });
+
+  const outDir = assertOutputRoot(
+    outArg ?? join(repoRoot(), "outputs", "export", `${basename(dir)}-${recipe.name}-content`),
+  );
+  writeContentPack(built, outDir);
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  writeFileSync(join(outDir, "renders", "danger.png"), renderDanger(model, bundle, plan, recipe.danger.bandCount));
+  writeFileSync(join(outDir, "renders", "placements.png"), renderPlacements(model, bundle, placements));
+  writeFileSync(join(outDir, "renders", "territories.png"), renderTerritories(model, bundle, territories, placements));
+
+  console.log(
+    `content pack: ${built.manifest.counts.placements} placements, ${built.manifest.counts.territories} territories, ` +
+      `${built.manifest.counts.placementFailures + built.manifest.counts.territoryFailures} recorded failures`,
+  );
+  console.log(`base: ${built.manifest.base.generationIdentitySha256.slice(0, 12)}… (world.json ${built.manifest.base.artifactSha256.slice(0, 12)}…)`);
+  console.log(`recipe: ${built.manifest.recipeName} (${built.manifest.directorRecipeSha256.slice(0, 12)}…)`);
+  console.log(`wrote ${outDir} (renders are inspection copies, not hashed payload)`);
+  return 0;
+}
+
+function runVerifyPack(worldPackDir: string, contentPackDir: string): number {
+  const summary = verifyContentPack(worldPackDir, contentPackDir);
+  console.log(
+    `verify-pack: OK — ${summary.placements} placements and ${summary.territories} territories ` +
+      `(${summary.territoryCells} cells) verified against the world pack's reference walkability`,
+  );
+  console.log(`world ${summary.world}, recipe ${summary.recipeName}`);
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
   const strict = argv.includes("--strict");
   const positional = argv.filter((entry) => entry !== "--strict");
@@ -456,6 +522,20 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runLock(target, extra);
+    }
+    if (command === "export") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runExport(target, extra, extra2, strict);
+    }
+    if (command === "verify-pack") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runVerifyPack(target, extra);
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

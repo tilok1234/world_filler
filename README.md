@@ -112,9 +112,17 @@ zones), live locks (`wf-fill lock` prints the recipe entry; held locks
 survive regeneration byte-identically and are immune to rerolls; invalid
 locks get per-lock diagnoses, strict mode makes them failures), and
 painted no-content / preferred-content zones honored by the solver and
-territory growth. Render **visual verdicts pending user review** (F2
-heatmaps, F3 danger bands, F4 placements, F5 territories). Next: F7
-(content pack export + consumption proof).
+territory growth. F7 is implemented and green: `wf-fill export` runs the
+full pipeline and writes the **frozen content pack format 1**
+(docs/CONTENT_PACK_FORMAT.md — manifest with base pairing + recipe
+identity + hashed payload; refuses on any failed gate; byte-stable, no
+timestamps), with two independent consumption verifiers proving packs
+from nothing but the files on disk: `wf-fill verify-pack` (TypeScript)
+and `consumers/godot-proof/verify_content_pack.gd` — both ran green
+against fen-hollow and the canonical 256² world, the latter inside the
+official Godot 4.6.2 headless engine. Render **visual verdicts pending
+user review** (F2 heatmaps, F3 danger bands, F4 placements, F5
+territories). Next: F8 (viewer + director UX loop).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

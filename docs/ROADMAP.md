@@ -24,8 +24,12 @@ nine-gate audit battery with report.json/report.txt, live locks with
 per-lock invalidity diagnosis and strict/lenient staleness modes, and
 painted zones — every gate has an adversarial tripping test, lock
 regeneration is byte-stable, and both proof worlds pass the full audit.
-**Visual verdicts on the F2–F5 renders pending user review.** F7 is
-next.
+F7 landed: content pack format 1 frozen (docs/CONTENT_PACK_FORMAT.md),
+gate-refusing byte-stable export, and the consumption proof in both
+lanes — the TypeScript verifier and a headless Godot 4.6.2 run of
+consumers/godot-proof/verify_content_pack.gd, green on fen-hollow and
+the canonical world. **Visual verdicts on the F2–F5 renders pending
+user review.** F8 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

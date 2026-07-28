@@ -4,7 +4,8 @@
  * packs, sequentially, mirroring the upstream versioning doctrine.
  */
 
-export const DIRECTOR_BEHAVIOR_VERSION = 4;
+export const DIRECTOR_VERSION = "0.1.0";
+export const DIRECTOR_BEHAVIOR_VERSION = 5;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
@@ -12,6 +13,7 @@ export const RULE_PACK_VERSIONS = {
   placement: 2,
   territory: 2,
   validate: 1,
+  export: 1,
 } as const;
 
 export const RECIPE_FORMAT = 1;
@@ -19,3 +21,4 @@ export const PLAN_FORMAT = 1;
 export const PLACEMENTS_FORMAT = 1;
 export const TERRITORIES_FORMAT = 1;
 export const REPORT_FORMAT = 1;
+export const CONTENT_PACK_FORMAT = 1;
