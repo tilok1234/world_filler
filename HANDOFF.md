@@ -126,9 +126,21 @@ bottom-right island (NEW — opposite side of the map), top outpost
 cluster. Placements render byte-identical v3->v4 (boss undisturbed);
 territories recolor to match the new endgame geography.
 
-**Round 4 pending: user judges V4 danger/territories.** Still open:
-territory density (~27%, `targetHostileCoveragePermille`), boss-to-
-dungeon distance knob (only if the user wants it).
+Round-4 verdicts (user): **danger endgame islands APPROVED** ("ye that
+works"); territories — user asked for a self-assessment first; the
+boss-to-dungeon-distance question confused ("idk if that correct
+image") and is DROPPED unless the user raises it again. User also asked
+for SHORTER replies with fewer images — honor that.
+
+Territory self-assessment (canonical, behavior 9): sizes 24/40/400
+(min/median/max, one defensible big-wilds outlier at the maxCells cap);
+coverage by band 22/22/29/25/34% (evenly spread, endgame slightly
+denser — good progression shape); territory ground within 12 of a road:
+26% vs 31% baseline (no hiding from travel routes); 7 zero-territory
+budgeted regions = the 7 honest fragmentation failures. Verdict
+recommended to user: approve as-is, no knob changes. **Awaiting user
+confirm on territories** — then the F2-F5 visual verdict loop is fully
+closed and F8 can start.
 
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
