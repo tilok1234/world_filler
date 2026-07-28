@@ -1,0 +1,5214 @@
+{
+  "_note": "Real captured responses from wf-fill serve over the fen-hollow fixture (64x64). PNG routes omitted — they return image/png bytes.",
+  "GET /api/worlds": {
+    "worlds": [
+      {
+        "name": "dust-hollow",
+        "source": "fixtures",
+        "width": 64,
+        "height": 64,
+        "hasOwnRecipe": false,
+        "hasExport": false
+      },
+      {
+        "name": "fen-hollow",
+        "source": "fixtures",
+        "width": 64,
+        "height": 64,
+        "hasOwnRecipe": false,
+        "hasExport": false
+      },
+      {
+        "name": "tiny-temperate",
+        "source": "fixtures",
+        "width": 64,
+        "height": 64,
+        "hasOwnRecipe": false,
+        "hasExport": false
+      }
+    ]
+  },
+  "POST /api/direct?world=fen-hollow": {
+    "ok": true,
+    "counts": {
+      "placements": 2,
+      "territories": 13,
+      "placementFailures": 0,
+      "territoryFailures": 0,
+      "unboundAnchors": 3
+    },
+    "gates": [
+      {
+        "id": "G1",
+        "name": "placements on valid ground",
+        "status": "pass"
+      },
+      {
+        "id": "G2",
+        "name": "exclusion symmetry",
+        "status": "pass"
+      },
+      {
+        "id": "G3",
+        "name": "territories on valid ground",
+        "status": "pass"
+      },
+      {
+        "id": "G4",
+        "name": "budgets place or explain",
+        "status": "pass"
+      },
+      {
+        "id": "G5",
+        "name": "danger progression",
+        "status": "pass"
+      },
+      {
+        "id": "G6",
+        "name": "locks held",
+        "status": "pass"
+      },
+      {
+        "id": "G7",
+        "name": "base identity",
+        "status": "pass"
+      },
+      {
+        "id": "G8",
+        "name": "determinism round-trip",
+        "status": "pass"
+      },
+      {
+        "id": "G9",
+        "name": "painted zones respected",
+        "status": "pass"
+      }
+    ],
+    "strict": false
+  },
+  "GET /api/pack?world=fen-hollow": {
+    "manifest": {
+      "adapter": {
+        "name": "worldfiller",
+        "version": "0.1.0"
+      },
+      "analysisVersion": 1,
+      "base": {
+        "artifactFormat": 8,
+        "artifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
+        "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+        "height": 64,
+        "width": 64
+      },
+      "counts": {
+        "placementFailures": 0,
+        "placements": 2,
+        "territories": 13,
+        "territoryFailures": 0,
+        "unboundAnchors": 3
+      },
+      "directorBehaviorVersion": 5,
+      "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+      "directorSeed": 103991,
+      "files": {
+        "content-plan.json": "c35d6f541d4ea027cbab43a44f35a6e8696f1e8b3fd1a69ff30f467b45494a7f",
+        "placements.json": "938db26ba7d7d6968991692f330e7c09d5c4eec5a8d229534ee13b60b5700124",
+        "report.json": "a9de83f702fc1d7012f862c7a006b334ad12ffa05c08201da883e5bcf797dd8a",
+        "territories.json": "3ce9d2394b3c37e7dfc14845ff899b195598820c53963b39d4dcb949ada84c73"
+      },
+      "pack": "worldfiller-content-pack",
+      "packFormat": 1,
+      "recipeName": "basic-direction",
+      "rulePacks": {
+        "analysis": 1,
+        "export": 1,
+        "placement": 2,
+        "plan": 1,
+        "territory": 2,
+        "validate": 1
+      },
+      "world": "fen-hollow"
+    },
+    "plan": {
+      "analysisVersion": 1,
+      "base": {
+        "artifactFormat": 8,
+        "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+        "height": 64,
+        "width": 64
+      },
+      "checks": {
+        "progressionWarnings": [],
+        "worldWaivers": []
+      },
+      "directorBehaviorVersion": 5,
+      "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+      "directorSeed": 103991,
+      "planFormat": 1,
+      "recipeName": "basic-direction",
+      "regions": [
+        {
+          "biome": "terrain.cobble",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 13,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 13,
+          "id": "region.cobble.1224",
+          "medianSpawnDistance": 32,
+          "reachableCells": 13,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 13
+        },
+        {
+          "biome": "terrain.cobble",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 261,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.cobble.2317",
+          "medianSpawnDistance": 9,
+          "reachableCells": 135,
+          "regionClass": "standard",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "fully_safe",
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 136
+        },
+        {
+          "biome": "terrain.cobble",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 183,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.cobble.2865",
+          "medianSpawnDistance": 62,
+          "reachableCells": 108,
+          "regionClass": "standard",
+          "safeSharePermille": 994,
+          "waivers": [
+            "fully_safe",
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 108
+        },
+        {
+          "biome": "terrain.cobble",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 68,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.cobble.924",
+          "medianSpawnDistance": 55,
+          "reachableCells": 34,
+          "regionClass": "standard",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "fully_safe",
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 34
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.1764",
+          "medianSpawnDistance": 51,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 55,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 41,
+          "id": "region.grass.202",
+          "medianSpawnDistance": 56,
+          "reachableCells": 41,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 41
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.2022",
+          "medianSpawnDistance": 53,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.grass.2136",
+          "medianSpawnDistance": 34,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.grass.2139",
+          "medianSpawnDistance": 36,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.grass.2146",
+          "medianSpawnDistance": 44,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.2297",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.249",
+          "medianSpawnDistance": 99,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.2613",
+          "medianSpawnDistance": 69,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.grass.2804",
+          "medianSpawnDistance": 62,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.2880",
+          "medianSpawnDistance": 10,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 10,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3262",
+          "medianSpawnDistance": 65,
+          "reachableCells": 8,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 8
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 1,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.grass.3286",
+          "medianSpawnDistance": 22,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 9,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3328",
+          "medianSpawnDistance": 10,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3473",
+          "medianSpawnDistance": 16,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 13,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3648",
+          "medianSpawnDistance": 18,
+          "reachableCells": 6,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 8
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3652",
+          "medianSpawnDistance": 10,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 16,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3656",
+          "medianSpawnDistance": 16,
+          "reachableCells": 11,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 11
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.374",
+          "medianSpawnDistance": 94,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.3775",
+          "medianSpawnDistance": 67,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.grass.3813",
+          "medianSpawnDistance": 42,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.4024",
+          "medianSpawnDistance": 65,
+          "reachableCells": 7,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 7
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.4031",
+          "medianSpawnDistance": 70,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 1,
+          "id": "region.grass.419",
+          "medianSpawnDistance": 73,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 1
+        },
+        {
+          "biome": "terrain.grass",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.grass.631",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.gravel.1009",
+          "medianSpawnDistance": 77,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.gravel.1031",
+          "medianSpawnDistance": 47,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.gravel.1092",
+          "medianSpawnDistance": 33,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.gravel.1102",
+          "medianSpawnDistance": 40,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 37,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 37,
+          "id": "region.gravel.1158",
+          "medianSpawnDistance": 33,
+          "reachableCells": 37,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 37
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 8,
+          "id": "region.gravel.1218",
+          "medianSpawnDistance": 31,
+          "reachableCells": 8,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 8
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.gravel.1294",
+          "medianSpawnDistance": 37,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 4,
+          "id": "region.gravel.136",
+          "medianSpawnDistance": 62,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 15,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 15,
+          "id": "region.gravel.140",
+          "medianSpawnDistance": 57,
+          "reachableCells": 15,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 15
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 8,
+          "id": "region.gravel.1486",
+          "medianSpawnDistance": 32,
+          "reachableCells": 8,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 8
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 6,
+          "dangerBand": 1,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 6,
+          "id": "region.gravel.1604",
+          "medianSpawnDistance": 25,
+          "reachableCells": 6,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 6
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 1,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 4,
+          "id": "region.gravel.1671",
+          "medianSpawnDistance": 25,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 1,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.gravel.1739",
+          "medianSpawnDistance": 26,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 9,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 9,
+          "id": "region.gravel.362",
+          "medianSpawnDistance": 82,
+          "reachableCells": 9,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 9
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.gravel.367",
+          "medianSpawnDistance": 86,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 11,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 11,
+          "id": "region.gravel.369",
+          "medianSpawnDistance": 91,
+          "reachableCells": 11,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 11
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 27,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 1,
+          "hostileWalkableCells": 11,
+          "id": "region.gravel.393",
+          "medianSpawnDistance": 51,
+          "reachableCells": 11,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 11
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.gravel.453",
+          "medianSpawnDistance": 67,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.gravel.581",
+          "medianSpawnDistance": 69,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 11,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 1,
+          "hostileWalkableCells": 5,
+          "id": "region.gravel.622",
+          "medianSpawnDistance": 78,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 7,
+          "id": "region.gravel.710",
+          "medianSpawnDistance": 72,
+          "reachableCells": 7,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 7
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.gravel.810",
+          "medianSpawnDistance": 78,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 4,
+          "id": "region.gravel.907",
+          "medianSpawnDistance": 45,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.gravel",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 4,
+          "id": "region.gravel.939",
+          "medianSpawnDistance": 74,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 1,
+            "worldBosses": 0
+          },
+          "cellCount": 87,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 82,
+          "id": "region.mud.0",
+          "medianSpawnDistance": 69,
+          "reachableCells": 82,
+          "regionClass": "standard",
+          "safeSharePermille": 0,
+          "waivers": [
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 82
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 1,
+            "territories": 2,
+            "worldBosses": 0
+          },
+          "cellCount": 291,
+          "dangerBand": 1,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 205,
+          "id": "region.mud.1152",
+          "medianSpawnDistance": 24,
+          "reachableCells": 247,
+          "regionClass": "standard",
+          "safeSharePermille": 182,
+          "waivers": [
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 248
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.mud.1220",
+          "medianSpawnDistance": 31,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 3,
+          "id": "region.mud.1230",
+          "medianSpawnDistance": 39,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 1,
+            "encounterSites": 6,
+            "territories": 4,
+            "worldBosses": 1
+          },
+          "cellCount": 898,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 1,
+          "hostileWalkableCells": 751,
+          "id": "region.mud.1245",
+          "medianSpawnDistance": 41,
+          "reachableCells": 780,
+          "regionClass": "major",
+          "safeSharePermille": 46,
+          "waivers": [],
+          "walkableCells": 791
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 4,
+          "id": "region.mud.1358",
+          "medianSpawnDistance": 36,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.mud.138",
+          "medianSpawnDistance": 60,
+          "reachableCells": 2,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.mud.2284",
+          "medianSpawnDistance": 64,
+          "reachableCells": 1,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.2766",
+          "medianSpawnDistance": 15,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 7,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.2881",
+          "medianSpawnDistance": 7,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.mud.2911",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 2,
+          "id": "region.mud.3040",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 2
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 1,
+          "hostileWalkableCells": 3,
+          "id": "region.mud.3101",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3317",
+          "medianSpawnDistance": 57,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3338",
+          "medianSpawnDistance": 8,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3341",
+          "medianSpawnDistance": 11,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3399",
+          "medianSpawnDistance": 6,
+          "reachableCells": 4,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 4
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3662",
+          "medianSpawnDistance": 17,
+          "reachableCells": 3,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 3
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 6,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.mud.3893",
+          "medianSpawnDistance": 59,
+          "reachableCells": 6,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 6
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 13,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 6,
+          "id": "region.mud.3914",
+          "medianSpawnDistance": 19,
+          "reachableCells": 12,
+          "regionClass": "minor",
+          "safeSharePermille": 461,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 12
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 2,
+            "territories": 3,
+            "worldBosses": 0
+          },
+          "cellCount": 400,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 297,
+          "id": "region.mud.43",
+          "medianSpawnDistance": 79,
+          "reachableCells": 319,
+          "regionClass": "standard",
+          "safeSharePermille": 82,
+          "waivers": [
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 328
+        },
+        {
+          "biome": "terrain.mud",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 1,
+            "territories": 2,
+            "worldBosses": 0
+          },
+          "cellCount": 348,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 215,
+          "id": "region.mud.942",
+          "medianSpawnDistance": 75,
+          "reachableCells": 202,
+          "regionClass": "standard",
+          "safeSharePermille": 37,
+          "waivers": [
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 224
+        },
+        {
+          "biome": "terrain.packed_road",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 1,
+            "worldBosses": 0
+          },
+          "cellCount": 107,
+          "dangerBand": 3,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 99,
+          "id": "region.packed_road.1129",
+          "medianSpawnDistance": 63,
+          "reachableCells": 107,
+          "regionClass": "standard",
+          "safeSharePermille": 74,
+          "waivers": [
+            "no_dungeon_anchors"
+          ],
+          "walkableCells": 107
+        },
+        {
+          "biome": "terrain.packed_road",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 46,
+          "dangerBand": 2,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 40,
+          "id": "region.packed_road.1562",
+          "medianSpawnDistance": 32,
+          "reachableCells": 46,
+          "regionClass": "minor",
+          "safeSharePermille": 130,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 46
+        },
+        {
+          "biome": "terrain.snow",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 40,
+          "dangerBand": 4,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 14,
+          "id": "region.snow.492",
+          "medianSpawnDistance": 81,
+          "reachableCells": 12,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 14
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1214",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1233",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1238",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 500,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1268",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1296",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1335",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1392",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 4,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1425",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1437",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 500,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1458",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1566",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1715",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1846",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1884",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 15,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.1917",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2227",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.223",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 41,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2264",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 22,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2346",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2463",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2465",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2594",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2631",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 7,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2768",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 285,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2831",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2951",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2964",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 33,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2978",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.2983",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3027",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3045",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3150",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.338",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3445",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.355",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3636",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 11,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.3856",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.404",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.42",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.543",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.574",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 30,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.580",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.598",
+          "medianSpawnDistance": 58,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 6,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.606",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 833,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 13,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.628",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 5,
+          "dangerBand": 0,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.667",
+          "medianSpawnDistance": 58,
+          "reachableCells": 5,
+          "regionClass": "minor",
+          "safeSharePermille": 1000,
+          "waivers": [
+            "too_small"
+          ],
+          "walkableCells": 5
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.674",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 3,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.699",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.724",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 9,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.803",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 2,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.825",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        },
+        {
+          "biome": "terrain.swamp",
+          "budgets": {
+            "dungeonBindings": 0,
+            "encounterSites": 0,
+            "territories": 0,
+            "worldBosses": 0
+          },
+          "cellCount": 8,
+          "dangerBand": null,
+          "dangerOverridden": false,
+          "dungeonAnchorCandidates": 0,
+          "hostileWalkableCells": 0,
+          "id": "region.swamp.9",
+          "medianSpawnDistance": null,
+          "reachableCells": 0,
+          "regionClass": "minor",
+          "safeSharePermille": 0,
+          "waivers": [
+            "unreachable_from_spawn",
+            "too_small"
+          ],
+          "walkableCells": 0
+        }
+      ],
+      "rulePacks": {
+        "analysis": 1,
+        "export": 1,
+        "placement": 2,
+        "plan": 1,
+        "territory": 2,
+        "validate": 1
+      },
+      "spawnRegionId": "region.cobble.2317",
+      "unassignedDungeonAnchors": 0,
+      "worldBudget": {
+        "dungeonBindings": 1,
+        "encounterSites": 10,
+        "territories": 13,
+        "worldBosses": {
+          "allocated": 1,
+          "target": 1
+        }
+      }
+    },
+    "placements": {
+      "analysisVersion": 1,
+      "base": {
+        "artifactFormat": 8,
+        "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+        "height": 64,
+        "width": 64
+      },
+      "directorBehaviorVersion": 5,
+      "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+      "directorSeed": 103991,
+      "failures": [],
+      "lockReport": [],
+      "placements": [
+        {
+          "accessCell": [
+            18,
+            38
+          ],
+          "anchorPoiId": 3,
+          "anchorPoiType": "poi.cave",
+          "arenaOrigin": null,
+          "arenaSide": null,
+          "candidateFunnel": [
+            {
+              "remaining": 1,
+              "stage": "anchors_in_region"
+            },
+            {
+              "remaining": 1,
+              "stage": "reachable"
+            },
+            {
+              "remaining": 1,
+              "stage": "spacing_clear"
+            }
+          ],
+          "cell": [
+            18,
+            38
+          ],
+          "channel": "world/region.mud.1245/reroll.0/dungeon/0",
+          "draw": 0,
+          "exclusionRadius": 8,
+          "id": "placement.dungeon.region.mud.1245.0",
+          "inSafeZone": false,
+          "locked": false,
+          "regionId": "region.mud.1245",
+          "rule": "dungeon_binding.v1",
+          "score": 410,
+          "scoreTerms": [
+            {
+              "contribution": 410,
+              "term": "settlement_far",
+              "value": 410,
+              "weightPermille": 1000
+            }
+          ],
+          "topCandidates": [
+            {
+              "cell": [
+                18,
+                38
+              ],
+              "score": 410
+            }
+          ]
+        },
+        {
+          "accessCell": [
+            31,
+            59
+          ],
+          "anchorPoiId": null,
+          "anchorPoiType": null,
+          "arenaOrigin": [
+            29,
+            57
+          ],
+          "arenaSide": 6,
+          "candidateFunnel": [
+            {
+              "remaining": 58,
+              "stage": "clearance_anchor_in_region"
+            },
+            {
+              "remaining": 58,
+              "stage": "reachable"
+            },
+            {
+              "remaining": 58,
+              "stage": "paint_no_content"
+            },
+            {
+              "remaining": 56,
+              "stage": "clear_of_safe_and_reserved"
+            },
+            {
+              "remaining": 56,
+              "stage": "exclusion_clear"
+            },
+            {
+              "remaining": 56,
+              "stage": "settlement_distance"
+            },
+            {
+              "remaining": 56,
+              "stage": "peer_distance"
+            }
+          ],
+          "cell": [
+            31,
+            59
+          ],
+          "channel": "world/region.mud.1245/reroll.0/boss/0",
+          "draw": 5,
+          "exclusionRadius": 16,
+          "id": "placement.world_boss.region.mud.1245.0",
+          "inSafeZone": false,
+          "locked": false,
+          "regionId": "region.mud.1245",
+          "rule": "world_boss.v1",
+          "score": 1104,
+          "scoreTerms": [
+            {
+              "contribution": 399,
+              "term": "clearance",
+              "value": 666,
+              "weightPermille": 600
+            },
+            {
+              "contribution": 500,
+              "term": "settlement_far",
+              "value": 625,
+              "weightPermille": 800
+            },
+            {
+              "contribution": 205,
+              "term": "road_far",
+              "value": 411,
+              "weightPermille": 500
+            }
+          ],
+          "topCandidates": [
+            {
+              "cell": [
+                32,
+                60
+              ],
+              "score": 1198
+            },
+            {
+              "cell": [
+                31,
+                60
+              ],
+              "score": 1183
+            },
+            {
+              "cell": [
+                30,
+                60
+              ],
+              "score": 1155
+            },
+            {
+              "cell": [
+                29,
+                60
+              ],
+              "score": 1126
+            },
+            {
+              "cell": [
+                32,
+                59
+              ],
+              "score": 1119
+            },
+            {
+              "cell": [
+                31,
+                59
+              ],
+              "score": 1104
+            },
+            {
+              "cell": [
+                28,
+                60
+              ],
+              "score": 1097
+            },
+            {
+              "cell": [
+                30,
+                59
+              ],
+              "score": 1075
+            }
+          ]
+        }
+      ],
+      "placementsFormat": 1,
+      "recipeName": "basic-direction",
+      "rulePacks": {
+        "analysis": 1,
+        "export": 1,
+        "placement": 2,
+        "plan": 1,
+        "territory": 2,
+        "validate": 1
+      },
+      "unboundAnchors": [
+        {
+          "cell": [
+            9,
+            6
+          ],
+          "poiId": 0,
+          "poiType": "poi.city_ruin",
+          "reason": "region_zero_budget",
+          "regionId": "region.gravel.393"
+        },
+        {
+          "cell": [
+            46,
+            9
+          ],
+          "poiId": 1,
+          "poiType": "poi.city_ruin",
+          "reason": "region_zero_budget",
+          "regionId": "region.gravel.622"
+        },
+        {
+          "cell": [
+            29,
+            50
+          ],
+          "poiId": 2,
+          "poiType": "poi.cave",
+          "reason": "region_zero_budget",
+          "regionId": "region.mud.3101"
+        }
+      ]
+    },
+    "territories": {
+      "analysisVersion": 1,
+      "base": {
+        "artifactFormat": 8,
+        "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+        "height": 64,
+        "width": 64
+      },
+      "coverage": {
+        "regions": [
+          {
+            "budget": 1,
+            "coveragePermille": 341,
+            "covered": 28,
+            "emitted": 1,
+            "hostileWalkable": 82,
+            "regionId": "region.mud.0"
+          },
+          {
+            "budget": 2,
+            "coveragePermille": 341,
+            "covered": 70,
+            "emitted": 2,
+            "hostileWalkable": 205,
+            "regionId": "region.mud.1152"
+          },
+          {
+            "budget": 4,
+            "coveragePermille": 291,
+            "covered": 219,
+            "emitted": 4,
+            "hostileWalkable": 751,
+            "regionId": "region.mud.1245"
+          },
+          {
+            "budget": 3,
+            "coveragePermille": 343,
+            "covered": 102,
+            "emitted": 3,
+            "hostileWalkable": 297,
+            "regionId": "region.mud.43"
+          },
+          {
+            "budget": 2,
+            "coveragePermille": 344,
+            "covered": 74,
+            "emitted": 2,
+            "hostileWalkable": 215,
+            "regionId": "region.mud.942"
+          },
+          {
+            "budget": 1,
+            "coveragePermille": 343,
+            "covered": 34,
+            "emitted": 1,
+            "hostileWalkable": 99,
+            "regionId": "region.packed_road.1129"
+          }
+        ],
+        "totalCovered": 527,
+        "totalHostileWalkable": 1649
+      },
+      "directorBehaviorVersion": 5,
+      "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+      "directorSeed": 103991,
+      "failures": [],
+      "recipeName": "basic-direction",
+      "rulePacks": {
+        "analysis": 1,
+        "export": 1,
+        "placement": 2,
+        "plan": 1,
+        "territory": 2,
+        "validate": 1
+      },
+      "territories": [
+        {
+          "cellCount": 28,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                2,
+                5,
+                1
+              ],
+              [
+                0,
+                6,
+                4
+              ],
+              [
+                0,
+                7,
+                4
+              ],
+              [
+                0,
+                8,
+                5
+              ],
+              [
+                0,
+                9,
+                1
+              ],
+              [
+                2,
+                9,
+                2
+              ],
+              [
+                0,
+                10,
+                3
+              ],
+              [
+                1,
+                11,
+                1
+              ],
+              [
+                0,
+                12,
+                2
+              ],
+              [
+                0,
+                13,
+                3
+              ],
+              [
+                0,
+                14,
+                1
+              ],
+              [
+                2,
+                14,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.0/reroll.0/territory/0",
+          "dangerBand": 3,
+          "draw": 4,
+          "elitePermille": 30,
+          "id": "territory.region.mud.0.0",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.0",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            0,
+            12
+          ]
+        },
+        {
+          "cellCount": 35,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                0,
+                18,
+                3
+              ],
+              [
+                0,
+                19,
+                2
+              ],
+              [
+                0,
+                20,
+                3
+              ],
+              [
+                0,
+                21,
+                2
+              ],
+              [
+                0,
+                22,
+                2
+              ],
+              [
+                3,
+                22,
+                1
+              ],
+              [
+                0,
+                23,
+                5
+              ],
+              [
+                0,
+                24,
+                5
+              ],
+              [
+                0,
+                25,
+                4
+              ],
+              [
+                0,
+                26,
+                3
+              ],
+              [
+                0,
+                27,
+                3
+              ],
+              [
+                0,
+                28,
+                2
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1152/reroll.0/territory/0",
+          "dangerBand": 1,
+          "draw": 7,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1152.0",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1152",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            }
+          ],
+          "seedCell": [
+            0,
+            21
+          ]
+        },
+        {
+          "cellCount": 35,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                15,
+                24,
+                1
+              ],
+              [
+                15,
+                25,
+                1
+              ],
+              [
+                10,
+                26,
+                3
+              ],
+              [
+                15,
+                26,
+                2
+              ],
+              [
+                12,
+                27,
+                1
+              ],
+              [
+                14,
+                27,
+                2
+              ],
+              [
+                17,
+                27,
+                2
+              ],
+              [
+                12,
+                28,
+                8
+              ],
+              [
+                13,
+                29,
+                6
+              ],
+              [
+                11,
+                30,
+                6
+              ],
+              [
+                11,
+                31,
+                2
+              ],
+              [
+                14,
+                31,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1152/reroll.0/territory/1",
+          "dangerBand": 1,
+          "draw": 5,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1152.1",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1152",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            }
+          ],
+          "seedCell": [
+            13,
+            28
+          ]
+        },
+        {
+          "cellCount": 65,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                40,
+                26,
+                1
+              ],
+              [
+                40,
+                27,
+                2
+              ],
+              [
+                38,
+                28,
+                5
+              ],
+              [
+                38,
+                29,
+                6
+              ],
+              [
+                36,
+                30,
+                9
+              ],
+              [
+                37,
+                31,
+                1
+              ],
+              [
+                40,
+                31,
+                5
+              ],
+              [
+                39,
+                32,
+                4
+              ],
+              [
+                39,
+                33,
+                3
+              ],
+              [
+                40,
+                34,
+                3
+              ],
+              [
+                38,
+                35,
+                5
+              ],
+              [
+                39,
+                36,
+                1
+              ],
+              [
+                39,
+                37,
+                2
+              ],
+              [
+                38,
+                38,
+                3
+              ],
+              [
+                37,
+                39,
+                2
+              ],
+              [
+                40,
+                39,
+                2
+              ],
+              [
+                36,
+                40,
+                6
+              ],
+              [
+                37,
+                41,
+                5
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1245/reroll.0/territory/0",
+          "dangerBand": 2,
+          "draw": 4,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1245.0",
+          "maxActive": 5,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1245",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            37,
+            40
+          ]
+        },
+        {
+          "cellCount": 65,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                33,
+                24,
+                1
+              ],
+              [
+                32,
+                25,
+                3
+              ],
+              [
+                31,
+                26,
+                5
+              ],
+              [
+                31,
+                27,
+                3
+              ],
+              [
+                31,
+                28,
+                4
+              ],
+              [
+                30,
+                29,
+                5
+              ],
+              [
+                28,
+                30,
+                8
+              ],
+              [
+                28,
+                31,
+                9
+              ],
+              [
+                28,
+                32,
+                7
+              ],
+              [
+                36,
+                32,
+                2
+              ],
+              [
+                29,
+                33,
+                5
+              ],
+              [
+                36,
+                33,
+                2
+              ],
+              [
+                30,
+                34,
+                5
+              ],
+              [
+                37,
+                34,
+                1
+              ],
+              [
+                30,
+                35,
+                3
+              ],
+              [
+                31,
+                36,
+                2
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1245/reroll.0/territory/1",
+          "dangerBand": 2,
+          "draw": 4,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1245.1",
+          "maxActive": 5,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1245",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            37,
+            34
+          ]
+        },
+        {
+          "cellCount": 24,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                44,
+                44,
+                1
+              ],
+              [
+                42,
+                45,
+                3
+              ],
+              [
+                42,
+                46,
+                3
+              ],
+              [
+                43,
+                47,
+                2
+              ],
+              [
+                43,
+                48,
+                3
+              ],
+              [
+                44,
+                49,
+                2
+              ],
+              [
+                47,
+                49,
+                4
+              ],
+              [
+                45,
+                50,
+                3
+              ],
+              [
+                49,
+                50,
+                1
+              ],
+              [
+                45,
+                51,
+                1
+              ],
+              [
+                49,
+                51,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1245/reroll.0/territory/2",
+          "dangerBand": 2,
+          "draw": 6,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1245.2",
+          "maxActive": 1,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1245",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            42,
+            45
+          ]
+        },
+        {
+          "cellCount": 65,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                36,
+                20,
+                1
+              ],
+              [
+                38,
+                20,
+                1
+              ],
+              [
+                40,
+                20,
+                4
+              ],
+              [
+                35,
+                21,
+                9
+              ],
+              [
+                34,
+                22,
+                4
+              ],
+              [
+                39,
+                22,
+                2
+              ],
+              [
+                42,
+                22,
+                3
+              ],
+              [
+                35,
+                23,
+                1
+              ],
+              [
+                37,
+                23,
+                8
+              ],
+              [
+                36,
+                24,
+                9
+              ],
+              [
+                35,
+                25,
+                3
+              ],
+              [
+                39,
+                25,
+                2
+              ],
+              [
+                42,
+                25,
+                3
+              ],
+              [
+                36,
+                26,
+                4
+              ],
+              [
+                42,
+                26,
+                3
+              ],
+              [
+                37,
+                27,
+                2
+              ],
+              [
+                43,
+                27,
+                2
+              ],
+              [
+                37,
+                28,
+                1
+              ],
+              [
+                43,
+                28,
+                2
+              ],
+              [
+                44,
+                29,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.1245/reroll.0/territory/3",
+          "dangerBand": 2,
+          "draw": 6,
+          "elitePermille": 30,
+          "id": "territory.region.mud.1245.3",
+          "maxActive": 5,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.1245",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            44,
+            26
+          ]
+        },
+        {
+          "cellCount": 34,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                57,
+                0,
+                6
+              ],
+              [
+                58,
+                1,
+                2
+              ],
+              [
+                61,
+                1,
+                3
+              ],
+              [
+                57,
+                2,
+                4
+              ],
+              [
+                62,
+                2,
+                1
+              ],
+              [
+                58,
+                3,
+                3
+              ],
+              [
+                62,
+                3,
+                2
+              ],
+              [
+                60,
+                4,
+                1
+              ],
+              [
+                62,
+                4,
+                2
+              ],
+              [
+                59,
+                5,
+                1
+              ],
+              [
+                62,
+                5,
+                2
+              ],
+              [
+                59,
+                6,
+                3
+              ],
+              [
+                63,
+                6,
+                1
+              ],
+              [
+                61,
+                7,
+                3
+              ]
+            ]
+          },
+          "channel": "world/region.mud.43/reroll.0/territory/0",
+          "dangerBand": 3,
+          "draw": 2,
+          "elitePermille": 30,
+          "id": "territory.region.mud.43.0",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.43",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            63,
+            3
+          ]
+        },
+        {
+          "cellCount": 34,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                48,
+                0,
+                8
+              ],
+              [
+                48,
+                1,
+                9
+              ],
+              [
+                49,
+                2,
+                8
+              ],
+              [
+                50,
+                3,
+                3
+              ],
+              [
+                54,
+                3,
+                3
+              ],
+              [
+                50,
+                4,
+                3
+              ]
+            ]
+          },
+          "channel": "world/region.mud.43/reroll.0/territory/1",
+          "dangerBand": 3,
+          "draw": 4,
+          "elitePermille": 30,
+          "id": "territory.region.mud.43.1",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.43",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            55,
+            1
+          ]
+        },
+        {
+          "cellCount": 34,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                43,
+                0,
+                5
+              ],
+              [
+                43,
+                1,
+                5
+              ],
+              [
+                43,
+                2,
+                6
+              ],
+              [
+                43,
+                3,
+                7
+              ],
+              [
+                43,
+                4,
+                3
+              ],
+              [
+                47,
+                4,
+                3
+              ],
+              [
+                44,
+                5,
+                3
+              ],
+              [
+                48,
+                5,
+                1
+              ],
+              [
+                45,
+                6,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.43/reroll.0/territory/2",
+          "dangerBand": 3,
+          "draw": 2,
+          "elitePermille": 30,
+          "id": "territory.region.mud.43.2",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.43",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            46,
+            0
+          ]
+        },
+        {
+          "cellCount": 37,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                57,
+                28,
+                1
+              ],
+              [
+                57,
+                29,
+                2
+              ],
+              [
+                55,
+                30,
+                3
+              ],
+              [
+                56,
+                31,
+                2
+              ],
+              [
+                55,
+                32,
+                1
+              ],
+              [
+                57,
+                32,
+                1
+              ],
+              [
+                54,
+                33,
+                2
+              ],
+              [
+                57,
+                33,
+                4
+              ],
+              [
+                54,
+                34,
+                4
+              ],
+              [
+                59,
+                34,
+                1
+              ],
+              [
+                54,
+                35,
+                2
+              ],
+              [
+                59,
+                35,
+                3
+              ],
+              [
+                63,
+                35,
+                1
+              ],
+              [
+                59,
+                36,
+                1
+              ],
+              [
+                61,
+                36,
+                3
+              ],
+              [
+                58,
+                37,
+                5
+              ],
+              [
+                58,
+                38,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.942/reroll.0/territory/0",
+          "dangerBand": 3,
+          "draw": 5,
+          "elitePermille": 30,
+          "id": "territory.region.mud.942.0",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.942",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            58,
+            38
+          ]
+        },
+        {
+          "cellCount": 37,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                58,
+                19,
+                2
+              ],
+              [
+                57,
+                20,
+                4
+              ],
+              [
+                55,
+                21,
+                1
+              ],
+              [
+                57,
+                21,
+                1
+              ],
+              [
+                59,
+                21,
+                1
+              ],
+              [
+                53,
+                22,
+                1
+              ],
+              [
+                55,
+                22,
+                4
+              ],
+              [
+                52,
+                23,
+                3
+              ],
+              [
+                56,
+                23,
+                3
+              ],
+              [
+                53,
+                24,
+                6
+              ],
+              [
+                52,
+                25,
+                5
+              ],
+              [
+                58,
+                25,
+                2
+              ],
+              [
+                53,
+                26,
+                2
+              ],
+              [
+                59,
+                26,
+                1
+              ],
+              [
+                54,
+                27,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.mud.942/reroll.0/territory/1",
+          "dangerBand": 3,
+          "draw": 7,
+          "elitePermille": 30,
+          "id": "territory.region.mud.942.1",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.mud.942",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            },
+            {
+              "enemyId": "enemy.mire_creeper",
+              "nightOnly": false,
+              "weightPercent": 35
+            },
+            {
+              "enemyId": "enemy.night_shade",
+              "nightOnly": true,
+              "weightPercent": 15
+            }
+          ],
+          "seedCell": [
+            58,
+            24
+          ]
+        },
+        {
+          "cellCount": 34,
+          "cells": {
+            "encoding": "runs",
+            "runs": [
+              [
+                45,
+                24,
+                1
+              ],
+              [
+                45,
+                25,
+                2
+              ],
+              [
+                45,
+                26,
+                2
+              ],
+              [
+                45,
+                27,
+                2
+              ],
+              [
+                45,
+                28,
+                2
+              ],
+              [
+                45,
+                29,
+                2
+              ],
+              [
+                45,
+                30,
+                2
+              ],
+              [
+                45,
+                31,
+                2
+              ],
+              [
+                45,
+                32,
+                2
+              ],
+              [
+                45,
+                33,
+                2
+              ],
+              [
+                45,
+                34,
+                2
+              ],
+              [
+                45,
+                35,
+                2
+              ],
+              [
+                45,
+                36,
+                2
+              ],
+              [
+                45,
+                37,
+                3
+              ],
+              [
+                45,
+                38,
+                3
+              ],
+              [
+                46,
+                39,
+                2
+              ],
+              [
+                46,
+                40,
+                1
+              ]
+            ]
+          },
+          "channel": "world/region.packed_road.1129/reroll.0/territory/0",
+          "dangerBand": 3,
+          "draw": 3,
+          "elitePermille": 30,
+          "id": "territory.region.packed_road.1129.0",
+          "maxActive": 2,
+          "packSize": [
+            2,
+            6
+          ],
+          "regionId": "region.packed_road.1129",
+          "respawnPressure": "medium",
+          "roster": [
+            {
+              "enemyId": "enemy.marauder",
+              "nightOnly": false,
+              "weightPercent": 20
+            }
+          ],
+          "seedCell": [
+            45,
+            33
+          ]
+        }
+      ],
+      "territoriesFormat": 1
+    },
+    "report": {
+      "analysisVersion": 1,
+      "base": {
+        "artifactFormat": 8,
+        "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26"
+      },
+      "directorBehaviorVersion": 5,
+      "directorRecipeSha256": "4c22474c547987d35cb241932c93f7bae0ec7807c689afc8d3eed3e0d96d1564",
+      "gates": [
+        {
+          "details": [],
+          "id": "G1",
+          "name": "placements on valid ground",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G2",
+          "name": "exclusion symmetry",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G3",
+          "name": "territories on valid ground",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G4",
+          "name": "budgets place or explain",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G5",
+          "name": "danger progression",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G6",
+          "name": "locks held",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G7",
+          "name": "base identity",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G8",
+          "name": "determinism round-trip",
+          "status": "pass"
+        },
+        {
+          "details": [],
+          "id": "G9",
+          "name": "painted zones respected",
+          "status": "pass"
+        }
+      ],
+      "ok": true,
+      "recipeName": "basic-direction",
+      "reportFormat": 1,
+      "rulePacks": {
+        "analysis": 1,
+        "export": 1,
+        "placement": 2,
+        "plan": 1,
+        "territory": 2,
+        "validate": 1
+      },
+      "strict": false
+    }
+  },
+  "GET /api/recipe?world=fen-hollow": {
+    "world": "fen-hollow",
+    "path": "/home/user/world_filler/fixtures/recipes/basic-direction.json",
+    "own": false,
+    "raw": "{\n  \"recipeFormat\": 1,\n  \"name\": \"basic-direction\",\n  \"directorSeed\": 103991\n}\n",
+    "normalized": {
+      "recipeFormat": 1,
+      "name": "basic-direction",
+      "directorSeed": 103991,
+      "base": {
+        "generationIdentitySha256": null
+      },
+      "danger": {
+        "bandCount": 5,
+        "maxBandJump": 2,
+        "safeZoneShareForBand0Permille": 300,
+        "overrides": []
+      },
+      "budgets": {
+        "minRegionCells": 64,
+        "majorRegionCells": 800,
+        "territoriesPer1000Walkable": 12,
+        "territoryCapPerRegion": 4,
+        "encountersPer1000Walkable": 8,
+        "encounterCapPerRegion": 6,
+        "dungeonCapPerRegion": 2,
+        "worldBossCount": 1,
+        "minWorldBossBand": 2
+      },
+      "dungeonAnchors": {
+        "poiTypes": [
+          "poi.beast_den",
+          "poi.cave",
+          "poi.city_ruin",
+          "poi.crypt",
+          "poi.giant_skeleton",
+          "poi.mine",
+          "poi.ruin"
+        ]
+      },
+      "worldBossRule": {
+        "minClearance": 6,
+        "minSettlementPathDistance": 20,
+        "minPeerPathDistance": 80,
+        "exclusionRadius": 16,
+        "clearancePermille": 600,
+        "settlementFarPermille": 800,
+        "roadFarPermille": 500
+      },
+      "dungeonRule": {
+        "exclusionRadius": 8,
+        "settlementFarPermille": 1000
+      },
+      "territoryRule": {
+        "targetHostileCoveragePermille": 350,
+        "minCells": 24,
+        "maxCells": 400,
+        "packSizeMin": 2,
+        "packSizeMax": 6,
+        "maxActivePer100Cells": 8,
+        "elitePermille": 30,
+        "respawnPressure": "medium"
+      },
+      "contentLibrary": {
+        "enemies": [
+          {
+            "id": "enemy.frost_wraith",
+            "biomes": [
+              "terrain.snow"
+            ],
+            "minBand": 0,
+            "maxBand": 12,
+            "weightPercent": 30,
+            "nightOnly": false
+          },
+          {
+            "id": "enemy.gravel_lurker",
+            "biomes": [
+              "terrain.gravel",
+              "terrain.sand"
+            ],
+            "minBand": 0,
+            "maxBand": 8,
+            "weightPercent": 30,
+            "nightOnly": false
+          },
+          {
+            "id": "enemy.marauder",
+            "biomes": [
+              "terrain.cobble",
+              "terrain.dry_grass",
+              "terrain.grass",
+              "terrain.gravel",
+              "terrain.mud",
+              "terrain.packed_road",
+              "terrain.sand",
+              "terrain.snow"
+            ],
+            "minBand": 1,
+            "maxBand": 15,
+            "weightPercent": 20,
+            "nightOnly": false
+          },
+          {
+            "id": "enemy.mire_creeper",
+            "biomes": [
+              "terrain.mud",
+              "terrain.swamp"
+            ],
+            "minBand": 0,
+            "maxBand": 8,
+            "weightPercent": 35,
+            "nightOnly": false
+          },
+          {
+            "id": "enemy.night_shade",
+            "biomes": [
+              "terrain.dry_grass",
+              "terrain.grass",
+              "terrain.mud",
+              "terrain.snow"
+            ],
+            "minBand": 2,
+            "maxBand": 15,
+            "weightPercent": 15,
+            "nightOnly": true
+          },
+          {
+            "id": "enemy.prowler",
+            "biomes": [
+              "terrain.dry_grass",
+              "terrain.grass"
+            ],
+            "minBand": 0,
+            "maxBand": 5,
+            "weightPercent": 40,
+            "nightOnly": false
+          }
+        ]
+      },
+      "rerolls": [],
+      "locks": {
+        "placements": []
+      },
+      "paint": {
+        "noContent": [],
+        "preferContent": []
+      }
+    }
+  },
+  "POST /api/lock": {
+    "ok": true,
+    "locked": {
+      "id": "placement.world_boss.region.mud.1245.0",
+      "rule": "world_boss.v1",
+      "regionId": "region.mud.1245",
+      "cell": [
+        31,
+        59
+      ],
+      "exclusionRadius": 16,
+      "anchorPoiId": null,
+      "arenaOrigin": [
+        29,
+        57
+      ],
+      "arenaSide": 6
+    }
+  },
+  "POST /api/reroll": {
+    "ok": true,
+    "regionId": "region.mud.1245",
+    "iteration": 1
+  },
+  "POST /api/unlock": {
+    "ok": true,
+    "released": "placement.world_boss.region.mud.1245.0"
+  },
+  "error example: GET /api/pack?world=nope (404)": {
+    "ok": false,
+    "error": "no export for nope yet — direct it first"
+  },
+  "error example: PUT /api/recipe invalid (400)": {
+    "ok": false,
+    "error": "recipe: directorSeed must be a non-negative safe integer"
+  }
+}

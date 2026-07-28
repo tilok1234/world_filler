@@ -67,6 +67,29 @@ F2–F5 renders also still PENDING** (8x renders for both fixture worlds
 were delivered in-session). Then the first-arc close-out (deferred list
 stays deferred).
 
+## 1b. Post-F8 user-driven additions (same day)
+
+The user tested the flow on Windows; the friction findings drove these
+(all pushed, all covered by tests, dist committed pre-built):
+
+- **START-HERE.bat** one-click flow; **worlds\** drop-folder (auto-
+  directed with recipes\<name>.json overrides); export bakes a
+  self-contained **view.html** per pack; open-viewer.bat opens the
+  newest one. dist/ is committed — see §3 doctrine.
+- **consumers/godot_addon/worldfiller_importer/** — the game-side
+  importer (copy folder into a Godot 4 project; full blessed
+  verification; decoded territories; walkable/territory_at/
+  placement_by_id). Headless-proven via consumers/godot_addon/
+  test_importer.gd.
+- **Director Studio phase 1** (`wf-fill serve`, STUDIO.bat, port 8787,
+  127.0.0.1 only): JSON API over the unchanged pipeline — worlds /
+  recipe get+put (validated, writes recipes/<world>.json only) /
+  direct / pack / render / view / lock / unlock / reroll.
+  tests/serve.test.ts pins server-direct BYTE-IDENTICAL to CLI export.
+  src/serve/ui.html is a deliberate placeholder: the designed front-end
+  is produced externally from **docs/DESIGN_BRIEF.md** +
+  **docs/sample-api.json** and swaps that one file (phase 2, pending).
+
 ## 2. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
 - F0 clean-room reader + walkability ladder + flood; bit-for-bit parity

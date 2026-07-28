@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>wf-fill director studio (placeholder UI)</title>
+<!--
+  PLACEHOLDER studio front-end: functional but deliberately plain. It
+  exists to prove the API end to end; the designed replacement (built
+  from docs/DESIGN_BRIEF.md) swaps this file wholesale. Served at / by
+  src/serve/server.ts.
+-->
+<style>
+  body { margin: 0; background: #14161a; color: #d6dae2; font: 13px/1.5 ui-monospace, Consolas, monospace; }
+  main { max-width: 900px; margin: 0 auto; padding: 16px; }
+  h1 { color: #5cc8ff; font-size: 16px; }
+  h2 { color: #8b93a1; font-size: 13px; text-transform: uppercase; margin: 18px 0 6px; }
+  button, select { background: #1d2026; color: #d6dae2; border: 1px solid #2c313a; border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+  textarea { width: 100%; height: 260px; background: #101216; color: #d6dae2; border: 1px solid #2c313a; }
+  #status { white-space: pre-wrap; background: #101216; border: 1px solid #2c313a; padding: 8px; border-radius: 4px; min-height: 40px; }
+  .row { margin: 6px 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ok { color: #7bd88f; } .bad { color: #ff6b6b; }
+  a { color: #5cc8ff; }
+  table { border-collapse: collapse; } td, th { border: 1px solid #2c313a; padding: 3px 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>director studio <span style="color:#8b93a1">(placeholder UI — the designed one replaces this)</span></h1>
+
+  <h2>1 · world</h2>
+  <div class="row">
+    <select id="world"></select>
+    <label><input type="checkbox" id="strict"> strict</label>
+    <button id="direct">Direct (generate / regenerate)</button>
+    <a id="viewLink" target="_blank" style="display:none">open map</a>
+  </div>
+  <div id="status">pick a world.</div>
+
+  <h2>2 · placements — lock what you like</h2>
+  <div id="placements">direct a world first.</div>
+
+  <h2>3 · regions — reroll what you don't</h2>
+  <div class="row">
+    <select id="region"></select>
+    <button id="reroll">Reroll region</button>
+  </div>
+
+  <h2>4 · recipe (raw)</h2>
+  <div class="row"><button id="loadRecipe">Load</button><button id="saveRecipe">Validate + save</button><span id="recipeMsg"></span></div>
+  <textarea id="recipe" spellcheck="false"></textarea>
+</main>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const api = async (method, path, body) => {
+  const res = await fetch(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+  const data = await res.json().catch(() => ({ ok: false, error: "non-JSON response" }));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+};
+const status = (text, bad) => { $("status").textContent = text; $("status").className = bad ? "bad" : ""; };
+const world = () => $("world").value;
+
+async function loadWorlds() {
+  const data = await api("GET", "/api/worlds");
+  $("world").innerHTML = data.worlds.map((entry) =>
+    `<option value="${entry.name}">${entry.name} (${entry.width}x${entry.height}, ${entry.source}${entry.hasOwnRecipe ? ", own recipe" : ""}${entry.hasExport ? ", exported" : ""})</option>`).join("");
+  if (data.worlds.length > 0) await refreshPack();
+}
+
+async function refreshPack() {
+  $("viewLink").style.display = "none";
+  $("placements").textContent = "direct this world to see placements.";
+  $("region").innerHTML = "";
+  try {
+    const pack = await api("GET", "/api/pack?world=" + world());
+    $("viewLink").href = "/view?world=" + world();
+    $("viewLink").style.display = "inline";
+    const locks = new Set((pack.placements.lockReport || []).filter((entry) => entry.status === "held").map((entry) => entry.id));
+    $("placements").innerHTML = "<table><tr><th>placement</th><th>cell</th><th></th></tr>" +
+      pack.placements.placements.map((placement) =>
+        `<tr><td>${placement.id}${placement.locked ? " 🔒" : ""}</td><td>(${placement.cell})</td>` +
+        `<td><button data-id="${placement.id}" data-verb="${placement.locked ? "unlock" : "lock"}">${placement.locked ? "Unlock" : "Lock"}</button></td></tr>`).join("") + "</table>";
+    for (const button of $("placements").querySelectorAll("button")) {
+      button.addEventListener("click", async () => {
+        try {
+          await api("POST", "/api/" + button.dataset.verb, { world: world(), placementId: button.dataset.id });
+          status(button.dataset.verb + " saved to the recipe — press Direct to regenerate.");
+        } catch (error) { status(String(error.message), true); }
+      });
+    }
+    $("region").innerHTML = pack.plan.regions
+      .filter((region) => region.budgets.territories + region.budgets.worldBosses + region.budgets.dungeonBindings > 0)
+      .map((region) => `<option>${region.id}</option>`).join("");
+  } catch { /* no export yet */ }
+}
+
+$("direct").addEventListener("click", async () => {
+  status("directing " + world() + " …");
+  try {
+    const result = await api("POST", "/api/direct?world=" + world() + ($("strict").checked ? "&strict=1" : ""));
+    status("OK — " + result.counts.placements + " placements, " + result.counts.territories + " territories; gates: " +
+      result.gates.map((gate) => gate.id + ":" + gate.status).join(" "));
+    await refreshPack();
+  } catch (error) { status(String(error.message), true); }
+});
+$("reroll").addEventListener("click", async () => {
+  try {
+    const result = await api("POST", "/api/reroll", { world: world(), regionId: $("region").value });
+    status("reroll " + result.regionId + " -> iteration " + result.iteration + " saved — press Direct to regenerate.");
+  } catch (error) { status(String(error.message), true); }
+});
+$("loadRecipe").addEventListener("click", async () => {
+  try {
+    const data = await api("GET", "/api/recipe?world=" + world());
+    $("recipe").value = data.raw;
+    $("recipeMsg").textContent = data.own ? "own recipe (recipes/" + world() + ".json)" : "example recipe (saving creates recipes/" + world() + ".json)";
+  } catch (error) { $("recipeMsg").textContent = String(error.message); }
+});
+$("saveRecipe").addEventListener("click", async () => {
+  try {
+    await api("PUT", "/api/recipe?world=" + world(), JSON.parse($("recipe").value));
+    $("recipeMsg").textContent = "saved ✓ — press Direct to regenerate.";
+  } catch (error) { $("recipeMsg").textContent = String(error.message); }
+});
+$("world").addEventListener("change", refreshPack);
+loadWorlds().catch((error) => status(String(error.message), true));
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ import { verifyContentPack } from "./consume/verifyPack.js";
 import { PLACEMENTS_FORMAT } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
+import { startStudio } from "./serve/server.js";
 function usage() {
     console.log([
         "wf-fill — deterministic world director over WorldForge game packs",
@@ -46,6 +47,7 @@ function usage() {
         "                                        full pipeline -> audited content pack (refuses on failed gates)",
         "  wf-fill verify-pack <world-pack-dir> <content-pack-dir>",
         "                                        consumption proof: verify a content pack against its world pack",
+        "  wf-fill serve [port]                  local director studio (browser UI over this same pipeline)",
         "",
         "inspect and parity are read-only. analyze writes under outputs/ (or the",
         "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -486,6 +488,15 @@ function main(argv) {
     if (command === undefined || command === "help" || command === "--help") {
         usage();
         return command === undefined ? 1 : 0;
+    }
+    if (command === "serve") {
+        const port = target === undefined ? 8787 : Number(target);
+        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+            console.error(`serve: ${String(target)} is not a valid port`);
+            return 1;
+        }
+        startStudio(port);
+        return 0;
     }
     if (target === undefined) {
         usage();
