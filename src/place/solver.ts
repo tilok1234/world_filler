@@ -1,5 +1,5 @@
 import { Channel } from "../core/channel.js";
-import { recipeSha256, type DirectorRecipe } from "../recipe/schema.js";
+import { recipeSha256, type DirectorRecipe, type PlacementLock } from "../recipe/schema.js";
 import type { WorldModel } from "../world/model.js";
 import type { AnalysisBundle } from "../analysis/analyze.js";
 import type { RegionalPlan } from "../plan/plan.js";
@@ -67,12 +67,29 @@ export interface Placement {
   readonly arenaOrigin: readonly [number, number] | null;
   readonly arenaSide: number | null;
   readonly exclusionRadius: number;
+  readonly locked: boolean;
   readonly channel: string;
   readonly draw: number;
   readonly score: number;
   readonly scoreTerms: readonly ScoreTerm[];
   readonly candidateFunnel: readonly CandidateFunnel[];
   readonly topCandidates: readonly { readonly cell: readonly [number, number]; readonly score: number }[];
+}
+
+export type LockInvalidity =
+  | "region_missing"
+  | "over_budget"
+  | "cell_not_walkable"
+  | "cell_unreachable"
+  | "arena_blocked"
+  | "anchor_missing"
+  | "anchor_changed"
+  | "in_no_content_zone";
+
+export interface LockReportEntry {
+  readonly id: string;
+  readonly status: "held" | "invalid";
+  readonly reasons: readonly LockInvalidity[];
 }
 
 export interface PlacementFailure {
@@ -88,7 +105,13 @@ export interface UnboundAnchor {
   readonly poiType: string;
   readonly cell: readonly [number, number];
   readonly regionId: string | null;
-  readonly reason: "not_selected_budget" | "unreachable_anchor" | "spacing_blocked" | "no_region" | "region_zero_budget";
+  readonly reason:
+    | "not_selected_budget"
+    | "unreachable_anchor"
+    | "spacing_blocked"
+    | "no_region"
+    | "region_zero_budget"
+    | "no_content_zone";
 }
 
 export interface PlacementsDoc {
@@ -108,6 +131,7 @@ export interface PlacementsDoc {
   readonly placements: readonly Placement[];
   readonly failures: readonly PlacementFailure[];
   readonly unboundAnchors: readonly UnboundAnchor[];
+  readonly lockReport: readonly LockReportEntry[];
 }
 
 interface SolverState {
@@ -123,8 +147,11 @@ interface SolverState {
   readonly placements: Placement[];
   readonly failures: PlacementFailure[];
   readonly unboundAnchors: UnboundAnchor[];
+  readonly lockReport: LockReportEntry[];
   readonly rerollByRegion: ReadonlyMap<string, number>;
   readonly labelById: ReadonlyMap<string, number>;
+  readonly inNoContent: (x: number, y: number) => boolean;
+  readonly preferBonusAt: (x: number, y: number) => number;
 }
 
 function regionChannel(state: SolverState, regionId: string): Channel {
@@ -222,7 +249,13 @@ interface AnchorPoi {
 }
 
 /** Place dungeon bindings for one region. Anchors are fixed; selection is which anchors become live dungeons. */
-function placeDungeons(state: SolverState, regionId: string, budget: number, anchorPois: readonly AnchorPoi[]): void {
+function placeDungeons(
+  state: SolverState,
+  regionId: string,
+  budget: number,
+  anchorPois: readonly AnchorPoi[],
+  takenIds: ReadonlySet<string>,
+): void {
   const { recipe, bundle } = state;
   const settlementMax = Math.max(1, bundle.summary.fieldStats["distanceFromSettlements"]?.max ?? 1);
 
@@ -235,6 +268,10 @@ function placeDungeons(state: SolverState, regionId: string, budget: number, anc
 
   const reachable: DungeonCandidate[] = [];
   for (const anchor of anchorPois) {
+    if (state.inNoContent(anchor.cell[0], anchor.cell[1])) {
+      state.unboundAnchors.push({ poiId: anchor.poiId, poiType: anchor.poiType, cell: anchor.cell, regionId, reason: "no_content_zone" });
+      continue;
+    }
     const access = accessCellNear(state, anchor.cell[0], anchor.cell[1]);
     if (access === null) {
       state.unboundAnchors.push({ poiId: anchor.poiId, poiType: anchor.poiType, cell: anchor.cell, regionId, reason: "unreachable_anchor" });
@@ -242,14 +279,23 @@ function placeDungeons(state: SolverState, regionId: string, budget: number, anc
     }
     const settlementDistance = bundle.distanceFromSettlements[access[1] * state.width + access[0]] as number;
     const value = settlementDistance === UNREACHABLE ? 1000 : permilleOf(settlementDistance, settlementMax);
-    const contribution = Math.floor((value * recipe.dungeonRule.settlementFarPermille) / 1000);
+    const terms: ScoreTerm[] = [
+      {
+        term: "settlement_far",
+        value,
+        weightPermille: recipe.dungeonRule.settlementFarPermille,
+        contribution: Math.floor((value * recipe.dungeonRule.settlementFarPermille) / 1000),
+      },
+    ];
+    const bonus = state.preferBonusAt(anchor.cell[0], anchor.cell[1]);
+    if (bonus > 0) {
+      terms.push({ term: "preferred_zone", value: 1000, weightPermille: bonus, contribution: bonus });
+    }
     reachable.push({
       anchor,
       accessCell: access,
-      score: contribution,
-      scoreTerms: [
-        { term: "settlement_far", value, weightPermille: recipe.dungeonRule.settlementFarPermille, contribution },
-      ],
+      score: terms.reduce((sum, term) => sum + term.contribution, 0),
+      scoreTerms: terms,
     });
   }
   reachable.sort((a, b) => (a.score !== b.score ? b.score - a.score : a.anchor.poiId - b.anchor.poiId));
@@ -257,7 +303,11 @@ function placeDungeons(state: SolverState, regionId: string, budget: number, anc
   const channel = regionChannel(state, regionId).child("dungeon");
   const remaining = [...reachable];
   let placedInRegion = 0;
-  for (let slot = 0; slot < budget; slot += 1) {
+  let slotNumber = -1;
+  for (let iteration = 0; iteration < budget; iteration += 1) {
+    slotNumber += 1;
+    while (takenIds.has(`placement.dungeon.${regionId}.${slotNumber}`)) slotNumber += 1;
+    const slot = slotNumber;
     const viable: DungeonCandidate[] = [];
     for (const candidate of remaining) {
       const physical = rectCells(
@@ -318,6 +368,7 @@ function placeDungeons(state: SolverState, regionId: string, budget: number, anc
       arenaOrigin: null,
       arenaSide: null,
       exclusionRadius: recipe.dungeonRule.exclusionRadius,
+      locked: false,
       channel: slotChannel.path,
       draw: pickIndex,
       score: chosen.score,
@@ -366,6 +417,7 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
 
   let inRegion = 0;
   let afterReachable = 0;
+  let afterPaint = 0;
   let afterSafeAndReserved = 0;
   let afterExclusion = 0;
   let afterSettlement = 0;
@@ -389,6 +441,8 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
       inRegion += 1;
       if ((bundle.distanceFromSpawn[centerIndex] as number) === UNREACHABLE) continue;
       afterReachable += 1;
+      if (state.inNoContent(centerX, centerY)) continue;
+      afterPaint += 1;
       const square = rectCells(state, originX, originY, side, side);
       if (anySafe(state, square) || anyIn(state.placementMask, square) || anyIn(state.bufferMask, square)) continue;
       afterSafeAndReserved += 1;
@@ -417,6 +471,10 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
         { term: "settlement_far", value: settlementValue, weightPermille: rule.settlementFarPermille, contribution: Math.floor((settlementValue * rule.settlementFarPermille) / 1000) },
         { term: "road_far", value: roadValue, weightPermille: rule.roadFarPermille, contribution: Math.floor((roadValue * rule.roadFarPermille) / 1000) },
       ];
+      const paintBonus = state.preferBonusAt(centerX, centerY);
+      if (paintBonus > 0) {
+        terms.push({ term: "preferred_zone", value: 1000, weightPermille: paintBonus, contribution: paintBonus });
+      }
       const score = terms.reduce((sum, term) => sum + term.contribution, 0);
       candidates.push({ cellIndex: centerIndex, x: centerX, y: centerY, originX, originY, score, scoreTerms: terms });
     }
@@ -425,6 +483,7 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
   const funnel: CandidateFunnel[] = [
     { stage: "clearance_anchor_in_region", remaining: inRegion },
     { stage: "reachable", remaining: afterReachable },
+    { stage: "paint_no_content", remaining: afterPaint },
     { stage: "clear_of_safe_and_reserved", remaining: afterSafeAndReserved },
     { stage: "exclusion_clear", remaining: afterExclusion },
     { stage: "settlement_distance", remaining: afterSettlement },
@@ -463,6 +522,7 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
     arenaOrigin: [chosen.originX, chosen.originY],
     arenaSide: side,
     exclusionRadius: rule.exclusionRadius,
+    locked: false,
     channel: channel.path,
     draw: pickIndex,
     score: chosen.score,
@@ -483,6 +543,15 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
     }
   }
 
+  for (const zone of [...recipe.paint.noContent, ...recipe.paint.preferContent]) {
+    const [, , x1, y1] = zone.rect;
+    if (x1 >= width || y1 >= height) {
+      throw new PlacementError(`placements: paint rect [${zone.rect.join(", ")}] exceeds the ${width}x${height} world`);
+    }
+  }
+  const inRect = (rect: readonly [number, number, number, number], x: number, y: number): boolean =>
+    x >= rect[0] && x <= rect[2] && y >= rect[1] && y <= rect[3];
+
   const state: SolverState = {
     model,
     bundle,
@@ -494,8 +563,17 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
     placements: [],
     failures: [],
     unboundAnchors: [],
+    lockReport: [],
     rerollByRegion: new Map(recipe.rerolls.map((reroll) => [reroll.regionId, reroll.iteration])),
     labelById: new Map(bundle.regions.map((region, label) => [region.id, label])),
+    inNoContent: (x, y) => recipe.paint.noContent.some((zone) => inRect(zone.rect, x, y)),
+    preferBonusAt: (x, y) => {
+      let best = 0;
+      for (const zone of recipe.paint.preferContent) {
+        if (inRect(zone.rect, x, y) && zone.bonusPermille > best) best = zone.bonusPermille;
+      }
+      return best;
+    },
   };
 
   // Anchor POIs grouped per region (same nearest-region snap as the plan).
@@ -534,11 +612,121 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   }
   for (const list of anchorsByRegion.values()) list.sort((a, b) => a.poiId - b.poiId);
 
+  // Pass 0 — locks. Held locks are emitted verbatim (marked locked) and
+  // claim their ground before any fresh solving; invalid locks get a
+  // per-lock diagnosis and their slot re-solves fresh.
+  const heldIds = new Set<string>();
+  const heldByRegionRule = new Map<string, number>();
+  const regionBudget = (regionId: string, rule: PlacementLock["rule"]): number => {
+    const region = plan.regions.find((entry) => entry.id === regionId);
+    if (region === undefined) return 0;
+    return rule === "world_boss.v1" ? region.budgets.worldBosses : region.budgets.dungeonBindings;
+  };
+  for (const lock of recipe.locks.placements) {
+    const reasons: LockInvalidity[] = [];
+    const label = state.labelById.get(lock.regionId);
+    if (label === undefined) reasons.push("region_missing");
+    const budgetKey = `${lock.regionId}|${lock.rule}`;
+    if (label !== undefined) {
+      const used = heldByRegionRule.get(budgetKey) ?? 0;
+      if (used >= regionBudget(lock.regionId, lock.rule)) reasons.push("over_budget");
+    }
+    if (state.inNoContent(lock.cell[0], lock.cell[1])) reasons.push("in_no_content_zone");
+
+    let physical: number[] = [];
+    let accessCell: readonly [number, number] | null = null;
+    let anchorPoiType: string | null = null;
+    if (reasons.length === 0 && lock.rule === "world_boss.v1") {
+      const origin = lock.arenaOrigin as readonly [number, number];
+      const side = lock.arenaSide as number;
+      const cellIndex = lock.cell[1] * width + lock.cell[0];
+      if (
+        origin[0] + side > width || origin[1] + side > height ||
+        bundle.bits[cellIndex] !== 1
+      ) {
+        reasons.push("cell_not_walkable");
+      } else if ((bundle.distanceFromSpawn[cellIndex] as number) === UNREACHABLE) {
+        reasons.push("cell_unreachable");
+      } else {
+        physical = rectCells(state, origin[0], origin[1], side, side);
+        const buffer = discCells(state, lock.cell[0], lock.cell[1], lock.exclusionRadius);
+        let arenaWalkable = true;
+        for (const index of physical) {
+          if (bundle.bits[index] !== 1) arenaWalkable = false;
+        }
+        if (!arenaWalkable) reasons.push("cell_not_walkable");
+        else if (anySafe(state, physical) || !admissible(state, physical, buffer)) reasons.push("arena_blocked");
+      }
+      accessCell = lock.cell;
+    }
+    if (reasons.length === 0 && lock.rule === "dungeon_binding.v1") {
+      const poi = model.pois.find((entry) => entry.id === lock.anchorPoiId);
+      if (poi === undefined || poi.structure === undefined) {
+        reasons.push("anchor_missing");
+      } else if (poi.cell[0] !== lock.cell[0] || poi.cell[1] !== lock.cell[1]) {
+        reasons.push("anchor_changed");
+      } else {
+        anchorPoiType = poi.type;
+        accessCell = accessCellNear(state, poi.cell[0], poi.cell[1]);
+        if (accessCell === null) {
+          reasons.push("cell_unreachable");
+        } else {
+          physical = rectCells(state, poi.structure.x, poi.structure.y, poi.structure.w, poi.structure.h);
+          const buffer = discCells(state, poi.cell[0], poi.cell[1], lock.exclusionRadius);
+          if (!admissible(state, physical, buffer)) reasons.push("arena_blocked");
+        }
+      }
+    }
+
+    if (reasons.length > 0) {
+      state.lockReport.push({ id: lock.id, status: "invalid", reasons });
+      continue;
+    }
+    heldByRegionRule.set(budgetKey, (heldByRegionRule.get(budgetKey) ?? 0) + 1);
+    heldIds.add(lock.id);
+    state.lockReport.push({ id: lock.id, status: "held", reasons: [] });
+    claim(state.placementMask, physical);
+    claim(
+      state.bufferMask,
+      discCells(state, lock.cell[0], lock.cell[1], lock.exclusionRadius),
+    );
+    const access = accessCell as readonly [number, number];
+    const accessIndex = access[1] * width + access[0];
+    state.placements.push({
+      id: lock.id,
+      rule: lock.rule,
+      regionId: lock.regionId,
+      cell: lock.cell,
+      accessCell: access,
+      anchorPoiId: lock.anchorPoiId,
+      anchorPoiType,
+      inSafeZone: bundle.safeZone[accessIndex] === 1,
+      arenaOrigin: lock.arenaOrigin,
+      arenaSide: lock.arenaSide,
+      exclusionRadius: lock.exclusionRadius,
+      locked: true,
+      channel: "locked",
+      draw: 0,
+      score: 0,
+      scoreTerms: [],
+      candidateFunnel: [{ stage: "locked", remaining: 1 }],
+      topCandidates: [],
+    });
+  }
+
   // Pass 1 — dungeon bindings (fixed anchors claim ground first).
   const budgetByRegion = new Map(plan.regions.map((region) => [region.id, region.budgets.dungeonBindings]));
   for (const region of plan.regions) {
-    if (region.budgets.dungeonBindings <= 0) continue;
-    placeDungeons(state, region.id, region.budgets.dungeonBindings, anchorsByRegion.get(region.id) ?? []);
+    const heldDungeons = heldByRegionRule.get(`${region.id}|dungeon_binding.v1`) ?? 0;
+    const remainingBudget = region.budgets.dungeonBindings - heldDungeons;
+    if (remainingBudget <= 0) continue;
+    const lockedAnchorIds = new Set(
+      state.placements
+        .filter((placement) => placement.locked && placement.rule === "dungeon_binding.v1" && placement.regionId === region.id)
+        .map((placement) => placement.anchorPoiId),
+    );
+    const freshAnchors = (anchorsByRegion.get(region.id) ?? []).filter((anchor) => !lockedAnchorIds.has(anchor.poiId));
+    placeDungeons(state, region.id, remainingBudget, freshAnchors, heldIds);
   }
   // Full accounting: anchors in regions whose plan budget is zero never
   // entered a solve and must still appear in the report.
@@ -550,9 +738,19 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   }
 
   // Pass 2 — world bosses (flexible sites route around existing claims).
+  // Held boss locks consume their region's budget and contribute peer
+  // fields so fresh bosses keep their distance from locked ones too.
   const peerFields: Int32Array[] = [];
+  for (const placement of state.placements) {
+    if (placement.locked && placement.rule === "world_boss.v1") {
+      peerFields.push(
+        distanceField(bundle.bits, width, height, [placement.cell[1] * width + placement.cell[0]]),
+      );
+    }
+  }
   for (const region of plan.regions) {
-    if (region.budgets.worldBosses <= 0) continue;
+    const heldBosses = heldByRegionRule.get(`${region.id}|world_boss.v1`) ?? 0;
+    if (region.budgets.worldBosses - heldBosses <= 0) continue;
     const field = placeBoss(state, region.id, 0, peerFields);
     if (field !== null) peerFields.push(field);
   }
@@ -574,5 +772,6 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
     placements: state.placements,
     failures: state.failures,
     unboundAnchors: [...state.unboundAnchors].sort((a, b) => a.poiId - b.poiId),
+    lockReport: state.lockReport,
   };
 }

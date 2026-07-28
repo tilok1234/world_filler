@@ -172,7 +172,7 @@ export function growTerritories(
     const label = labelById.get(region.id) as number;
     const band = region.dangerBand ?? 0;
 
-    // Eligible ground for this region.
+    // Eligible ground for this region (painted no-content zones excluded).
     const eligible = new Uint8Array(width * height);
     let eligibleCount = 0;
     for (let i = 0; i < width * height; i += 1) {
@@ -180,6 +180,9 @@ export function growTerritories(
       if (bundle.bits[i] !== 1) continue;
       if ((bundle.distanceFromSpawn[i] as number) === UNREACHABLE) continue;
       if (blocked[i] === 1 || claimed[i] === 1) continue;
+      const x = i % width;
+      const y = (i - x) / width;
+      if (recipe.paint.noContent.some((zone) => x >= zone.rect[0] && x <= zone.rect[2] && y >= zone.rect[1] && y <= zone.rect[3])) continue;
       eligible[i] = 1;
       eligibleCount += 1;
     }

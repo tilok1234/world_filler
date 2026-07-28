@@ -12,6 +12,7 @@ import { compilePlan } from "./plan/plan.js";
 import { solvePlacements, type PlacementsDoc, type Placement } from "./place/solver.js";
 import { growTerritories } from "./territory/territory.js";
 import { renderTerritories } from "./render/territoryRender.js";
+import { runGates, formatReport } from "./validate/validate.js";
 import { PLACEMENTS_FORMAT } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
@@ -33,6 +34,10 @@ function usage(): void {
       "                                        why a placement landed where it did",
       "  wf-fill territories <pack-dir> <recipe.json> [out-dir]",
       "                                        grow spawn territories + render",
+      "  wf-fill validate <pack-dir> <recipe.json> [out-dir] [--strict]",
+      "                                        run the full gate battery + audit report",
+      "  wf-fill lock <placements.json> <placement-id>",
+      "                                        print the recipe lock entry for a placement",
       "",
       "inspect and parity are read-only. analyze writes under outputs/ (or the",
       "given out-dir, which must pass the output-root guard). Exit code 1 on any",
@@ -329,8 +334,75 @@ function runTerritories(dir: string, recipePath: string, outArg: string | undefi
   return 0;
 }
 
+function runValidate(dir: string, recipePath: string, outArg: string | undefined, strict: boolean): number {
+  const { pack, model } = loadModel(dir);
+  const parity = checkParity(pack, model);
+  if (!parity.ok) {
+    console.error("validate: refusing — walkability parity with the pack's reference grid failed");
+    return 1;
+  }
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const bundle = analyzeWorld(model);
+  const plan = compilePlan(model, bundle, recipe);
+  const placements = solvePlacements(model, bundle, plan, recipe);
+  const territories = growTerritories(model, bundle, plan, placements, recipe);
+
+  const report = runGates({
+    model,
+    bundle,
+    plan,
+    placements,
+    territories,
+    recipe,
+    strict,
+    resolveAgain: () => {
+      const placementsAgain = solvePlacements(model, bundle, plan, recipe);
+      return { placements: placementsAgain, territories: growTerritories(model, bundle, plan, placementsAgain, recipe) };
+    },
+  });
+
+  const outDir = assertOutputRoot(
+    outArg ?? join(repoRoot(), "outputs", "validate", `${basename(dir)}-${recipe.name}`),
+  );
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, "report.json"), canonicalJson(report));
+  const text = formatReport(report);
+  writeFileSync(join(outDir, "report.txt"), text);
+  process.stdout.write(text);
+  console.log(`wrote ${outDir}`);
+  return report.ok ? 0 : 1;
+}
+
+function runLock(placementsPath: string, placementId: string): number {
+  const doc = JSON.parse(readFileSync(placementsPath, "utf8")) as PlacementsDoc;
+  if (doc.placementsFormat !== PLACEMENTS_FORMAT || !Array.isArray(doc.placements)) {
+    console.error(`lock: ${placementsPath} is not a supported placements file`);
+    return 1;
+  }
+  const placement = doc.placements.find((entry: Placement) => entry.id === placementId);
+  if (placement === undefined) {
+    console.error(`lock: no placement ${placementId}`);
+    return 1;
+  }
+  const entry = {
+    id: placement.id,
+    rule: placement.rule,
+    regionId: placement.regionId,
+    cell: placement.cell,
+    exclusionRadius: placement.exclusionRadius,
+    anchorPoiId: placement.anchorPoiId,
+    arenaOrigin: placement.arenaOrigin,
+    arenaSide: placement.arenaSide,
+  };
+  console.log("add to the recipe under locks.placements:");
+  process.stdout.write(canonicalJson(entry));
+  return 0;
+}
+
 function main(argv: readonly string[]): number {
-  const [command, target, extra, extra2] = argv;
+  const strict = argv.includes("--strict");
+  const positional = argv.filter((entry) => entry !== "--strict");
+  const [command, target, extra, extra2] = positional;
   if (command === undefined || command === "help" || command === "--help") {
     usage();
     return command === undefined ? 1 : 0;
@@ -370,6 +442,20 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runTerritories(target, extra, extra2);
+    }
+    if (command === "validate") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runValidate(target, extra, extra2, strict);
+    }
+    if (command === "lock") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runLock(target, extra);
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

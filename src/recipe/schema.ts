@@ -74,6 +74,33 @@ export interface DirectorRecipe {
     readonly enemies: readonly EnemyDef[];
   };
   readonly rerolls: readonly RegionReroll[];
+  readonly locks: {
+    readonly placements: readonly PlacementLock[];
+  };
+  readonly paint: {
+    readonly noContent: readonly PaintRect[];
+    readonly preferContent: readonly PreferRect[];
+  };
+}
+
+export interface PlacementLock {
+  readonly id: string;
+  readonly rule: "world_boss.v1" | "dungeon_binding.v1";
+  readonly regionId: string;
+  readonly cell: readonly [number, number];
+  readonly exclusionRadius: number;
+  readonly anchorPoiId: number | null;
+  readonly arenaOrigin: readonly [number, number] | null;
+  readonly arenaSide: number | null;
+}
+
+export interface PaintRect {
+  readonly rect: readonly [number, number, number, number];
+}
+
+export interface PreferRect {
+  readonly rect: readonly [number, number, number, number];
+  readonly bonusPermille: number;
 }
 
 export interface EnemyDef {
@@ -223,7 +250,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     raw,
     [
       "recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors",
-      "worldBossRule", "dungeonRule", "territoryRule", "contentLibrary", "rerolls",
+      "worldBossRule", "dungeonRule", "territoryRule", "contentLibrary", "rerolls", "locks", "paint",
     ],
     "$",
   );
@@ -372,6 +399,108 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     }
   }
 
+  const parseCellPair = (value: unknown, path: string): readonly [number, number] => {
+    if (!Array.isArray(value) || value.length !== 2 || !Number.isInteger(value[0]) || !Number.isInteger(value[1]) || (value[0] as number) < 0 || (value[1] as number) < 0) {
+      throw new RecipeError(`recipe: ${path} must be a [x, y] pair of non-negative integers`);
+    }
+    return [value[0] as number, value[1] as number];
+  };
+  const parseRect = (value: unknown, path: string): readonly [number, number, number, number] => {
+    if (
+      !Array.isArray(value) || value.length !== 4 ||
+      value.some((entry) => !Number.isInteger(entry) || (entry as number) < 0)
+    ) {
+      throw new RecipeError(`recipe: ${path} must be [x0, y0, x1, y1] non-negative integers`);
+    }
+    const [x0, y0, x1, y1] = value as [number, number, number, number];
+    if (x1 < x0 || y1 < y0) throw new RecipeError(`recipe: ${path} must satisfy x0 <= x1 and y0 <= y1`);
+    return [x0, y0, x1, y1];
+  };
+
+  const locksRecord = raw["locks"] === undefined ? {} : requireObject(raw["locks"], "$.locks");
+  rejectUnknownKeys(locksRecord, ["placements"], "$.locks");
+  const locksRaw = locksRecord["placements"] === undefined ? [] : locksRecord["placements"];
+  if (!Array.isArray(locksRaw)) throw new RecipeError("recipe: $.locks.placements must be an array");
+  const lockPlacements: PlacementLock[] = locksRaw.map((entry, i) => {
+    const record = requireObject(entry, `$.locks.placements[${i}]`);
+    rejectUnknownKeys(
+      record,
+      ["id", "rule", "regionId", "cell", "exclusionRadius", "anchorPoiId", "arenaOrigin", "arenaSide"],
+      `$.locks.placements[${i}]`,
+    );
+    const id = record["id"];
+    const rule = record["rule"];
+    const regionId = record["regionId"];
+    if (typeof id !== "string" || !id.startsWith("placement.")) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].id must be a placement id`);
+    }
+    if (rule !== "world_boss.v1" && rule !== "dungeon_binding.v1") {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].rule must be world_boss.v1 or dungeon_binding.v1`);
+    }
+    if (typeof regionId !== "string" || regionId === "") {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].regionId must be a region id`);
+    }
+    const cell = parseCellPair(record["cell"], `$.locks.placements[${i}].cell`);
+    const exclusionRadius = record["exclusionRadius"];
+    if (!Number.isInteger(exclusionRadius) || (exclusionRadius as number) < 1 || (exclusionRadius as number) > 128) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].exclusionRadius must be an integer in [1, 128]`);
+    }
+    const anchorPoiId = record["anchorPoiId"] ?? null;
+    if (anchorPoiId !== null && !Number.isInteger(anchorPoiId)) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].anchorPoiId must be an integer or null`);
+    }
+    const arenaOriginRaw = record["arenaOrigin"] ?? null;
+    const arenaOrigin = arenaOriginRaw === null ? null : parseCellPair(arenaOriginRaw, `$.locks.placements[${i}].arenaOrigin`);
+    const arenaSide = record["arenaSide"] ?? null;
+    if (arenaSide !== null && (!Number.isInteger(arenaSide) || (arenaSide as number) < 2 || (arenaSide as number) > 21)) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}].arenaSide must be an integer in [2, 21] or null`);
+    }
+    if (rule === "world_boss.v1" && (arenaOrigin === null || arenaSide === null)) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}]: world_boss locks require arenaOrigin and arenaSide`);
+    }
+    if (rule === "dungeon_binding.v1" && anchorPoiId === null) {
+      throw new RecipeError(`recipe: $.locks.placements[${i}]: dungeon locks require anchorPoiId`);
+    }
+    return {
+      id,
+      rule: rule as PlacementLock["rule"],
+      regionId,
+      cell,
+      exclusionRadius: exclusionRadius as number,
+      anchorPoiId: anchorPoiId as number | null,
+      arenaOrigin,
+      arenaSide: arenaSide as number | null,
+    };
+  });
+  lockPlacements.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  for (let i = 1; i < lockPlacements.length; i += 1) {
+    if ((lockPlacements[i] as PlacementLock).id === (lockPlacements[i - 1] as PlacementLock).id) {
+      throw new RecipeError(`recipe: duplicate lock for ${(lockPlacements[i] as PlacementLock).id}`);
+    }
+  }
+
+  const paintRecord = raw["paint"] === undefined ? {} : requireObject(raw["paint"], "$.paint");
+  rejectUnknownKeys(paintRecord, ["noContent", "preferContent"], "$.paint");
+  const noContentRaw = paintRecord["noContent"] === undefined ? [] : paintRecord["noContent"];
+  const preferRaw = paintRecord["preferContent"] === undefined ? [] : paintRecord["preferContent"];
+  if (!Array.isArray(noContentRaw) || !Array.isArray(preferRaw)) {
+    throw new RecipeError("recipe: $.paint.noContent and $.paint.preferContent must be arrays");
+  }
+  const noContent: PaintRect[] = noContentRaw.map((entry, i) => {
+    const record = requireObject(entry, `$.paint.noContent[${i}]`);
+    rejectUnknownKeys(record, ["rect"], `$.paint.noContent[${i}]`);
+    return { rect: parseRect(record["rect"], `$.paint.noContent[${i}].rect`) };
+  });
+  const preferContent: PreferRect[] = preferRaw.map((entry, i) => {
+    const record = requireObject(entry, `$.paint.preferContent[${i}]`);
+    rejectUnknownKeys(record, ["rect", "bonusPermille"], `$.paint.preferContent[${i}]`);
+    const bonus = record["bonusPermille"];
+    if (!Number.isInteger(bonus) || (bonus as number) < 1 || (bonus as number) > 1000) {
+      throw new RecipeError(`recipe: $.paint.preferContent[${i}].bonusPermille must be an integer in [1, 1000]`);
+    }
+    return { rect: parseRect(record["rect"], `$.paint.preferContent[${i}].rect`), bonusPermille: bonus as number };
+  });
+
   return {
     recipeFormat: RECIPE_FORMAT,
     name,
@@ -420,6 +549,8 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     },
     contentLibrary: { enemies },
     rerolls,
+    locks: { placements: lockPlacements },
+    paint: { noContent, preferContent },
   };
 }
 

@@ -104,10 +104,17 @@ weights, night flags — placeholder defaults, game-supplied in production)
 and a territory rule; territories grow as run-encoded, non-overlapping
 cell sets over hostile walkable ground (never safe zones or F4 claims),
 seeded from viable pockets only, rostered by biome × danger band, with
-coverage metrics and named failures (`wf-fill territories`). Render
-**visual verdicts pending user review** (F2 heatmaps, F3 danger bands,
-F4 placements, F5 territories). Next: F6 (validation gates, audit report,
-locks and rerolls).
+coverage metrics and named failures (`wf-fill territories`). F6 is
+implemented and green: the nine-gate audit battery (`wf-fill validate`,
+report.json + report.txt — ground truth, exclusion symmetry, budget
+accounting, progression, locks, staleness, determinism round-trip, painted
+zones), live locks (`wf-fill lock` prints the recipe entry; held locks
+survive regeneration byte-identically and are immune to rerolls; invalid
+locks get per-lock diagnoses, strict mode makes them failures), and
+painted no-content / preferred-content zones honored by the solver and
+territory growth. Render **visual verdicts pending user review** (F2
+heatmaps, F3 danger bands, F4 placements, F5 territories). Next: F7
+(content pack export + consumption proof).
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

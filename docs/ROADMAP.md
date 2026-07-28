@@ -19,8 +19,13 @@ eligible high-band regions, zero progression warnings). F4 landed
 (placement solver, adversarially reviewed — see the F4 exit-criteria
 notes for the honest reroll contract) and F5 landed (spawn territories
 with content library, pocket-aware growth, coverage metrics; canonical
-world: 51 territories, 9 honestly-fragmented failures). **Visual
-verdicts on the F2–F5 renders pending user review.** F6 is next.
+world: 51 territories, 9 honestly-fragmented failures). F6 landed: the
+nine-gate audit battery with report.json/report.txt, live locks with
+per-lock invalidity diagnosis and strict/lenient staleness modes, and
+painted zones — every gate has an adversarial tripping test, lock
+regeneration is byte-stable, and both proof worlds pass the full audit.
+**Visual verdicts on the F2–F5 renders pending user review.** F7 is
+next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
