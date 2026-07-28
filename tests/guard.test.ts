@@ -8,7 +8,7 @@ import { assertOutputRoot, repoRoot } from "../src/core/guard.js";
 describe("output path guard", () => {
   it("allows outputs/ under the repository", () => {
     const allowed = assertOutputRoot(join(repoRoot(), "outputs", "test-run"));
-    assert.ok(allowed.endsWith("outputs/test-run"));
+    assert.ok(allowed.endsWith(join("outputs", "test-run")));
   });
 
   it("refuses protected repository trees", () => {
