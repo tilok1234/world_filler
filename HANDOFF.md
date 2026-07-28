@@ -7,7 +7,7 @@ Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 **F0–F7 complete and the F7 freeze review fully resolved, committed, and
 pushed** to `tilok1234/world_filler`, branch
-`claude/world-filler-repo-focus-9fmr60`. **131 tests green** (`npm test`).
+`claude/world-filler-repo-focus-9fmr60`. **133 tests green** (`npm test`).
 WorldForge checkout untouched throughout — verified clean after every
 milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
 contract; the user has re-confirmed this twice).
@@ -47,7 +47,7 @@ Pipeline (all deterministic, explained, rendered):
 `inspect | parity | analyze | plan | place | explain | territories |
 validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
 
-## 1. Visual verdict loop — round 1 done, round 2 pending
+## 1. Visual verdict loop — rounds 1-2 done, round 3 pending
 
 Round-1 verdicts (user, this session, on the canonical 256² world at ×3
 and the three fixtures at ×8; gallery artifact
@@ -85,10 +85,33 @@ parity; use `git -C <WorldForge> archive bb7832f | tar -x -C <scratch>`
 and build there. Adopting the newer upstream base remains an explicit
 user decision (not taken).
 
-**Round 2 pending: user must judge the V2 renders** (quantile bands,
-floored placements, band-colored territories). Territory coverage knob
-(`targetHostileCoveragePermille`, currently default 350 → ~27% actual)
-awaits a density verdict too.
+Round-2 verdicts (user): purple read as 2 places, not 3; endgame zones
+too close together; some dungeon binds "right up to the cities";
+territory band-coloring approved ("ye thats cool") with a wish to
+spread territories out; **heatmaps APPROVED**. Round-2 changes
+(behavior **8**, plan 3, territory 4):
+
+- `danger.endgamePockets` (0 = off, else 2–8): the deepest band is
+  reshaped into K separated pockets — seeds via farthest-point sampling
+  over region anchors, restricted to substantial regions
+  (>= budgets.minRegionCells reachable); a deep region keeps the band
+  only when its second-nearest seed is >= 1.5x its nearest (watershed
+  regions demote one band, opening gaps where pockets would merge).
+  Canonical at K=3: corner grassland + snow highland + small road-end
+  outpost, cleanly separated (the world has exactly 3 substantial far
+  regions, so K>3 is a no-op there).
+- `territoryRule.spacing` (Chebyshev halo, 0 = off): territories keep a
+  clear gap; recipe uses 2 (fixtures keep all their content at 2;
+  canonical goes 51→53 smaller, spread patches, failures 9→7).
+- dungeonRule.minSettlementDistancePermille raised 250→320 in the
+  recipe: the safe-zone-rim binds are gone; canonical now 10 dungeons +
+  4 honest X's (two are the top-left ruins pair that previously bound
+  right next to the outpost settlements).
+
+**Round 3 pending: user judges V3** (pockets, spacing, floor 320) — and
+still open: territory density (~27%, `targetHostileCoveragePermille`)
+and whether 4 X's is acceptable or those regions should not budget a
+dungeon.
 
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
@@ -163,8 +186,8 @@ close-out per ROADMAP (deferred list stays deferred).
 
 ## 6. Versions
 
-director behavior **7** · rule packs: analysis 1, plan 2, placement 4,
-territory 3, validate 2, export 2 · recipe format 1 · plan/placements/
+director behavior **8** · rule packs: analysis 1, plan 3, placement 4,
+territory 4, validate 2, export 2 · recipe format 1 · plan/placements/
 territories/report formats 1 · content pack format 1 (**frozen, FINAL**)
 · supported upstream: artifact format 8, game pack 1, walkability 1.
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
@@ -173,7 +196,7 @@ vocabularies; sequential bumps; stamp everything).
 ## 7. Commands
 
     export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test                                   # build + 131 tests
+    npm test                                   # build + 133 tests
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json

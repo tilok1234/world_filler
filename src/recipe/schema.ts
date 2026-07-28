@@ -39,6 +39,13 @@ export interface DirectorRecipe {
      * quantity wherever the topology puts them.
      */
     readonly assignment: "linear" | "quantile";
+    /**
+     * 0 = off. With K >= 2: the deepest band is reshaped into K compact
+     * pockets around mutually far-apart seed regions; deep regions
+     * bridging the gaps demote one band, so endgame zones read as
+     * separate destinations instead of one far crescent.
+     */
+    readonly endgamePockets: number;
     readonly overrides: readonly DangerOverride[];
   };
   readonly budgets: {
@@ -76,6 +83,8 @@ export interface DirectorRecipe {
   };
   readonly territoryRule: {
     readonly targetHostileCoveragePermille: number;
+    /** Chebyshev gap kept clear between territories (0 = they may touch). */
+    readonly spacing: number;
     readonly minCells: number;
     readonly maxCells: number;
     readonly packSizeMin: number;
@@ -177,6 +186,7 @@ const DANGER_FIELDS: Readonly<Record<string, FieldSpec>> = {
   bandCount: { min: 2, max: 16, fallback: 5 },
   maxBandJump: { min: 1, max: 8, fallback: 2 },
   safeZoneShareForBand0Permille: { min: 0, max: 1000, fallback: 300 },
+  endgamePockets: { min: 0, max: 8, fallback: 0 },
 };
 
 const WORLD_BOSS_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
@@ -199,6 +209,7 @@ const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
 
 const TERRITORY_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   targetHostileCoveragePermille: { min: 0, max: 1000, fallback: 350 },
+  spacing: { min: 0, max: 32, fallback: 0 },
   minCells: { min: 1, max: 10000, fallback: 24 },
   maxCells: { min: 1, max: 100000, fallback: 400 },
   packSizeMin: { min: 1, max: 64, fallback: 2 },
@@ -298,6 +309,9 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   const assignmentRaw = dangerRecord["assignment"] === undefined ? "linear" : dangerRecord["assignment"];
   if (assignmentRaw !== "linear" && assignmentRaw !== "quantile") {
     throw new RecipeError(`recipe: $.danger.assignment must be linear or quantile, got ${String(assignmentRaw)}`);
+  }
+  if (danger["endgamePockets"] === 1) {
+    throw new RecipeError("recipe: $.danger.endgamePockets must be 0 (off) or an integer in [2, 8]");
   }
   const overridesRaw = dangerRecord["overrides"] === undefined ? [] : dangerRecord["overrides"];
   if (!Array.isArray(overridesRaw)) throw new RecipeError("recipe: $.danger.overrides must be an array");
@@ -540,6 +554,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       maxBandJump: danger["maxBandJump"] as number,
       safeZoneShareForBand0Permille: danger["safeZoneShareForBand0Permille"] as number,
       assignment: assignmentRaw,
+      endgamePockets: danger["endgamePockets"] as number,
       overrides,
     },
     budgets: {
@@ -572,6 +587,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     },
     territoryRule: {
       targetHostileCoveragePermille: territoryRule["targetHostileCoveragePermille"] as number,
+      spacing: territoryRule["spacing"] as number,
       minCells: territoryRule["minCells"] as number,
       maxCells: territoryRule["maxCells"] as number,
       packSizeMin: territoryRule["packSizeMin"] as number,

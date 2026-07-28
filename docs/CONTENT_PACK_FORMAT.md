@@ -60,8 +60,8 @@ timestamps exist anywhere; identity is hashes.
   "packFormat": 1,
   "world": "fen-hollow",                       // world pack directory name at export time
   "adapter": { "name": "worldfiller", "version": "0.1.0" },
-  "directorBehaviorVersion": 7,
-  "rulePacks": { "analysis": 1, "plan": 2, "placement": 4, "territory": 3, "validate": 2, "export": 2 },
+  "directorBehaviorVersion": 8,
+  "rulePacks": { "analysis": 1, "plan": 3, "placement": 4, "territory": 4, "validate": 2, "export": 2 },
   "analysisVersion": 1,
   "recipeName": "basic-direction",
   "directorSeed": 103991,

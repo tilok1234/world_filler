@@ -187,6 +187,10 @@ export function growTerritories(
   const failures: TerritoryFailure[] = [];
   const coverage: RegionCoverage[] = [];
   const claimed = new Uint8Array(width * height);
+  // Spacing halo: ground within rule.spacing (Chebyshev) of any grown
+  // territory, kept clear so territories read as separate hunting
+  // grounds instead of merged blobs.
+  const spaced = new Uint8Array(width * height);
 
   for (const region of plan.regions) {
     const budget = region.budgets.territories;
@@ -213,7 +217,7 @@ export function growTerritories(
       if ((bundle.regionLabels[i] as number) !== label) continue;
       if (bundle.bits[i] !== 1) continue;
       if ((bundle.distanceFromSpawn[i] as number) === UNREACHABLE) continue;
-      if (blocked[i] === 1 || claimed[i] === 1) continue;
+      if (blocked[i] === 1 || claimed[i] === 1 || spaced[i] === 1) continue;
       const x = i % width;
       const y = (i - x) / width;
       if (recipe.paint.noContent.some((zone) => x >= zone.rect[0] && x <= zone.rect[2] && y >= zone.rect[1] && y <= zone.rect[3])) continue;
@@ -349,6 +353,23 @@ export function growTerritories(
         claimed[index] = 1;
         eligible[index] = 0;
         eligibleCount -= 1;
+      }
+      if (rule.spacing > 0) {
+        for (const index of cells) {
+          const cx = index % width;
+          const cy = (index - cx) / width;
+          for (let y = Math.max(0, cy - rule.spacing); y <= Math.min(height - 1, cy + rule.spacing); y += 1) {
+            for (let x = Math.max(0, cx - rule.spacing); x <= Math.min(width - 1, cx + rule.spacing); x += 1) {
+              const halo = y * width + x;
+              if (spaced[halo] === 1) continue;
+              spaced[halo] = 1;
+              if (eligible[halo] === 1) {
+                eligible[halo] = 0;
+                eligibleCount -= 1;
+              }
+            }
+          }
+        }
       }
       covered += cells.size;
       const territory: Territory = {

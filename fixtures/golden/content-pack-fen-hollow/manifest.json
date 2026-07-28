@@ -18,14 +18,14 @@
     "territoryFailures": 0,
     "unboundAnchors": 3
   },
-  "directorBehaviorVersion": 7,
-  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
+  "directorBehaviorVersion": 8,
+  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "57a0fb219c4b6a17378de6b9ed7c71f413870cb11fa3182fb25c69166ff61214",
-    "placements.json": "43f75bf84830548cc8e2e70fa5c9eb9e2abea0e1e4c5bbdb78e2b0a7ece07498",
-    "report.json": "043731e2ad37eeed014b492d73638e767c34ed2e67b116d389fc05334d832261",
-    "territories.json": "f215ae6540fe5e34b4cb1025006f663a572b0818735a61b8ea156c2caec54cfb"
+    "content-plan.json": "15963fa5b80ac5036515e4d3dd64c54450d1d395ccf7535bdf45816754e29258",
+    "placements.json": "7d8002bc091dd52e390a01e07abaa9c576b8e5dc0f30d06d06a1ca38f85a01d6",
+    "report.json": "6838ff798512c1ac80b5c8bcd3a7b0a5fbb1899dbccafa146b28b3f6c06f6a80",
+    "territories.json": "e225c96b70e674c72085985fb6653fc2d462668b032ac5453fb73e36fc5ecdfe"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 1,
@@ -34,8 +34,8 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 2,
-    "territory": 3,
+    "plan": 3,
+    "territory": 4,
     "validate": 2
   },
   "world": "fen-hollow"

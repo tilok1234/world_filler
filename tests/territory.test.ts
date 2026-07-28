@@ -44,6 +44,31 @@ describe("run encoding", () => {
     assert.deepEqual(runs, [[7, 0, 1], [0, 1, 1]]);
   });
 
+  it("spacing keeps a clear Chebyshev gap between every pair of territories", () => {
+    const spacing = 4;
+    const { doc, model } = territoriesFor("fen-hollow", { ...MINIMAL, name: "spaced", territoryRule: { spacing } });
+    const { width, height } = model.dimensions;
+    assert.ok(doc.territories.length >= 2, "needs at least two territories to measure gaps");
+    const cellsOf = doc.territories.map((territory) => decodeRuns(territory.cells.runs, width, height));
+    for (let a = 0; a < cellsOf.length; a += 1) {
+      for (let b = a + 1; b < cellsOf.length; b += 1) {
+        for (const cellA of cellsOf[a] as Set<number>) {
+          const ax = cellA % width;
+          const ay = (cellA - ax) / width;
+          for (const cellB of cellsOf[b] as Set<number>) {
+            const bx = cellB % width;
+            const by = (cellB - bx) / width;
+            const chebyshev = Math.max(Math.abs(ax - bx), Math.abs(ay - by));
+            assert.ok(
+              chebyshev > spacing,
+              `territories ${a} and ${b} are ${chebyshev} apart at (${ax},${ay})/(${bx},${by}); spacing is ${spacing}`,
+            );
+          }
+        }
+      }
+    }
+  });
+
   it("refuses malformed runs by name instead of wrapping into the next row", () => {
     assert.throws(() => decodeRuns([[6, 0, 5]], 8, 8), /runs never cross rows/);
     assert.throws(() => decodeRuns([[-1, 0, 2]], 8, 8), /runs never cross rows/);

@@ -67,6 +67,10 @@ describe("DirectorRecipe normalization", () => {
       () => normalizeRecipe({ ...MINIMAL, danger: { assignment: "noise" } }),
       /assignment must be linear or quantile/,
     );
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { endgamePockets: 1 } }),
+      /endgamePockets must be 0 \(off\) or an integer in \[2, 8\]/,
+    );
   });
 });
 
@@ -107,6 +111,28 @@ describe("regional content plan", () => {
         "quantile bands are monotone in median distance",
       );
     }
+  });
+
+  it("endgame pockets only ever demote deep regions by exactly one band, deterministically", () => {
+    const base = normalizeRecipe({ ...MINIMAL, danger: { assignment: "quantile" } });
+    const pocketed = normalizeRecipe({ ...MINIMAL, danger: { assignment: "quantile", endgamePockets: 2 } });
+    const withoutPlan = compilePlan(model, bundle, base);
+    const withPlan = compilePlan(model, bundle, pocketed);
+    assert.equal(canonicalJson(compilePlan(model, bundle, pocketed)), canonicalJson(withPlan));
+
+    const deepBand = base.danger.bandCount - 1;
+    const withoutBands = new Map(withoutPlan.regions.map((region) => [region.id, region.dangerBand]));
+    let demoted = 0;
+    for (const region of withPlan.regions) {
+      const before = withoutBands.get(region.id);
+      if (region.dangerBand === before) continue;
+      assert.equal(before, deepBand, "only deep regions are reshaped");
+      assert.equal(region.dangerBand, deepBand - 1, "watershed regions demote exactly one band");
+      demoted += 1;
+    }
+    const deepAfter = withPlan.regions.filter((region) => region.dangerBand === deepBand).length;
+    assert.ok(deepAfter > 0, "the deep band survives the pocket pass");
+    assert.ok(demoted >= 0);
   });
 
   it("produces sane bands, budgets, and waivers on a real world", () => {

@@ -11,13 +11,15 @@ export const DIRECTOR_VERSION = "0.1.0";
 // 7: first visual-verdict round — quantile band assignment (opt-in),
 // scale-free settlement/road distance floors for bosses and dungeon
 // anchors (opt-in, new unbound reason below_distance_floor).
-export const DIRECTOR_BEHAVIOR_VERSION = 7;
+// 8: second round — endgame pockets (deepest band reshaped into K
+// separated pockets, opt-in) and territory spacing halos (opt-in).
+export const DIRECTOR_BEHAVIOR_VERSION = 8;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
-  plan: 2,
+  plan: 3,
   placement: 4,
-  territory: 3,
+  territory: 4,
   validate: 2,
   export: 2,
 } as const;

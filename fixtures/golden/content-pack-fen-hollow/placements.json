@@ -6,8 +6,8 @@
     "height": 64,
     "width": 64
   },
-  "directorBehaviorVersion": 7,
-  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
+  "directorBehaviorVersion": 8,
+  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "failures": [],
   "lockReport": [],
@@ -215,8 +215,8 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 2,
-    "territory": 3,
+    "plan": 3,
+    "territory": 4,
     "validate": 2
   },
   "unboundAnchors": [

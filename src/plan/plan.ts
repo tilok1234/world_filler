@@ -194,6 +194,69 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     }
   }
 
+  // Endgame pockets: reshape the deepest band into K separated pockets
+  // so endgame zones read as distinct destinations instead of one far
+  // crescent (distance from spawn is radial — the far side of a world is
+  // inherently one side; this pass carves places within it). Seeds are
+  // chosen by farthest-point sampling over region anchor cells, starting
+  // from the deepest region, and must be substantial regions (at least
+  // budgets.minRegionCells of reachable ground) so a speck cannot anchor
+  // an endgame zone. Each deep region then keeps the deep band only if
+  // it clearly belongs to one pocket — its second-nearest seed at least
+  // 1.5x farther than its nearest. The watershed regions between pockets
+  // demote one band, opening visible gaps exactly where pockets would
+  // otherwise merge.
+  if (danger.endgamePockets >= 2) {
+    const deepBand = danger.bandCount - 1;
+    const demoteTo = Math.max(1, deepBand - 1);
+    const deep: Array<{ index: number; median: number; weight: number }> = [];
+    for (let i = 0; i < regionCount; i += 1) {
+      if (overridden[i] || bands[i] !== deepBand) continue;
+      const reachable = distances[i] as number[];
+      if (reachable.length === 0) continue;
+      deep.push({ index: i, median: medianOfSorted(reachable), weight: reachable.length });
+    }
+    if (deep.length > 1) {
+      const anchorOf = (index: number): readonly [number, number] => {
+        const anchor = (bundle.regions[index] as (typeof bundle.regions)[number]).anchorIndex;
+        return [anchor % width, Math.floor(anchor / width)];
+      };
+      const d2 = (a: number, b: number): number => {
+        const [ax, ay] = anchorOf(a);
+        const [bx, by] = anchorOf(b);
+        return (ax - bx) * (ax - bx) + (ay - by) * (ay - by);
+      };
+      const substantial = deep.filter((entry) => entry.weight >= recipe.budgets.minRegionCells);
+      const seedPool = substantial.length > 0 ? substantial : deep;
+      const sortedPool = [...seedPool].sort((a, b) => (a.median !== b.median ? b.median - a.median : a.index - b.index));
+      const seeds: number[] = [(sortedPool[0] as { index: number }).index];
+      while (seeds.length < Math.min(danger.endgamePockets, sortedPool.length)) {
+        let best = -1;
+        let bestScore = -1;
+        for (const entry of sortedPool) {
+          if (seeds.includes(entry.index)) continue;
+          const score = Math.min(...seeds.map((seed) => d2(entry.index, seed)));
+          if (score > bestScore) {
+            bestScore = score;
+            best = entry.index;
+          }
+        }
+        if (best === -1) break;
+        seeds.push(best);
+      }
+      if (seeds.length >= 2) {
+        for (const entry of deep) {
+          const toSeeds = seeds.map((seed) => d2(entry.index, seed)).sort((a, b) => a - b);
+          const nearest = toSeeds[0] as number;
+          const second = toSeeds[1] as number;
+          // Keep only clear pocket membership: second >= 1.5 * nearest
+          // (integer form 9*nearest^2-metric <= 4*second^2-metric).
+          if (9 * nearest > 4 * second) bands[entry.index] = demoteTo;
+        }
+      }
+    }
+  }
+
   // Spawn region.
   const [sx, sy] = bundle.summary.spawnCell;
   const spawnLabel = nearestRegionLabel(bundle.regionLabels, width, height, sx, sy);

@@ -10,8 +10,8 @@
     "progressionWarnings": [],
     "worldWaivers": []
   },
-  "directorBehaviorVersion": 7,
-  "directorRecipeSha256": "2bb6ea7c315505e771f8d9ee43050911d2a6ea60bde8836d5134dde99c108d50",
+  "directorBehaviorVersion": 8,
+  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
   "directorSeed": 103991,
   "planFormat": 1,
   "recipeName": "basic-direction",
@@ -282,7 +282,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 4,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 1,
@@ -535,7 +535,7 @@
         "worldBosses": 0
       },
       "cellCount": 2,
-      "dangerBand": 4,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 1,
@@ -1019,7 +1019,7 @@
         "worldBosses": 0
       },
       "cellCount": 3,
-      "dangerBand": 4,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 3,
@@ -1042,7 +1042,7 @@
         "worldBosses": 0
       },
       "cellCount": 11,
-      "dangerBand": 4,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 11,
@@ -1802,7 +1802,7 @@
         "worldBosses": 0
       },
       "cellCount": 40,
-      "dangerBand": 4,
+      "dangerBand": 3,
       "dangerOverridden": false,
       "dungeonAnchorCandidates": 0,
       "hostileWalkableCells": 14,
@@ -3067,8 +3067,8 @@
     "analysis": 1,
     "export": 2,
     "placement": 4,
-    "plan": 2,
-    "territory": 3,
+    "plan": 3,
+    "territory": 4,
     "validate": 2
   },
   "spawnRegionId": "region.cobble.2317",
