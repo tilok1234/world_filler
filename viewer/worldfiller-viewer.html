@@ -376,7 +376,13 @@
       const input = document.createElement("input");
       input.type = "checkbox";
       input.checked = layer.on;
-      input.addEventListener("change", () => { layer.on = input.checked; syncLayerVisibility(); });
+      input.addEventListener("change", () => {
+        layer.on = input.checked;
+        // Layers are opaque renders: bring a freshly enabled layer to the
+        // front, otherwise it can sit invisibly under an earlier one.
+        if (input.checked) layer.z = ++zCounter;
+        syncLayerVisibility();
+      });
       label.append(input, document.createTextNode(layer.name));
       box.append(label);
       layer.index = index;
@@ -402,9 +408,12 @@
 
   // ---------- stage: layers, pan/zoom, hover ----------
 
+  let zCounter = 10;
   function syncLayerVisibility() {
     for (const img of $("stage").querySelectorAll("img")) {
-      img.style.display = state.layers[Number(img.dataset.index)].on ? "block" : "none";
+      const layer = state.layers[Number(img.dataset.index)];
+      img.style.display = layer.on ? "block" : "none";
+      img.style.zIndex = String(layer.z ?? Number(img.dataset.index));
     }
   }
 
