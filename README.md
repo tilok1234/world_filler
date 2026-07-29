@@ -143,7 +143,10 @@ and dungeon anchors (permille of the world's own max field distance;
 floored anchors are unbound as `below_distance_floor`, boss funnels gain
 a `road_distance` stage), and a territory render recolored by danger
 band with outlined territories. The fixture recipe opts into all three;
-**round-2 verdicts on the V2 renders are pending user review**. Next: F8
+the loop ran four rounds (quantile bands + endgame-pocket islands,
+remoteness floors, spaced band-colored territories) and **all F2-F5
+visual verdicts are APPROVED (2026-07-29)** — heatmaps, danger layout,
+placements with honest exhaustion X's, and territories. Next: F8
 (viewer + director UX loop).
 
 ```sh

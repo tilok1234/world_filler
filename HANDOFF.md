@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-28, F0–F7 + freeze review resolved + verdict round 1)
+# World Filler — handoff (2026-07-29, F0–F7 + freeze review resolved + F2-F5 visuals approved)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -47,7 +47,7 @@ Pipeline (all deterministic, explained, rendered):
 `inspect | parity | analyze | plan | place | explain | territories |
 validate | lock | export | verify-pack` (see `node dist/src/cli.js help`).
 
-## 1. Visual verdict loop — rounds 1-3 done, round 4 pending
+## 1. Visual verdict loop — CLOSED, all F2-F5 verdicts APPROVED
 
 Round-1 verdicts (user, this session, on the canonical 256² world at ×3
 and the three fixtures at ×8; gallery artifact
@@ -138,9 +138,16 @@ coverage by band 22/22/29/25/34% (evenly spread, endgame slightly
 denser — good progression shape); territory ground within 12 of a road:
 26% vs 31% baseline (no hiding from travel routes); 7 zero-territory
 budgeted regions = the 7 honest fragmentation failures. Verdict
-recommended to user: approve as-is, no knob changes. **Awaiting user
-confirm on territories** — then the F2-F5 visual verdict loop is fully
-closed and F8 can start.
+recommended to user: approve as-is, no knob changes.
+
+Round-5 (2026-07-29): the third image in the round-4 batch confused the
+user ("boss map in another format") — it was the fen-hollow ×8
+territories close-up for the explainer, not the placements map;
+clarified. **Territories APPROVED.** With heatmaps, danger, placements
+(X's), and territories all approved, the F2-F5 visual verdict loop is
+CLOSED. The approved baseline is behavior 9 under
+fixtures/recipes/basic-direction.json (golden pack pins it). Replacing
+this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
 
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 

@@ -36,8 +36,10 @@ lens (shapes, closed/open enums, id opacity, reader rules), exports
 stage atomically and refuse stale pins and incoherent inputs, a golden
 content pack pins the frozen serialization, and the Godot battery
 re-ran green (behavior 6; docs/FREEZE_REVIEW_FINDINGS.md carries the
-disposition). **Content pack format 1 is final.** **Visual verdicts on
-the F2–F5 renders pending user review.** F8 is next.
+disposition). **Content pack format 1 is final.** **All F2–F5 visual
+verdicts APPROVED (2026-07-29)** after a four-round user review loop
+(behavior 9: quantile bands, endgame-pocket islands, remoteness floors,
+spaced band-colored territories). F8 is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
