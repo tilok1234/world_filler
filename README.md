@@ -165,6 +165,14 @@ This ships **pack format 2** (placements format 2 appends the
 encounter_site.v1 rule; no field shapes changed); format-1 packs remain
 valid, both reference verifiers accept both formats, and a frozen
 format-1 fixture pack pins backward compatibility in the suite.
+Behaviors 11–12 then evened out the danger bands (mid-band min-share
+rebalance; region subdivision at MAX_REGION_CELLS 1024 — analysis 2 —
+with boss-budget fallback across eligible regions), and the user
+approved the resulting map: **all visual verdict threads are closed
+approved at behavior 12, and the first arc (F0–F9) is complete**
+(2026-07-29). Next milestone: the game-side `worldfiller_importer` —
+prepared in docs/IMPORTER_READINESS.md, awaiting the game-side
+planning session.
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)
@@ -180,7 +188,7 @@ node dist/src/cli.js parity fixtures/packs/fen-hollow
 2. [docs/ASSESSMENT.md](docs/ASSESSMENT.md) — researched assessment and verdict
 3. [docs/VISION_AND_SCOPE.md](docs/VISION_AND_SCOPE.md) — identity, pillars, non-goals
 4. [docs/ARCHITECTURE_AND_CONTRACTS.md](docs/ARCHITECTURE_AND_CONTRACTS.md) — components, input/output contracts, determinism
-5. [docs/ROADMAP.md](docs/ROADMAP.md) — milestones F0–F8 with exit criteria
+5. [docs/ROADMAP.md](docs/ROADMAP.md) — milestones F0–F9 with exit criteria
 
 ## System ownership
 

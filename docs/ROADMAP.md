@@ -55,7 +55,17 @@ with a frozen format-1 fixture pack pinning backward compatibility).
 Encounters are set pieces that PREFER ground near travel routes, placed
 last so they route around every earlier claim, lockable like any
 placement, with the usual funnels and named failures; G4 accounts for
-their budgets. Behavior 10; plan 4, placement 5, validate 3.
+their budgets. Behavior 10; plan 4, placement 5, validate 3. Behaviors
+11–12 (2026-07-29) closed the last verdict thread ("very little yellow
+danger"): a min-share rebalance for mid bands, then region subdivision
+(MAX_REGION_CELLS 1024, analysis 2) with boss-budget fallback across
+eligible regions — canonical wilderness bands came out essentially even
+(5148/5519/5714/4775 walkable cells) and the user approved the map.
+**All visual verdict threads are CLOSED APPROVED at behavior 12, and
+the first arc (F0–F9) is COMPLETE.** Next milestone: the game-side
+`worldfiller_importer` — prepared in docs/IMPORTER_READINESS.md
+(2026-07-29), awaiting the user's game-side planning session; no
+game-repo changes made.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
@@ -314,7 +324,29 @@ Exit criteria:
   read-only by contract;
 - the user has run the loop and issued a design verdict on the result.
 
-## Deferred beyond F8 (explicitly out of the first arc)
+## Milestone F9 — Encounter sites
+
+Deliverables (landed 2026-07-29, behavior 10):
+
+- placement rule `encounter_site.v1`: single-cell set pieces placed after
+  bosses, dungeons, and territories, preferring ground near travel routes
+  (`road_near` + clearance scoring), with per-region caps, exclusion
+  radii honored symmetrically by later passes, locks (id tag
+  `encounter`), funnels, and named failures;
+- recipe section `encounterRule` {exclusionRadius, roadNearPermille,
+  clearancePermille}; budgets had been carried by the plan since F3;
+- **content pack format 2** = format 1 + placementsFormat 2 appending the
+  encounter rule value; format 1 stays valid and final, both reference
+  verifiers accept formats {1, 2} via PACK_FORMAT_PROFILE and refuse
+  encounter rules inside format-1 packs.
+
+Exit evidence: amber markers in the placements/territories renders and
+the viewer; `fixtures/golden/content-pack-fen-hollow/` re-recorded at
+format 2 plus `content-pack-fen-hollow-format1/` (frozen behavior-9
+pack) pinning backward compatibility in the suite and in the headless
+Godot battery; G4 accounts encounter budgets; all four worlds 9/9 gates.
+
+## Deferred beyond the first arc (F0–F9)
 
 - minibosses, elites, and patrol routes;
 - faction territories and territory conflict;
@@ -324,8 +356,9 @@ Exit criteria:
 - multi-world campaigns; content migration between artifact format versions;
 - interior/dungeon-layout generation (World Filler binds entrances; interiors
   are a separate concern, likely game-side or a future tool);
-- the game-repo `worldfiller_importer` addon (needs the game repo separately
-  scoped writable — a user decision);
+- the game-repo `worldfiller_importer` addon (needs the game code repo
+  separately scoped writable — a user decision; preparation complete, see
+  docs/IMPORTER_READINESS.md);
 - any AI-assisted recipe authoring (same posture as upstream W9: optional
   client, never in the deterministic path);
 - editors that write world or content data by hand.

@@ -5,9 +5,12 @@ Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 ## 0. State right now
 
-**F0–F7 complete and the F7 freeze review fully resolved, committed, and
-pushed** to `tilok1234/world_filler`, branch
-`claude/world-filler-repo-focus-9fmr60`. **133 tests green** (`npm test`).
+**The first arc F0–F9 is COMPLETE and CLOSED (2026-07-29)** — freeze
+review resolved, every visual verdict thread closed approved at behavior
+12, committed and pushed to `tilok1234/world_filler`, branch
+`claude/world-filler-repo-focus-9fmr60`. **135 tests green** (`npm test`).
+Next milestone: the game-side importer — PREPARED, awaiting the user's
+planning session (§2 below, docs/IMPORTER_READINESS.md).
 WorldForge checkout untouched throughout — verified clean after every
 milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
 contract; the user has re-confirmed this twice).
@@ -264,12 +267,20 @@ Consequences noted, no action taken yet:
   walkability-aware (void = void-material AND unwalkable), which is an
   ANALYSIS_VERSION bump — coordinate it with the same adoption commit.
 
-## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
+## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
-Single-file, no-build, read-only browser viewer (minimap backdrop, layer
-toggles for analysis/danger/plan/placements/territories, hover
-explanations), iteration-verb polish, workflow docs. Then the first-arc
-close-out per ROADMAP (deferred list stays deferred).
+F8 shipped (§1b) and the first arc is closed, so the next milestone is
+`worldfiller_importer`. Read **docs/IMPORTER_READINESS.md** — it carries
+the full prep: the game CODE repo is `tilok1234/Wildshot-Adventures`
+(Godot 4.6.2 pinned — the exact engine our GDScript proof runs on; the
+`Wildshot_adventures_pmanning` repo in this session is only the
+read-only planning/design authority), the game's own forge-integration
+pattern and its prep-half/consumption-half sequencing precedent, the
+proposed addon shape, and the decision points the user will rule on.
+User instruction (2026-07-29): "dont do any changes to wildshot repo
+yet... tell me when you are ready for it and i will plan it out from
+there" — readiness was announced; make NO game-repo changes until the
+user's planning session scopes and schedules them.
 
 ## 3. Milestone map (docs/ROADMAP.md carries detail + exit criteria)
 
