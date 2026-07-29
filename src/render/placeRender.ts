@@ -7,8 +7,8 @@ import { renderTerrain, upscaleRgba } from "./heatmaps.js";
 /**
  * Placement render: dimmed terrain, faint safe zones, exclusion discs as
  * tint, arena squares filled, and bright markers on every placement cell
- * (white plus = world boss, cyan plus = dungeon binding). Inspection
- * evidence, not contract.
+ * (white plus = world boss, cyan plus = dungeon binding, amber plus =
+ * encounter site). Inspection evidence, not contract.
  */
 
 function put(rgba: Uint8Array, width: number, height: number, x: number, y: number, r: number, g: number, b: number): void {
@@ -52,6 +52,9 @@ export function renderPlacements(
         const offset = (y * width + x) * 4;
         if (placement.rule === "world_boss.v1") {
           rgba[offset] = Math.min(255, (rgba[offset] as number) + 55);
+        } else if (placement.rule === "encounter_site.v1") {
+          rgba[offset] = Math.min(255, (rgba[offset] as number) + 40);
+          rgba[offset + 1] = Math.min(255, (rgba[offset + 1] as number) + 30);
         } else {
           rgba[offset + 1] = Math.min(255, (rgba[offset + 1] as number) + 45);
           rgba[offset + 2] = Math.min(255, (rgba[offset + 2] as number) + 45);
@@ -83,7 +86,10 @@ export function renderPlacements(
 
   for (const placement of doc.placements) {
     const [cx, cy] = placement.cell;
-    const color: readonly [number, number, number] = placement.rule === "world_boss.v1" ? [255, 255, 255] : [80, 240, 255];
+    const color: readonly [number, number, number] =
+      placement.rule === "world_boss.v1" ? [255, 255, 255]
+      : placement.rule === "encounter_site.v1" ? [255, 190, 70]
+      : [80, 240, 255];
     for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       put(rgba, width, height, cx + dx, cy + dy, color[0], color[1], color[2]);
     }

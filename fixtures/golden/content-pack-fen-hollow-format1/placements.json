@@ -1,0 +1,254 @@
+{
+  "analysisVersion": 1,
+  "base": {
+    "artifactFormat": 8,
+    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "height": 64,
+    "width": 64
+  },
+  "directorBehaviorVersion": 9,
+  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
+  "directorSeed": 103991,
+  "failures": [],
+  "lockReport": [],
+  "placements": [
+    {
+      "accessCell": [
+        18,
+        38
+      ],
+      "anchorPoiId": 3,
+      "anchorPoiType": "poi.cave",
+      "arenaOrigin": null,
+      "arenaSide": null,
+      "candidateFunnel": [
+        {
+          "remaining": 1,
+          "stage": "anchors_in_region"
+        },
+        {
+          "remaining": 1,
+          "stage": "reachable"
+        },
+        {
+          "remaining": 1,
+          "stage": "above_distance_floor"
+        },
+        {
+          "remaining": 1,
+          "stage": "spacing_clear"
+        }
+      ],
+      "cell": [
+        18,
+        38
+      ],
+      "channel": "world/region.mud.1245/reroll.0/dungeon/0",
+      "draw": 0,
+      "exclusionRadius": 8,
+      "id": "placement.dungeon.region.mud.1245.0",
+      "inSafeZone": false,
+      "locked": false,
+      "regionId": "region.mud.1245",
+      "rule": "dungeon_binding.v1",
+      "score": 410,
+      "scoreTerms": [
+        {
+          "contribution": 410,
+          "term": "settlement_far",
+          "value": 410,
+          "weightPermille": 1000
+        }
+      ],
+      "topCandidates": [
+        {
+          "cell": [
+            18,
+            38
+          ],
+          "score": 410
+        }
+      ]
+    },
+    {
+      "accessCell": [
+        31,
+        59
+      ],
+      "anchorPoiId": null,
+      "anchorPoiType": null,
+      "arenaOrigin": [
+        29,
+        57
+      ],
+      "arenaSide": 6,
+      "candidateFunnel": [
+        {
+          "remaining": 58,
+          "stage": "clearance_anchor_in_region"
+        },
+        {
+          "remaining": 58,
+          "stage": "reachable"
+        },
+        {
+          "remaining": 58,
+          "stage": "paint_no_content"
+        },
+        {
+          "remaining": 56,
+          "stage": "clear_of_safe_and_reserved"
+        },
+        {
+          "remaining": 56,
+          "stage": "exclusion_clear"
+        },
+        {
+          "remaining": 56,
+          "stage": "settlement_distance"
+        },
+        {
+          "remaining": 28,
+          "stage": "road_distance"
+        },
+        {
+          "remaining": 28,
+          "stage": "peer_distance"
+        }
+      ],
+      "cell": [
+        31,
+        59
+      ],
+      "channel": "world/region.mud.1245/reroll.0/boss/0",
+      "draw": 5,
+      "exclusionRadius": 16,
+      "id": "placement.world_boss.region.mud.1245.0",
+      "inSafeZone": false,
+      "locked": false,
+      "regionId": "region.mud.1245",
+      "rule": "world_boss.v1",
+      "score": 1104,
+      "scoreTerms": [
+        {
+          "contribution": 399,
+          "term": "clearance",
+          "value": 666,
+          "weightPermille": 600
+        },
+        {
+          "contribution": 500,
+          "term": "settlement_far",
+          "value": 625,
+          "weightPermille": 800
+        },
+        {
+          "contribution": 205,
+          "term": "road_far",
+          "value": 411,
+          "weightPermille": 500
+        }
+      ],
+      "topCandidates": [
+        {
+          "cell": [
+            32,
+            60
+          ],
+          "score": 1198
+        },
+        {
+          "cell": [
+            31,
+            60
+          ],
+          "score": 1183
+        },
+        {
+          "cell": [
+            30,
+            60
+          ],
+          "score": 1155
+        },
+        {
+          "cell": [
+            29,
+            60
+          ],
+          "score": 1126
+        },
+        {
+          "cell": [
+            32,
+            59
+          ],
+          "score": 1119
+        },
+        {
+          "cell": [
+            31,
+            59
+          ],
+          "score": 1104
+        },
+        {
+          "cell": [
+            28,
+            60
+          ],
+          "score": 1097
+        },
+        {
+          "cell": [
+            30,
+            59
+          ],
+          "score": 1075
+        }
+      ]
+    }
+  ],
+  "placementsFormat": 1,
+  "recipeName": "basic-direction",
+  "rulePacks": {
+    "analysis": 1,
+    "export": 2,
+    "placement": 4,
+    "plan": 4,
+    "territory": 4,
+    "validate": 2
+  },
+  "unboundAnchors": [
+    {
+      "cell": [
+        9,
+        6
+      ],
+      "poiId": 0,
+      "poiType": "poi.city_ruin",
+      "reason": "region_zero_budget",
+      "regionId": "region.gravel.393"
+    },
+    {
+      "cell": [
+        46,
+        9
+      ],
+      "poiId": 1,
+      "poiType": "poi.city_ruin",
+      "reason": "region_zero_budget",
+      "regionId": "region.gravel.622"
+    },
+    {
+      "cell": [
+        29,
+        50
+      ],
+      "poiId": 2,
+      "poiType": "poi.cave",
+      "reason": "region_zero_budget",
+      "regionId": "region.mud.3101"
+    }
+  ]
+}

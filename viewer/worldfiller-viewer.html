@@ -478,7 +478,7 @@
     if (placement) {
       const region = state.bandByRegion.get(placement.regionId);
       parts.push(`<div class="card${pinned ? " pinned" : ""}">
-        <div class="kind">${placement.rule === "world_boss.v1" ? "world boss" : "dungeon binding"}${placement.locked ? " · locked" : ""}</div>
+        <div class="kind">${placement.rule === "world_boss.v1" ? "world boss" : placement.rule === "dungeon_binding.v1" ? "dungeon binding" : "encounter site"}${placement.locked ? " · locked" : ""}</div>
         <div class="id">${esc(placement.id)}</div>
         <dl>
           <dt>cell</dt><dd>(${placement.cell[0]}, ${placement.cell[1]}) access (${placement.accessCell[0]}, ${placement.accessCell[1]})</dd>

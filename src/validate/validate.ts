@@ -188,6 +188,11 @@ export function runGates(inputs: ValidationInputs): ValidationReportDoc {
       if (dungeons < region.budgets.dungeonBindings && !dungeonFailed) {
         details.push(`${region.id}: ${region.budgets.dungeonBindings} dungeon budget, ${dungeons} placed, no failure recorded — unaccounted`);
       }
+      const encounters = placements.placements.filter((p) => p.rule === "encounter_site.v1" && p.regionId === region.id).length;
+      const encounterFailed = placements.failures.some((f) => f.rule === "encounter_site.v1" && f.regionId === region.id);
+      if (encounters < region.budgets.encounterSites && !encounterFailed) {
+        details.push(`${region.id}: ${region.budgets.encounterSites} encounter budget, ${encounters} placed, no failure recorded — unaccounted`);
+      }
       const emitted = territories.coverage.regions.find((entry) => entry.regionId === region.id);
       if (region.budgets.territories > 0 && emitted !== undefined && emitted.emitted < emitted.budget) {
         const failed = territories.failures.some((f) => f.regionId === region.id);

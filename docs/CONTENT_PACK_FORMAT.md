@@ -1,9 +1,15 @@
-# Worldfiller content pack — format 1 (FROZEN)
+# Worldfiller content pack — formats 1–2 (FROZEN)
 
-Status: **Frozen at pack format 1** (freeze review resolved 2026-07-28;
-see `docs/FREEZE_REVIEW_FINDINGS.md`). File names, field names, and id
-schemes never change shape within format 1; later format versions may
-append fields but never repurpose them. This document plus the reference
+Status: **Format 1 frozen** (freeze review resolved 2026-07-28; see
+`docs/FREEZE_REVIEW_FINDINGS.md`); **format 2 frozen 2026-07-29** —
+format 2 is format 1 plus exactly one append: `placementsFormat` 2,
+whose `rule` vocabulary adds `encounter_site.v1` (encounter sites carry
+no anchor and no arena; their `cell` equals their `accessCell` and both
+anchor/arena fields are null — no field shapes changed). Format-1 packs
+remain valid; this build's readers accept both formats and refuse an
+encounter rule inside a format-1 pack as an unknown enum value. File
+names, field names, and id schemes never change shape within a format;
+later format versions may append fields but never repurpose them. This document plus the reference
 verifiers (`src/consume/verifyPack.ts`,
 `consumers/godot-proof/verify_content_pack.gd`) are sufficient to build a
 game-side importer without reading any other worldfiller source. The two
@@ -40,7 +46,7 @@ contents entirely.
 <name>-content/
   manifest.json        identity + hashes; never listed in its own files table
   content-plan.json    per-region danger bands and budgets (plan format 1)
-  placements.json      bosses + dungeon bindings (placements format 1)
+  placements.json      bosses + dungeons (+ encounter sites in format 2)
   territories.json     spawn territories (territories format 1)
   report.json          the audit that authorized this export (report format 1)
   renders/             OPTIONAL inspection PNGs — never hashed, never payload
@@ -57,11 +63,11 @@ timestamps exist anywhere; identity is hashes.
 ```jsonc
 {
   "pack": "worldfiller-content-pack",
-  "packFormat": 1,
+  "packFormat": 2,
   "world": "fen-hollow",                       // world pack directory name at export time
   "adapter": { "name": "worldfiller", "version": "0.1.0" },
-  "directorBehaviorVersion": 8,
-  "rulePacks": { "analysis": 1, "plan": 3, "placement": 4, "territory": 4, "validate": 2, "export": 2 },
+  "directorBehaviorVersion": 10,
+  "rulePacks": { "analysis": 1, "plan": 4, "placement": 5, "territory": 4, "validate": 3, "export": 2 },
   "analysisVersion": 1,
   "recipeName": "basic-direction",
   "directorSeed": 103991,
@@ -105,7 +111,8 @@ An importer MUST, in order:
    `packFormat` comparison is exact — `"1"` or `1.9` is not format 1.
    Within packFormat 1 every payload format field is likewise 1:
    `planFormat`, `placementsFormat`, `territoriesFormat`, `reportFormat`
-   MUST each equal 1, refused otherwise.
+   MUST each equal 1, refused otherwise. (`packFormat == 2` is identical
+   except `placementsFormat` MUST equal 2.)
 2. Require `files` to list exactly the four payload names, hash-verify
    every entry against the payload bytes, and parse the payloads from
    the same bytes that were verified.
@@ -121,6 +128,7 @@ An importer MUST, in order:
 5. Treat unknown ids and enum values in the **closed vocabularies** as
    errors, never as defaults. The closed, format-frozen vocabularies are:
    - `placements[].rule` ∈ `world_boss.v1 | dungeon_binding.v1`
+     (format 2 appends `encounter_site.v1`)
    - `territories[].cells.encoding` ∈ `runs`
    - `territories[].respawnPressure` ∈ `low | medium | high`
    - `report.gates[].status` ∈ `pass | warn | fail`
@@ -146,7 +154,8 @@ it; an importer may repeat that spot-check cheaply at load.
 ## Placement and territory ids
 
 Ids are opaque unique keys. The only structure format 1 guarantees is the
-prefix — `placement.world_boss.` or `placement.dungeon.` (matching the
+prefix — `placement.world_boss.`, `placement.dungeon.`, or
+`placement.encounter.` (format 2; matching the
 row's `rule`), `territory.` — and a trailing `.<decimal slot>`. The middle
 segment is the `regionId`, but region ids themselves contain dots
 (informative scheme: `region.<biome-short>.<anchorIndex>`, where
@@ -169,8 +178,8 @@ Each placement:
 
 ```jsonc
 {
-  "id": "placement.world_boss.region.mud.1245.0",  // or placement.dungeon.<regionId>.<slot>
-  "rule": "world_boss.v1" | "dungeon_binding.v1",
+  "id": "placement.world_boss.region.mud.1245.0",  // or placement.dungeon.<...> / placement.encounter.<...> (format 2)
+  "rule": "world_boss.v1" | "dungeon_binding.v1" | "encounter_site.v1",  // encounter_site only in format 2
   "regionId": "region.mud.1245",
   "cell": [31, 59],                 // boss: arena center; dungeon: anchor poi cell
   "accessCell": [31, 59],           // walk-up ground, always walkable+reachable

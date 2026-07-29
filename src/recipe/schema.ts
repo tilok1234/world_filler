@@ -81,6 +81,12 @@ export interface DirectorRecipe {
     /** Scale-free floor: anchors closer to settlements than this permille of the world max are not bound (0 = off). */
     readonly minSettlementDistancePermille: number;
   };
+  readonly encounterRule: {
+    readonly exclusionRadius: number;
+    /** Score weight for being NEAR travel routes — encounters are stumbled on, not hidden. */
+    readonly roadNearPermille: number;
+    readonly clearancePermille: number;
+  };
   readonly territoryRule: {
     readonly targetHostileCoveragePermille: number;
     /** Chebyshev gap kept clear between territories (0 = they may touch). */
@@ -108,7 +114,7 @@ export interface DirectorRecipe {
 
 export interface PlacementLock {
   readonly id: string;
-  readonly rule: "world_boss.v1" | "dungeon_binding.v1";
+  readonly rule: "world_boss.v1" | "dungeon_binding.v1" | "encounter_site.v1";
   readonly regionId: string;
   readonly cell: readonly [number, number];
   readonly exclusionRadius: number;
@@ -207,6 +213,14 @@ const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   minSettlementDistancePermille: { min: 0, max: 1000, fallback: 0 },
 };
 
+const ENCOUNTER_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  // Radius 3 by default: big enough to keep set pieces clear of ambient
+  // spawns, small enough not to starve territory ground on 64² worlds.
+  exclusionRadius: { min: 1, max: 64, fallback: 3 },
+  roadNearPermille: { min: 0, max: 1000, fallback: 400 },
+  clearancePermille: { min: 0, max: 1000, fallback: 200 },
+};
+
 const TERRITORY_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   targetHostileCoveragePermille: { min: 0, max: 1000, fallback: 350 },
   spacing: { min: 0, max: 32, fallback: 0 },
@@ -278,7 +292,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     raw,
     [
       "recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors",
-      "worldBossRule", "dungeonRule", "territoryRule", "contentLibrary", "rerolls", "locks", "paint",
+      "worldBossRule", "dungeonRule", "encounterRule", "territoryRule", "contentLibrary", "rerolls", "locks", "paint",
     ],
     "$",
   );
@@ -352,6 +366,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
 
   const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
   const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
+  const encounterRule = sectionOf(raw, "encounterRule", ENCOUNTER_RULE_FIELDS);
 
   const territoryRule = sectionOf(raw, "territoryRule", TERRITORY_RULE_FIELDS, ["respawnPressure"]);
   const territoryRecord = raw["territoryRule"] === undefined ? {} : requireObject(raw["territoryRule"], "$.territoryRule");
@@ -466,8 +481,10 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     const id = record["id"];
     const rule = record["rule"];
     const regionId = record["regionId"];
-    if (rule !== "world_boss.v1" && rule !== "dungeon_binding.v1") {
-      throw new RecipeError(`recipe: $.locks.placements[${i}].rule must be world_boss.v1 or dungeon_binding.v1`);
+    if (rule !== "world_boss.v1" && rule !== "dungeon_binding.v1" && rule !== "encounter_site.v1") {
+      throw new RecipeError(
+        `recipe: $.locks.placements[${i}].rule must be world_boss.v1, dungeon_binding.v1, or encounter_site.v1`,
+      );
     }
     if (typeof regionId !== "string" || regionId === "") {
       throw new RecipeError(`recipe: $.locks.placements[${i}].regionId must be a region id`);
@@ -475,7 +492,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     // Lock ids must follow the frozen id scheme AND agree with the lock's
     // own rule and regionId — ids that lie about their rule or region would
     // otherwise ship verbatim in an audited pack (freeze-review finding).
-    const ruleTag = rule === "world_boss.v1" ? "world_boss" : "dungeon";
+    const ruleTag = rule === "world_boss.v1" ? "world_boss" : rule === "dungeon_binding.v1" ? "dungeon" : "encounter";
     const idPrefix = `placement.${ruleTag}.${regionId}.`;
     if (typeof id !== "string" || !id.startsWith(idPrefix) || !/^(0|[1-9][0-9]*)$/.test(id.slice(idPrefix.length))) {
       throw new RecipeError(
@@ -584,6 +601,11 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       exclusionRadius: dungeonRule["exclusionRadius"] as number,
       settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
       minSettlementDistancePermille: dungeonRule["minSettlementDistancePermille"] as number,
+    },
+    encounterRule: {
+      exclusionRadius: encounterRule["exclusionRadius"] as number,
+      roadNearPermille: encounterRule["roadNearPermille"] as number,
+      clearancePermille: encounterRule["clearancePermille"] as number,
     },
     territoryRule: {
       targetHostileCoveragePermille: territoryRule["targetHostileCoveragePermille"] as number,

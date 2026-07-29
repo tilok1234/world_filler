@@ -55,7 +55,7 @@ describe("content pack export", () => {
         files: Record<string, string>;
         base: { artifactSha256: string };
       };
-      assert.equal(manifest.packFormat, 1);
+      assert.equal(manifest.packFormat, 2);
       assert.deepEqual(
         Object.keys(manifest.files).sort(),
         ["content-plan.json", "placements.json", "report.json", "territories.json"],

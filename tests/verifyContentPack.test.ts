@@ -227,3 +227,29 @@ describe("content pack verifier — adversarial battery", () => {
     );
   });
 });
+
+describe("pack format compatibility", () => {
+  it("still accepts the frozen format-1 fixture pack and refuses encounter rules inside format 1", () => {
+    const format1 = join(repoRoot(), "fixtures", "golden", "content-pack-fen-hollow-format1");
+    const summary = verifyContentPack(FEN, format1);
+    assert.equal(summary.placements, 2, "the frozen format-1 pack verifies unchanged");
+
+    // An encounter rule smuggled into a format-1 pack is an unknown enum
+    // value there — format 2 exists precisely so readers can tell.
+    const base = mkdtempSync(join(tmpdir(), "wf-fmt1-"));
+    try {
+      const dir = join(base, "pack");
+      cpSync(format1, dir, { recursive: true });
+      const doc = JSON.parse(readFileSync(join(dir, "placements.json"), "utf8"));
+      doc.placements[0].rule = "encounter_site.v1";
+      const bytes = JSON.stringify(doc);
+      writeFileSync(join(dir, "placements.json"), bytes);
+      const manifest = JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8"));
+      manifest.files["placements.json"] = sha256Hex(Buffer.from(bytes));
+      writeFileSync(join(dir, "manifest.json"), JSON.stringify(manifest));
+      assert.throws(() => verifyContentPack(FEN, dir), /unknown rule encounter_site\.v1 \(format-1 rules/);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+});

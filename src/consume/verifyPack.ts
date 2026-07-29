@@ -11,10 +11,10 @@ import type { TerritoriesDoc } from "../territory/territory.js";
 import type { RegionalPlan } from "../plan/plan.js";
 import type { ValidationReportDoc } from "../validate/validate.js";
 import {
-  CONTENT_PACK_FORMAT,
+  PACK_FORMAT_PROFILE,
   PLAN_FORMAT,
-  PLACEMENTS_FORMAT,
   REPORT_FORMAT,
+  SUPPORTED_CONTENT_PACK_FORMATS,
   TERRITORIES_FORMAT,
 } from "../core/version.js";
 
@@ -47,7 +47,6 @@ export interface VerifySummary {
 /** The exact payload set of content pack format 1 — no more, no less. */
 const REQUIRED_PAYLOAD_FILES = ["content-plan.json", "placements.json", "report.json", "territories.json"] as const;
 
-const PLACEMENT_RULES = new Set(["world_boss.v1", "dungeon_binding.v1"]);
 const RESPAWN_PRESSURES = new Set(["low", "medium", "high"]);
 
 function readJson(dir: string, name: string): unknown {
@@ -73,11 +72,13 @@ export function verifyContentPack(worldPackDir: string, contentPackDir: string):
   if (manifest.pack !== "worldfiller-content-pack") {
     throw new VerifyError(`verify: manifest.pack is ${String(manifest.pack)}; expected worldfiller-content-pack`);
   }
-  if (manifest.packFormat !== CONTENT_PACK_FORMAT) {
+  if (typeof manifest.packFormat !== "number" || !SUPPORTED_CONTENT_PACK_FORMATS.includes(manifest.packFormat)) {
     throw new VerifyError(
-      `verify: unsupported packFormat ${String(manifest.packFormat)}; this build reads format ${CONTENT_PACK_FORMAT}`,
+      `verify: unsupported packFormat ${String(manifest.packFormat)}; this build reads formats ${SUPPORTED_CONTENT_PACK_FORMATS.join(", ")}`,
     );
   }
+  const profile = PACK_FORMAT_PROFILE[manifest.packFormat] as (typeof PACK_FORMAT_PROFILE)[number];
+  const placementRules = new Set(profile.placementRules);
 
   // The files table must list exactly the four format-1 payload files —
   // a shorter table would leave consumed bytes unhashed, a longer one is
@@ -123,9 +124,9 @@ export function verifyContentPack(worldPackDir: string, contentPackDir: string):
   if (plan.planFormat !== PLAN_FORMAT) {
     throw new VerifyError(`verify: content-plan.json planFormat ${String(plan.planFormat)}; format-1 packs carry planFormat ${PLAN_FORMAT}`);
   }
-  if (placements.placementsFormat !== PLACEMENTS_FORMAT) {
+  if (placements.placementsFormat !== profile.placementsFormat) {
     throw new VerifyError(
-      `verify: placements.json placementsFormat ${String(placements.placementsFormat)}; format-1 packs carry placementsFormat ${PLACEMENTS_FORMAT}`,
+      `verify: placements.json placementsFormat ${String(placements.placementsFormat)}; format-${manifest.packFormat} packs carry placementsFormat ${profile.placementsFormat}`,
     );
   }
   if (territories.territoriesFormat !== TERRITORIES_FORMAT) {
@@ -215,8 +216,10 @@ export function verifyContentPack(worldPackDir: string, contentPackDir: string):
 
   for (const placement of placements.placements) {
     // Obligation 5: unknown enum values are errors, never defaults.
-    if (!PLACEMENT_RULES.has(placement.rule)) {
-      throw new VerifyError(`verify: ${placement.id} carries unknown rule ${String(placement.rule)} (format-1 rules: ${[...PLACEMENT_RULES].join(", ")})`);
+    if (!placementRules.has(placement.rule)) {
+      throw new VerifyError(
+        `verify: ${placement.id} carries unknown rule ${String(placement.rule)} (format-${manifest.packFormat} rules: ${[...placementRules].join(", ")})`,
+      );
     }
     if (!walkable(placement.accessCell[0], placement.accessCell[1])) {
       throw new VerifyError(`verify: ${placement.id} access cell (${placement.accessCell[0]}, ${placement.accessCell[1]}) is not walkable in the world pack`);

@@ -157,7 +157,14 @@ edited by the tool), and the workflow doc `docs/WORKFLOW.md` (the
 direct → review → lock → reroll → export loop plus the stale-world
 workflow), with the full cycle run end to end on the canonical world:
 lock held byte-stable through a regional reroll, export verified in the
-consumption lane.
+consumption lane. F9 (2026-07-29): encounter sites place the encounter
+budgets the plan has carried since F3 — stumbled-on set pieces that
+prefer ground near travel routes, placed after bosses and dungeons so
+they route around every claim, lockable, funneled, and accounted by G4.
+This ships **pack format 2** (placements format 2 appends the
+encounter_site.v1 rule; no field shapes changed); format-1 packs remain
+valid, both reference verifiers accept both formats, and a frozen
+format-1 fixture pack pins backward compatibility in the suite.
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

@@ -72,7 +72,10 @@ export function renderTerritories(
     rgba[offset + 2] = b;
   };
   for (const placement of placementsDoc.placements) {
-    const color: readonly [number, number, number] = placement.rule === "world_boss.v1" ? [255, 255, 255] : [80, 240, 255];
+    const color: readonly [number, number, number] =
+      placement.rule === "world_boss.v1" ? [255, 255, 255]
+      : placement.rule === "encounter_site.v1" ? [255, 190, 70]
+      : [80, 240, 255];
     for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       put(placement.cell[0] + dx, placement.cell[1] + dy, color[0], color[1], color[2]);
     }

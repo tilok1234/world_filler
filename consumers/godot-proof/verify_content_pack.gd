@@ -1,4 +1,4 @@
-# Headless consumption proof for worldfiller content packs (pack format 1).
+# Headless consumption proof for worldfiller content packs (formats 1-2).
 #
 # Run:
 #   godot --headless --script verify_content_pack.gd -- <world-pack-dir> <content-pack-dir>
@@ -21,7 +21,8 @@
 extends SceneTree
 
 const PAYLOAD_FILES: Array[String] = ["content-plan.json", "placements.json", "report.json", "territories.json"]
-const PLACEMENT_RULES: Array[String] = ["world_boss.v1", "dungeon_binding.v1"]
+const PLACEMENT_RULES_V1: Array[String] = ["world_boss.v1", "dungeon_binding.v1"]
+const PLACEMENT_RULES_V2: Array[String] = ["world_boss.v1", "dungeon_binding.v1", "encounter_site.v1"]
 const RESPAWN_PRESSURES: Array[String] = ["low", "medium", "high"]
 const WALKABILITY_ENCODING := "base64-bitpacked-row-major-lsb-first"
 
@@ -114,9 +115,11 @@ func _verify(world_dir: String, content_dir: String) -> bool:
 		_refuse("manifest.pack is not worldfiller-content-pack")
 		return false
 	var pack_format: Variant = manifest.get("packFormat")
-	if not _is_int(pack_format) or pack_format != 1.0:
-		_refuse("unsupported packFormat " + str(pack_format) + "; this verifier reads format 1")
+	if not _is_int(pack_format) or (pack_format != 1.0 and pack_format != 2.0):
+		_refuse("unsupported packFormat " + str(pack_format) + "; this verifier reads formats 1-2")
 		return false
+	var placement_rules: Array[String] = PLACEMENT_RULES_V1 if pack_format == 1.0 else PLACEMENT_RULES_V2
+	var expected_placements_format: float = pack_format
 
 	# The files table must list exactly the four format-1 payload files —
 	# a shorter table would leave consumed bytes unhashed, a longer one is
@@ -165,8 +168,8 @@ func _verify(world_dir: String, content_dir: String) -> bool:
 	if plan.get("planFormat") != 1.0:
 		_refuse("content-plan.json planFormat " + str(plan.get("planFormat")) + "; format-1 packs carry planFormat 1")
 		return false
-	if placements_doc.get("placementsFormat") != 1.0:
-		_refuse("placements.json placementsFormat " + str(placements_doc.get("placementsFormat")) + "; format-1 packs carry placementsFormat 1")
+	if placements_doc.get("placementsFormat") != expected_placements_format:
+		_refuse("placements.json placementsFormat " + str(placements_doc.get("placementsFormat")) + " does not match packFormat " + str(int(pack_format)))
 		return false
 	if territories_doc.get("territoriesFormat") != 1.0:
 		_refuse("territories.json territoriesFormat " + str(territories_doc.get("territoriesFormat")) + "; format-1 packs carry territoriesFormat 1")
@@ -317,8 +320,8 @@ func _verify(world_dir: String, content_dir: String) -> bool:
 		var id := str(placement.get("id"))
 		var rule: Variant = placement.get("rule")
 		# Obligation 5: unknown enum values are errors, never defaults.
-		if typeof(rule) != TYPE_STRING or not PLACEMENT_RULES.has(rule):
-			_refuse(id + " carries unknown rule " + str(rule) + " (format-1 rules: " + ", ".join(PLACEMENT_RULES) + ")")
+		if typeof(rule) != TYPE_STRING or not placement_rules.has(rule):
+			_refuse(id + " carries unknown rule " + str(rule) + " (format-" + str(int(pack_format)) + " rules: " + ", ".join(placement_rules) + ")")
 			return false
 		if not _int_pair(placement.get("accessCell")) or not _int_pair(placement.get("cell")):
 			_refuse(id + " cell/accessCell is not an integer pair")

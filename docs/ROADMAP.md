@@ -46,7 +46,16 @@ proof on both fixtures), the `unlock`/`reroll` print verbs, the
 workflow doc (docs/WORKFLOW.md), and the full
 direct→review→lock→reroll→export cycle run end to end on the canonical
 world. The viewer verdict is
-**APPROVED (2026-07-29)** — F8 complete; the first-arc close-out is next.
+**APPROVED (2026-07-29)** — F8 complete (plus post-approval authoring
+aids: copy lock/reroll entries, shift+drag paint rects). F9 landed
+(2026-07-29): encounter sites — the encounter budgets the plan has
+carried since F3 now place (rule `encounter_site.v1`, **pack format 2**;
+format 1 remains valid and both reference verifiers accept both formats,
+with a frozen format-1 fixture pack pinning backward compatibility).
+Encounters are set pieces that PREFER ground near travel routes, placed
+last so they route around every earlier claim, lockable like any
+placement, with the usual funnels and named failures; G4 accounts for
+their budgets. Behavior 10; plan 4, placement 5, validate 3.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
@@ -309,7 +318,8 @@ Exit criteria:
 
 - minibosses, elites, and patrol routes;
 - faction territories and territory conflict;
-- event sites, rare encounters, treasure/resource nodes;
+- treasure/resource nodes and rare (one-off) encounters beyond the
+  F9 encounter sites;
 - quest hooks and progression dependencies (keys, gates, unlocks);
 - multi-world campaigns; content migration between artifact format versions;
 - interior/dungeon-layout generation (World Filler binds entrances; interiors

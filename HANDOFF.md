@@ -183,6 +183,31 @@ this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
   World Filler stays out of art by doctrine. **F8 complete. Next: the
   first-arc close-out per ROADMAP** (deferred list stays deferred).
 
+## 1c. F9 (2026-07-29): encounter sites — pack format 2
+
+User picked encounter sites over the game importer. Implemented:
+`placeEncounters` (pass 3, after bosses — most flexible routes around
+every claim): per-region whole-grid candidate scan (walkable, reachable,
+outside safe zones and noContent), scoring road_near (encounters are
+stumbled on — nearness scores UP) + clearance + preferred-zone bonus,
+seeded top-6 window pick per slot on
+`world/<region>/reroll.<n>/encounter/<slot>`, physical claim = the site
+cell, buffer = encounterRule.exclusionRadius (default 3 — 5 starved
+64² territory ground, probed both). Lockable (id tag `encounter`, no
+anchor/arena); G4 accounts encounter budgets; territories grow around
+encounter buffers automatically. New recipe section `encounterRule`
+{exclusionRadius, roadNearPermille, clearancePermille}.
+
+**Pack format 2**: placementsFormat 2 appends rule `encounter_site.v1`
+(no shape changes). Format 1 stays valid: both verifiers accept formats
+1-2 via PACK_FORMAT_PROFILE (version.ts), refuse encounter rules inside
+format-1 packs, and `fixtures/golden/content-pack-fen-hollow-format1/`
+(extracted from the behavior-9 golden) pins backward compat in the
+suite + was verified in headless Godot. Versions: behavior 10; plan 4,
+placement 5, validate 3; PLACEMENTS_FORMAT 2, CONTENT_PACK_FORMAT 2.
+Canonical: 48 encounters, 52 territories (f8); all four worlds 9/9.
+135 tests green. **Encounter render verdict pending user review.**
+
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
 Single-file, no-build, read-only browser viewer (minimap backdrop, layer

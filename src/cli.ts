@@ -15,7 +15,7 @@ import { renderTerritories } from "./render/territoryRender.js";
 import { runGates, formatReport } from "./validate/validate.js";
 import { buildContentPack, writeContentPack } from "./export/export.js";
 import { verifyContentPack } from "./consume/verifyPack.js";
-import { PLACEMENTS_FORMAT } from "./core/version.js";
+import { SUPPORTED_PLACEMENTS_FORMATS } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
 
@@ -265,10 +265,10 @@ function runPlace(dir: string, recipePath: string, outArg: string | undefined): 
 
 function runExplain(placementsPath: string, placementId: string): number {
   const doc = JSON.parse(readFileSync(placementsPath, "utf8")) as PlacementsDoc;
-  if (doc.placementsFormat !== PLACEMENTS_FORMAT || !Array.isArray(doc.placements)) {
+  if (!SUPPORTED_PLACEMENTS_FORMATS.includes(doc.placementsFormat) || !Array.isArray(doc.placements)) {
     console.error(
       `explain: ${placementsPath} is not a supported placements file ` +
-        `(placementsFormat ${String(doc.placementsFormat)}; this build reads format ${PLACEMENTS_FORMAT})`,
+        `(placementsFormat ${String(doc.placementsFormat)}; this build reads formats ${SUPPORTED_PLACEMENTS_FORMATS.join(", ")})`,
     );
     return 1;
   }
@@ -385,7 +385,7 @@ function runValidate(dir: string, recipePath: string, outArg: string | undefined
 
 function runLock(placementsPath: string, placementId: string): number {
   const doc = JSON.parse(readFileSync(placementsPath, "utf8")) as PlacementsDoc;
-  if (doc.placementsFormat !== PLACEMENTS_FORMAT || !Array.isArray(doc.placements)) {
+  if (!SUPPORTED_PLACEMENTS_FORMATS.includes(doc.placementsFormat) || !Array.isArray(doc.placements)) {
     console.error(`lock: ${placementsPath} is not a supported placements file`);
     return 1;
   }

@@ -16,20 +16,36 @@ export const DIRECTOR_VERSION = "0.1.0";
 // 9: third round — endgame pockets carve K islands out of the two
 // deepest bands (promote around seeds, capped by the deep area share)
 // instead of only demoting bridges.
-export const DIRECTOR_BEHAVIOR_VERSION = 9;
+// 10: F9 encounter sites — the encounter budgets the plan has carried
+// since F3 now place (rule encounter_site.v1, pack format 2).
+export const DIRECTOR_BEHAVIOR_VERSION = 10;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
   plan: 4,
-  placement: 4,
+  placement: 5,
   territory: 4,
-  validate: 2,
+  validate: 3,
   export: 2,
 } as const;
 
 export const RECIPE_FORMAT = 1;
 export const PLAN_FORMAT = 1;
-export const PLACEMENTS_FORMAT = 1;
+// Placements format 2 appends the encounter_site.v1 rule value; the
+// field shapes are unchanged from format 1.
+export const PLACEMENTS_FORMAT = 2;
+export const SUPPORTED_PLACEMENTS_FORMATS: readonly number[] = [1, 2];
 export const TERRITORIES_FORMAT = 1;
 export const REPORT_FORMAT = 1;
-export const CONTENT_PACK_FORMAT = 1;
+// Pack format 2 = format 1 with placementsFormat 2 (encounter sites).
+// Format-1 packs remain valid; readers accept both.
+export const CONTENT_PACK_FORMAT = 2;
+export const SUPPORTED_CONTENT_PACK_FORMATS: readonly number[] = [1, 2];
+/** Per pack format: the placements format and legal placement rules. */
+export const PACK_FORMAT_PROFILE: Readonly<Record<number, {
+  readonly placementsFormat: number;
+  readonly placementRules: readonly string[];
+}>> = {
+  1: { placementsFormat: 1, placementRules: ["world_boss.v1", "dungeon_binding.v1"] },
+  2: { placementsFormat: 2, placementRules: ["world_boss.v1", "dungeon_binding.v1", "encounter_site.v1"] },
+};

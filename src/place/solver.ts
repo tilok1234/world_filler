@@ -41,6 +41,7 @@ export class PlacementError extends Error {}
 
 const BOSS_PICK_WINDOW = 8;
 const DUNGEON_PICK_WINDOW = 4;
+const ENCOUNTER_PICK_WINDOW = 6;
 const ANCHOR_ACCESS_RADIUS = 4;
 
 export interface CandidateFunnel {
@@ -57,7 +58,7 @@ export interface ScoreTerm {
 
 export interface Placement {
   readonly id: string;
-  readonly rule: "world_boss.v1" | "dungeon_binding.v1";
+  readonly rule: "world_boss.v1" | "dungeon_binding.v1" | "encounter_site.v1";
   readonly regionId: string;
   readonly cell: readonly [number, number];
   readonly accessCell: readonly [number, number];
@@ -557,6 +558,122 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
   return distanceField(bundle.bits, state.width, state.height, [chosen.cellIndex]);
 }
 
+/**
+ * Place encounter sites for one region: small stumbled-on set pieces.
+ * Unlike bosses they PREFER ground near travel routes — encounters are
+ * met, not sought — and they carry no arena or anchor: physical claim is
+ * the single site cell plus a small exclusion buffer. Placed last so
+ * they route around every earlier claim.
+ */
+function placeEncounters(
+  state: SolverState,
+  regionId: string,
+  budget: number,
+  takenIds: ReadonlySet<string>,
+): void {
+  const { recipe, bundle } = state;
+  const rule = recipe.encounterRule;
+  const label = state.labelById.get(regionId) as number;
+  const roadMax = Math.max(1, bundle.summary.fieldStats["distanceFromRoads"]?.max ?? 1);
+
+  interface EncounterCandidate {
+    readonly cellIndex: number;
+    readonly x: number;
+    readonly y: number;
+    readonly score: number;
+    readonly scoreTerms: readonly ScoreTerm[];
+  }
+
+  let inRegion = 0;
+  let afterReachable = 0;
+  let afterPaint = 0;
+  let afterSafe = 0;
+  const candidates: EncounterCandidate[] = [];
+  for (let y = 0; y < state.height; y += 1) {
+    for (let x = 0; x < state.width; x += 1) {
+      const cellIndex = y * state.width + x;
+      if ((bundle.regionLabels[cellIndex] as number) !== label) continue;
+      if (bundle.bits[cellIndex] !== 1) continue;
+      inRegion += 1;
+      if ((bundle.distanceFromSpawn[cellIndex] as number) === UNREACHABLE) continue;
+      afterReachable += 1;
+      if (state.inNoContent(x, y)) continue;
+      afterPaint += 1;
+      if (bundle.safeZone[cellIndex] === 1) continue;
+      afterSafe += 1;
+
+      const roadDistance = bundle.distanceFromRoads[cellIndex] as number;
+      const roadValue = roadDistance === UNREACHABLE ? 0 : 1000 - permilleOf(roadDistance, roadMax);
+      const clearanceValue = permilleOf(Math.min(bundle.clearance[cellIndex] as number, 8), 8);
+      const terms: ScoreTerm[] = [
+        { term: "road_near", value: roadValue, weightPermille: rule.roadNearPermille, contribution: Math.floor((roadValue * rule.roadNearPermille) / 1000) },
+        { term: "clearance", value: clearanceValue, weightPermille: rule.clearancePermille, contribution: Math.floor((clearanceValue * rule.clearancePermille) / 1000) },
+      ];
+      const bonus = state.preferBonusAt(x, y);
+      if (bonus > 0) terms.push({ term: "preferred_zone", value: 1000, weightPermille: bonus, contribution: bonus });
+      candidates.push({ cellIndex, x, y, score: terms.reduce((sum, term) => sum + term.contribution, 0), scoreTerms: terms });
+    }
+  }
+  candidates.sort((a, b) => (a.score !== b.score ? b.score - a.score : a.cellIndex - b.cellIndex));
+
+  const channel = regionChannel(state, regionId).child("encounter");
+  let slotNumber = -1;
+  for (let iteration = 0; iteration < budget; iteration += 1) {
+    slotNumber += 1;
+    while (takenIds.has(`placement.encounter.${regionId}.${slotNumber}`)) slotNumber += 1;
+    const slot = slotNumber;
+    const viable: EncounterCandidate[] = [];
+    for (const candidate of candidates) {
+      const buffer = discCells(state, candidate.x, candidate.y, rule.exclusionRadius);
+      if (admissible(state, [candidate.cellIndex], buffer)) viable.push(candidate);
+    }
+    const funnel: CandidateFunnel[] = [
+      { stage: "region_cells", remaining: inRegion },
+      { stage: "reachable", remaining: afterReachable },
+      { stage: "paint_no_content", remaining: afterPaint },
+      { stage: "outside_safe_zones", remaining: afterSafe },
+      { stage: "spacing_clear", remaining: viable.length },
+    ];
+    if (viable.length === 0) {
+      state.failures.push({
+        regionId,
+        rule: "encounter_site.v1",
+        slot,
+        candidateFunnel: funnel,
+        message: `no viable encounter site in ${regionId} for slot ${slot}: ` +
+          funnel.map((step) => `${step.stage}=${step.remaining}`).join(", "),
+      });
+      break;
+    }
+    const window = Math.min(ENCOUNTER_PICK_WINDOW, viable.length);
+    const slotChannel = channel.child(String(slot));
+    const pickIndex = slotChannel.int(0, window);
+    const chosen = viable[pickIndex] as EncounterCandidate;
+    claim(state.placementMask, [chosen.cellIndex]);
+    claim(state.bufferMask, discCells(state, chosen.x, chosen.y, rule.exclusionRadius));
+    state.placements.push({
+      id: `placement.encounter.${regionId}.${slot}`,
+      rule: "encounter_site.v1",
+      regionId,
+      cell: [chosen.x, chosen.y],
+      accessCell: [chosen.x, chosen.y],
+      anchorPoiId: null,
+      anchorPoiType: null,
+      inSafeZone: false,
+      arenaOrigin: null,
+      arenaSide: null,
+      exclusionRadius: rule.exclusionRadius,
+      locked: false,
+      channel: slotChannel.path,
+      draw: pickIndex,
+      score: chosen.score,
+      scoreTerms: chosen.scoreTerms,
+      candidateFunnel: funnel,
+      topCandidates: viable.slice(0, window).map((candidate) => ({ cell: [candidate.x, candidate.y], score: candidate.score })),
+    });
+  }
+}
+
 export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan: RegionalPlan, recipe: DirectorRecipe): PlacementsDoc {
   const { width, height } = model.dimensions;
   const regionIds = new Set(plan.regions.map((region) => region.id));
@@ -643,7 +760,9 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   const regionBudget = (regionId: string, rule: PlacementLock["rule"]): number => {
     const region = plan.regions.find((entry) => entry.id === regionId);
     if (region === undefined) return 0;
-    return rule === "world_boss.v1" ? region.budgets.worldBosses : region.budgets.dungeonBindings;
+    if (rule === "world_boss.v1") return region.budgets.worldBosses;
+    if (rule === "dungeon_binding.v1") return region.budgets.dungeonBindings;
+    return region.budgets.encounterSites;
   };
   for (const lock of recipe.locks.placements) {
     const reasons: LockInvalidity[] = [];
@@ -679,6 +798,19 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
         }
         if (!arenaWalkable) reasons.push("cell_not_walkable");
         else if (anySafe(state, physical) || !admissible(state, physical, buffer)) reasons.push("arena_blocked");
+      }
+      accessCell = lock.cell;
+    }
+    if (reasons.length === 0 && lock.rule === "encounter_site.v1") {
+      const cellIndex = lock.cell[1] * width + lock.cell[0];
+      if (bundle.bits[cellIndex] !== 1) {
+        reasons.push("cell_not_walkable");
+      } else if ((bundle.distanceFromSpawn[cellIndex] as number) === UNREACHABLE) {
+        reasons.push("cell_unreachable");
+      } else {
+        physical = [cellIndex];
+        const buffer = discCells(state, lock.cell[0], lock.cell[1], lock.exclusionRadius);
+        if (bundle.safeZone[cellIndex] === 1 || !admissible(state, physical, buffer)) reasons.push("arena_blocked");
       }
       accessCell = lock.cell;
     }
@@ -780,6 +912,14 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
     while (heldIds.has(`placement.world_boss.${region.id}.${slotNumber}`)) slotNumber += 1;
     const field = placeBoss(state, region.id, slotNumber, peerFields);
     if (field !== null) peerFields.push(field);
+  }
+
+  // Pass 3 — encounter sites (most flexible; route around every claim).
+  for (const region of plan.regions) {
+    const heldEncounters = heldByRegionRule.get(`${region.id}|encounter_site.v1`) ?? 0;
+    const remainingBudget = region.budgets.encounterSites - heldEncounters;
+    if (remainingBudget <= 0) continue;
+    placeEncounters(state, region.id, remainingBudget, heldIds);
   }
 
   return {

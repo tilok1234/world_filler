@@ -155,7 +155,9 @@ describe("spawn territories", () => {
       recipeFormat: 1,
       name: "territory-scoping",
       directorSeed: 7,
-      budgets: { minRegionCells: 32, majorRegionCells: 4096, worldBossCount: 0, territoriesPer1000Walkable: 30, territoryCapPerRegion: 2 },
+      // Encounters off: their exclusion buffers can couple adjacent
+      // regions, and this test pins the UNCOUPLED isolation contract.
+      budgets: { minRegionCells: 32, majorRegionCells: 4096, worldBossCount: 0, territoriesPer1000Walkable: 30, territoryCapPerRegion: 2, encountersPer1000Walkable: 0 },
       territoryRule: { minCells: 8, maxCells: 40 },
     };
     const solve = (raw: unknown): TerritoriesDoc => {
