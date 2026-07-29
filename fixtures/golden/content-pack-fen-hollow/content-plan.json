@@ -1,5 +1,5 @@
 {
-  "analysisVersion": 1,
+  "analysisVersion": 2,
   "base": {
     "artifactFormat": 8,
     "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
@@ -10,8 +10,8 @@
     "progressionWarnings": [],
     "worldWaivers": []
   },
-  "directorBehaviorVersion": 11,
-  "directorRecipeSha256": "903dc1d8bfb2532af0f2cc9e8d4ac4d98a0ede4c84902d7f3a2462686b121554",
+  "directorBehaviorVersion": 12,
+  "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "planFormat": 1,
   "recipeName": "basic-direction",
@@ -1267,8 +1267,8 @@
       "biome": "terrain.mud",
       "budgets": {
         "dungeonBindings": 0,
-        "encounterSites": 1,
-        "territories": 2,
+        "encounterSites": 0,
+        "territories": 1,
         "worldBosses": 0
       },
       "cellCount": 291,
@@ -1336,8 +1336,8 @@
       "biome": "terrain.mud",
       "budgets": {
         "dungeonBindings": 1,
-        "encounterSites": 6,
-        "territories": 4,
+        "encounterSites": 2,
+        "territories": 2,
         "worldBosses": 1
       },
       "cellCount": 898,
@@ -1705,8 +1705,8 @@
       "biome": "terrain.mud",
       "budgets": {
         "dungeonBindings": 0,
-        "encounterSites": 2,
-        "territories": 3,
+        "encounterSites": 0,
+        "territories": 1,
         "worldBosses": 0
       },
       "cellCount": 400,
@@ -1728,8 +1728,8 @@
       "biome": "terrain.mud",
       "budgets": {
         "dungeonBindings": 0,
-        "encounterSites": 1,
-        "territories": 2,
+        "encounterSites": 0,
+        "territories": 1,
         "worldBosses": 0
       },
       "cellCount": 348,
@@ -3064,9 +3064,9 @@
     }
   ],
   "rulePacks": {
-    "analysis": 1,
+    "analysis": 2,
     "export": 2,
-    "placement": 5,
+    "placement": 6,
     "plan": 5,
     "territory": 4,
     "validate": 3
@@ -3075,8 +3075,8 @@
   "unassignedDungeonAnchors": 0,
   "worldBudget": {
     "dungeonBindings": 1,
-    "encounterSites": 10,
-    "territories": 13,
+    "encounterSites": 2,
+    "territories": 7,
     "worldBosses": {
       "allocated": 1,
       "target": 1

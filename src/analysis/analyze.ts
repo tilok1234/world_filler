@@ -21,7 +21,9 @@ import { safeZoneMask } from "./safety.js";
  * identity; dense fields ride beside it as raw little-endian arrays.
  */
 
-export const ANALYSIS_VERSION = 1;
+// 2: oversized biome patches subdivide (MAX_REGION_CELLS) so banding,
+// budgets, and rerolls get workable granularity on monolithic biomes.
+export const ANALYSIS_VERSION = 2;
 
 const CORRIDOR_MATERIALS: ReadonlySet<string> = new Set(["terrain.packed_road", "terrain.cobble"]);
 const WATER_MATERIALS: ReadonlySet<string> = new Set(["water.deep", "water.shallow"]);

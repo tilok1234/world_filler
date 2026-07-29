@@ -15,6 +15,16 @@ import type { WorldModel } from "../world/model.js";
 
 const VOID_MATERIALS: ReadonlySet<string> = new Set(["water.deep", "water.shallow", "terrain.rock"]);
 
+/**
+ * Patches larger than this subdivide. Giant single-biome monoliths are
+ * too coarse for everything downstream — danger banding (one region can
+ * swallow a whole band's share), budgets (blobby allocation), and
+ * rerolls (rerolling "the entire highland"). 1024 cells ≈ a 32×32 area:
+ * big enough to stay meaningful, small enough that bands can vary
+ * across a large biome.
+ */
+const MAX_REGION_CELLS = 1024;
+
 export interface AnalysisRegion {
   readonly id: string;
   readonly biome: string;
@@ -83,6 +93,78 @@ export function segmentRegions(model: WorldModel): Segmentation {
       }
     }
     patches.push({ biome, cellCount, anchorIndex: start, x0, y0, x1, y1 });
+  }
+
+  // Subdivide oversized patches: bisect along the longer bounding-box
+  // axis at the midline and re-flood each side into connected
+  // components, repeating until every patch holds at most
+  // MAX_REGION_CELLS cells. Deterministic throughout (row-major scans,
+  // midline splits); every final patch re-anchors at its own smallest
+  // cell index, so ids stay content-derived. The first component of a
+  // split reuses the parent's label slot; the rest append.
+  const oversized: number[] = [];
+  for (let label = 0; label < patches.length; label += 1) {
+    if ((patches[label] as (typeof patches)[number]).cellCount > MAX_REGION_CELLS) oversized.push(label);
+  }
+  while (oversized.length > 0) {
+    const label = oversized.shift() as number;
+    const patch = patches[label] as (typeof patches)[number];
+    if (patch.cellCount <= MAX_REGION_CELLS) continue;
+    const cells: number[] = [];
+    for (let index = 0; index < labels.length; index += 1) {
+      if (labels[index] === label) {
+        cells.push(index);
+        labels[index] = -2; // pending reassignment
+      }
+    }
+    const splitOnX = patch.x1 - patch.x0 >= patch.y1 - patch.y0;
+    const midline = splitOnX ? (patch.x0 + patch.x1) >> 1 : (patch.y0 + patch.y1) >> 1;
+    const sideOf = (index: number): number => {
+      const x = index % width;
+      const y = (index - x) / width;
+      return (splitOnX ? x : y) <= midline ? 0 : 1;
+    };
+    let reusedParentSlot = false;
+    for (const seed of cells) {
+      if (labels[seed] !== -2) continue;
+      const componentLabel = reusedParentSlot ? patches.length : label;
+      const side = sideOf(seed);
+      labels[seed] = componentLabel;
+      const queue: number[] = [seed];
+      let cellCount = 0;
+      let anchorIndex = seed;
+      let x0 = width;
+      let y0 = height;
+      let x1 = -1;
+      let y1 = -1;
+      for (let head = 0; head < queue.length; head += 1) {
+        const index = queue[head] as number;
+        cellCount += 1;
+        if (index < anchorIndex) anchorIndex = index;
+        const x = index % width;
+        const y = (index - x) / width;
+        if (x < x0) x0 = x;
+        if (y < y0) y0 = y;
+        if (x > x1) x1 = x;
+        if (y > y1) y1 = y;
+        for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const next = ny * width + nx;
+          if (labels[next] !== -2 || sideOf(next) !== side) continue;
+          labels[next] = componentLabel;
+          queue.push(next);
+        }
+      }
+      const component = { biome: patch.biome, cellCount, anchorIndex, x0, y0, x1, y1 };
+      if (reusedParentSlot) patches.push(component);
+      else {
+        patches[label] = component;
+        reusedParentSlot = true;
+      }
+      if (cellCount > MAX_REGION_CELLS) oversized.push(componentLabel);
+    }
   }
 
   // Region adjacency: touching patches (4-connected across the border),

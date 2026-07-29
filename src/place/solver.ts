@@ -903,6 +903,13 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
       );
     }
   }
+  // A boss budget seeks a home: if the plan's allocated region has no
+  // valid site (small subdivided regions can lack one), the solve falls
+  // back through the other eligible regions — band at or above the
+  // recipe's boss floor, not minor-class — largest hostile ground first,
+  // recording a named failure for every region attempted. Bounded, and
+  // every miss is explained (budgets place or explain).
+  const BOSS_FALLBACK_ATTEMPTS = 8;
   for (const region of plan.regions) {
     const heldBosses = heldByRegionRule.get(`${region.id}|world_boss.v1`) ?? 0;
     if (region.budgets.worldBosses - heldBosses <= 0) continue;
@@ -911,7 +918,33 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
     let slotNumber = 0;
     while (heldIds.has(`placement.world_boss.${region.id}.${slotNumber}`)) slotNumber += 1;
     const field = placeBoss(state, region.id, slotNumber, peerFields);
-    if (field !== null) peerFields.push(field);
+    if (field !== null) {
+      peerFields.push(field);
+      continue;
+    }
+    const fallbacks = plan.regions
+      .filter((candidate) =>
+        candidate.id !== region.id &&
+        candidate.regionClass !== "minor" &&
+        candidate.dangerBand !== null &&
+        candidate.dangerBand >= recipe.budgets.minWorldBossBand &&
+        candidate.budgets.worldBosses === 0,
+      )
+      .sort((a, b) =>
+        a.hostileWalkableCells !== b.hostileWalkableCells
+          ? b.hostileWalkableCells - a.hostileWalkableCells
+          : a.id < b.id ? -1 : 1,
+      )
+      .slice(0, BOSS_FALLBACK_ATTEMPTS);
+    for (const fallback of fallbacks) {
+      let fallbackSlot = 0;
+      while (heldIds.has(`placement.world_boss.${fallback.id}.${fallbackSlot}`)) fallbackSlot += 1;
+      const fallbackField = placeBoss(state, fallback.id, fallbackSlot, peerFields);
+      if (fallbackField !== null) {
+        peerFields.push(fallbackField);
+        break;
+      }
+    }
   }
 
   // Pass 3 — encounter sites (most flexible; route around every claim).

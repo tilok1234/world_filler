@@ -1,5 +1,5 @@
 {
-  "analysisVersion": 1,
+  "analysisVersion": 2,
   "base": {
     "artifactFormat": 8,
     "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
@@ -434,17 +434,17 @@
       },
       {
         "budget": 1,
-        "coveragePermille": 341,
-        "covered": 28,
+        "coveragePermille": 487,
+        "covered": 40,
         "emitted": 1,
         "hostileWalkable": 82,
         "regionId": "region.mud.0"
       },
       {
-        "budget": 2,
-        "coveragePermille": 341,
-        "covered": 70,
-        "emitted": 2,
+        "budget": 1,
+        "coveragePermille": 346,
+        "covered": 71,
+        "emitted": 1,
         "hostileWalkable": 205,
         "regionId": "region.mud.1152"
       },
@@ -465,10 +465,10 @@
         "regionId": "region.mud.1230"
       },
       {
-        "budget": 4,
-        "coveragePermille": 179,
-        "covered": 135,
-        "emitted": 3,
+        "budget": 2,
+        "coveragePermille": 174,
+        "covered": 131,
+        "emitted": 1,
         "hostileWalkable": 751,
         "regionId": "region.mud.1245"
       },
@@ -593,26 +593,26 @@
         "regionId": "region.mud.3914"
       },
       {
-        "budget": 3,
-        "coveragePermille": 343,
-        "covered": 102,
-        "emitted": 3,
+        "budget": 1,
+        "coveragePermille": 346,
+        "covered": 103,
+        "emitted": 1,
         "hostileWalkable": 297,
         "regionId": "region.mud.43"
       },
       {
-        "budget": 2,
-        "coveragePermille": 344,
-        "covered": 74,
-        "emitted": 2,
+        "budget": 1,
+        "coveragePermille": 348,
+        "covered": 75,
+        "emitted": 1,
         "hostileWalkable": 215,
         "regionId": "region.mud.942"
       },
       {
         "budget": 1,
-        "coveragePermille": 262,
-        "covered": 26,
-        "emitted": 1,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
         "hostileWalkable": 99,
         "regionId": "region.packed_road.1129"
       },
@@ -1049,54 +1049,70 @@
         "regionId": "region.swamp.9"
       }
     ],
-    "totalCovered": 435,
+    "totalCovered": 420,
     "totalHostileWalkable": 1960
   },
-  "directorBehaviorVersion": 11,
-  "directorRecipeSha256": "903dc1d8bfb2532af0f2cc9e8d4ac4d98a0ede4c84902d7f3a2462686b121554",
+  "directorBehaviorVersion": 12,
+  "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "failures": [
     {
-      "message": "42 eligible cells remain in region.mud.1245 but no connected pocket reaches 24 cells (largest: 10)",
+      "message": "93 eligible cells remain in region.mud.1245 but no connected pocket reaches 40 cells (largest: 24)",
       "reason": "fragmented_hostile_ground",
       "regionId": "region.mud.1245",
-      "slot": 3
+      "slot": 1
+    },
+    {
+      "message": "55 eligible cells remain in region.packed_road.1129 but no connected pocket reaches 40 cells (largest: 37)",
+      "reason": "fragmented_hostile_ground",
+      "regionId": "region.packed_road.1129",
+      "slot": 0
     }
   ],
   "recipeName": "basic-direction",
   "rulePacks": {
-    "analysis": 1,
+    "analysis": 2,
     "export": 2,
-    "placement": 5,
+    "placement": 6,
     "plan": 5,
     "territory": 4,
     "validate": 3
   },
   "territories": [
     {
-      "cellCount": 28,
+      "cellCount": 40,
       "cells": {
         "encoding": "runs",
         "runs": [
           [
             2,
-            5,
+            3,
             1
           ],
           [
             0,
-            6,
+            4,
             4
+          ],
+          [
+            0,
+            5,
+            5
+          ],
+          [
+            0,
+            6,
+            5
           ],
           [
             0,
             7,
-            4
+            5
           ],
           [
             0,
             8,
-            5
+            6
           ],
           [
             0,
@@ -1145,7 +1161,7 @@
       "draw": 4,
       "elitePermille": 30,
       "id": "territory.region.mud.0.0",
-      "maxActive": 2,
+      "maxActive": 3,
       "packSize": [
         2,
         6
@@ -1175,7 +1191,7 @@
       ]
     },
     {
-      "cellCount": 35,
+      "cellCount": 71,
       "cells": {
         "encoding": "runs",
         "runs": [
@@ -1232,12 +1248,52 @@
           [
             0,
             27,
-            3
+            5
           ],
           [
             0,
             28,
+            5
+          ],
+          [
+            6,
+            28,
+            1
+          ],
+          [
+            0,
+            29,
+            7
+          ],
+          [
+            0,
+            30,
+            7
+          ],
+          [
+            0,
+            31,
+            6
+          ],
+          [
+            0,
+            32,
+            4
+          ],
+          [
+            0,
+            33,
+            3
+          ],
+          [
+            0,
+            34,
             2
+          ],
+          [
+            0,
+            35,
+            1
           ]
         ]
       },
@@ -1246,7 +1302,7 @@
       "draw": 7,
       "elitePermille": 30,
       "id": "territory.region.mud.1152.0",
-      "maxActive": 2,
+      "maxActive": 5,
       "packSize": [
         2,
         6
@@ -1271,120 +1327,144 @@
       ]
     },
     {
-      "cellCount": 35,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
-          [
-            21,
-            22,
-            2
-          ],
-          [
-            17,
-            23,
-            3
-          ],
-          [
-            21,
-            23,
-            2
-          ],
-          [
-            15,
-            24,
-            8
-          ],
-          [
-            15,
-            25,
-            1
-          ],
-          [
-            17,
-            25,
-            5
-          ],
-          [
-            15,
-            26,
-            2
-          ],
-          [
-            18,
-            26,
-            4
-          ],
-          [
-            15,
-            27,
-            1
-          ],
-          [
-            17,
-            27,
-            2
-          ],
-          [
-            20,
-            27,
-            1
-          ],
-          [
-            17,
-            28,
-            3
-          ],
-          [
-            18,
-            29,
-            1
-          ]
-        ]
-      },
-      "channel": "world/region.mud.1152/reroll.0/territory/1",
-      "dangerBand": 1,
-      "draw": 5,
-      "elitePermille": 30,
-      "id": "territory.region.mud.1152.1",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.1152",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        }
-      ],
-      "seedCell": [
-        15,
-        27
-      ]
-    },
-    {
-      "cellCount": 33,
+      "cellCount": 131,
       "cells": {
         "encoding": "runs",
         "runs": [
           [
             39,
+            21,
+            2
+          ],
+          [
+            39,
+            22,
+            2
+          ],
+          [
+            37,
+            23,
+            6
+          ],
+          [
+            36,
+            24,
+            9
+          ],
+          [
+            36,
+            25,
+            2
+          ],
+          [
+            39,
+            25,
+            2
+          ],
+          [
+            42,
+            25,
+            3
+          ],
+          [
+            35,
+            26,
+            6
+          ],
+          [
+            42,
+            26,
+            3
+          ],
+          [
+            37,
+            27,
+            2
+          ],
+          [
+            40,
+            27,
+            2
+          ],
+          [
+            43,
+            27,
+            2
+          ],
+          [
+            33,
+            28,
+            2
+          ],
+          [
+            37,
+            28,
+            8
+          ],
+          [
+            32,
+            29,
+            3
+          ],
+          [
+            36,
+            29,
+            1
+          ],
+          [
+            38,
+            29,
+            7
+          ],
+          [
+            31,
+            30,
+            14
+          ],
+          [
+            32,
+            31,
+            6
+          ],
+          [
+            40,
+            31,
+            5
+          ],
+          [
+            33,
+            32,
+            2
+          ],
+          [
+            36,
             32,
             2
           ],
           [
             39,
+            32,
+            4
+          ],
+          [
+            44,
+            32,
+            1
+          ],
+          [
+            36,
             33,
             2
+          ],
+          [
+            39,
+            33,
+            3
+          ],
+          [
+            37,
+            34,
+            1
           ],
           [
             40,
@@ -1438,7 +1518,7 @@
       "draw": 4,
       "elitePermille": 30,
       "id": "territory.region.mud.1245.0",
-      "maxActive": 2,
+      "maxActive": 10,
       "packSize": [
         2,
         6
@@ -1468,246 +1548,24 @@
       ]
     },
     {
-      "cellCount": 65,
+      "cellCount": 103,
       "cells": {
         "encoding": "runs",
         "runs": [
           [
-            31,
-            25,
-            1
+            43,
+            0,
+            13
           ],
-          [
-            31,
-            26,
-            1
-          ],
-          [
-            31,
-            27,
-            2
-          ],
-          [
-            31,
-            28,
-            3
-          ],
-          [
-            30,
-            29,
-            5
-          ],
-          [
-            28,
-            30,
-            8
-          ],
-          [
-            29,
-            31,
-            8
-          ],
-          [
-            29,
-            32,
-            6
-          ],
-          [
-            30,
-            33,
-            4
-          ],
-          [
-            29,
-            34,
-            6
-          ],
-          [
-            29,
-            35,
-            4
-          ],
-          [
-            27,
-            36,
-            6
-          ],
-          [
-            27,
-            37,
-            5
-          ],
-          [
-            28,
-            38,
-            3
-          ],
-          [
-            29,
-            39,
-            2
-          ],
-          [
-            29,
-            40,
-            1
-          ]
-        ]
-      },
-      "channel": "world/region.mud.1245/reroll.0/territory/1",
-      "dangerBand": 2,
-      "draw": 4,
-      "elitePermille": 30,
-      "id": "territory.region.mud.1245.1",
-      "maxActive": 5,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.1245",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        },
-        {
-          "enemyId": "enemy.night_shade",
-          "nightOnly": true,
-          "weightPercent": 15
-        }
-      ],
-      "seedCell": [
-        29,
-        39
-      ]
-    },
-    {
-      "cellCount": 37,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
-          [
-            36,
-            20,
-            1
-          ],
-          [
-            38,
-            20,
-            1
-          ],
-          [
-            35,
-            21,
-            6
-          ],
-          [
-            37,
-            22,
-            1
-          ],
-          [
-            39,
-            22,
-            2
-          ],
-          [
-            37,
-            23,
-            4
-          ],
-          [
-            38,
-            24,
-            4
-          ],
-          [
-            37,
-            25,
-            1
-          ],
-          [
-            39,
-            25,
-            2
-          ],
-          [
-            37,
-            26,
-            4
-          ],
-          [
-            37,
-            27,
-            2
-          ],
-          [
-            40,
-            27,
-            2
-          ],
-          [
-            38,
-            28,
-            5
-          ],
-          [
-            39,
-            29,
-            2
-          ]
-        ]
-      },
-      "channel": "world/region.mud.1245/reroll.0/territory/2",
-      "dangerBand": 2,
-      "draw": 6,
-      "elitePermille": 30,
-      "id": "territory.region.mud.1245.2",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.1245",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        },
-        {
-          "enemyId": "enemy.night_shade",
-          "nightOnly": true,
-          "weightPercent": 15
-        }
-      ],
-      "seedCell": [
-        40,
-        27
-      ]
-    },
-    {
-      "cellCount": 34,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
           [
             57,
             0,
             6
+          ],
+          [
+            43,
+            1,
+            14
           ],
           [
             58,
@@ -1720,14 +1578,24 @@
             3
           ],
           [
-            57,
+            43,
             2,
-            4
+            18
           ],
           [
             62,
             2,
             1
+          ],
+          [
+            43,
+            3,
+            10
+          ],
+          [
+            54,
+            3,
+            3
           ],
           [
             58,
@@ -1740,6 +1608,21 @@
             2
           ],
           [
+            44,
+            4,
+            2
+          ],
+          [
+            47,
+            4,
+            6
+          ],
+          [
+            58,
+            4,
+            1
+          ],
+          [
             60,
             4,
             1
@@ -1750,6 +1633,21 @@
             2
           ],
           [
+            45,
+            5,
+            2
+          ],
+          [
+            48,
+            5,
+            1
+          ],
+          [
+            50,
+            5,
+            1
+          ],
+          [
             59,
             5,
             1
@@ -1758,6 +1656,16 @@
             62,
             5,
             2
+          ],
+          [
+            45,
+            6,
+            1
+          ],
+          [
+            48,
+            6,
+            1
           ],
           [
             59,
@@ -1781,7 +1689,7 @@
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.0",
-      "maxActive": 2,
+      "maxActive": 8,
       "packSize": [
         2,
         6
@@ -1811,185 +1719,83 @@
       ]
     },
     {
-      "cellCount": 34,
+      "cellCount": 75,
       "cells": {
         "encoding": "runs",
         "runs": [
           [
-            46,
-            0,
-            9
-          ],
-          [
-            47,
-            1,
-            8
-          ],
-          [
-            48,
-            2,
-            7
-          ],
-          [
-            49,
-            3,
-            4
-          ],
-          [
-            54,
-            3,
+            53,
+            20,
             1
           ],
           [
-            49,
-            4,
-            4
-          ],
-          [
-            50,
-            5,
-            1
-          ]
-        ]
-      },
-      "channel": "world/region.mud.43/reroll.0/territory/1",
-      "dangerBand": 4,
-      "draw": 4,
-      "elitePermille": 30,
-      "id": "territory.region.mud.43.1",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.43",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        },
-        {
-          "enemyId": "enemy.night_shade",
-          "nightOnly": true,
-          "weightPercent": 15
-        }
-      ],
-      "seedCell": [
-        52,
-        0
-      ]
-    },
-    {
-      "cellCount": 34,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
-          [
-            40,
-            5,
+            53,
+            21,
             1
           ],
           [
-            39,
-            6,
+            51,
+            22,
             3
           ],
           [
-            38,
-            7,
+            55,
+            22,
             3
           ],
           [
-            37,
-            8,
-            4
+            52,
+            23,
+            3
           ],
           [
-            42,
-            8,
-            1
-          ],
-          [
-            36,
-            9,
-            7
-          ],
-          [
-            37,
-            10,
-            6
-          ],
-          [
-            38,
-            11,
+            56,
+            23,
             2
           ],
           [
-            41,
-            11,
-            3
-          ],
-          [
-            38,
-            12,
-            3
-          ],
-          [
-            39,
-            13,
+            51,
+            24,
             1
-          ]
-        ]
-      },
-      "channel": "world/region.mud.43/reroll.0/territory/2",
-      "dangerBand": 4,
-      "draw": 2,
-      "elitePermille": 30,
-      "id": "territory.region.mud.43.2",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.43",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        },
-        {
-          "enemyId": "enemy.night_shade",
-          "nightOnly": true,
-          "weightPercent": 15
-        }
-      ],
-      "seedCell": [
-        42,
-        8
-      ]
-    },
-    {
-      "cellCount": 37,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
+          ],
+          [
+            53,
+            24,
+            6
+          ],
+          [
+            51,
+            25,
+            6
+          ],
+          [
+            53,
+            26,
+            2
+          ],
           [
             57,
+            26,
+            1
+          ],
+          [
+            54,
+            27,
+            2
+          ],
+          [
+            57,
+            27,
+            2
+          ],
+          [
+            55,
             28,
+            4
+          ],
+          [
+            55,
+            29,
             1
           ],
           [
@@ -2018,9 +1824,9 @@
             1
           ],
           [
-            54,
+            53,
             33,
-            2
+            3
           ],
           [
             57,
@@ -2079,7 +1885,7 @@
       "draw": 5,
       "elitePermille": 30,
       "id": "territory.region.mud.942.0",
-      "maxActive": 2,
+      "maxActive": 6,
       "packSize": [
         2,
         6
@@ -2106,218 +1912,6 @@
       "seedCell": [
         58,
         38
-      ]
-    },
-    {
-      "cellCount": 37,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
-          [
-            50,
-            20,
-            4
-          ],
-          [
-            50,
-            21,
-            2
-          ],
-          [
-            53,
-            21,
-            1
-          ],
-          [
-            57,
-            21,
-            1
-          ],
-          [
-            51,
-            22,
-            3
-          ],
-          [
-            55,
-            22,
-            3
-          ],
-          [
-            52,
-            23,
-            3
-          ],
-          [
-            56,
-            23,
-            3
-          ],
-          [
-            51,
-            24,
-            1
-          ],
-          [
-            53,
-            24,
-            6
-          ],
-          [
-            51,
-            25,
-            6
-          ],
-          [
-            58,
-            25,
-            1
-          ],
-          [
-            53,
-            26,
-            2
-          ],
-          [
-            54,
-            27,
-            1
-          ]
-        ]
-      },
-      "channel": "world/region.mud.942/reroll.0/territory/1",
-      "dangerBand": 4,
-      "draw": 7,
-      "elitePermille": 30,
-      "id": "territory.region.mud.942.1",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.mud.942",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        },
-        {
-          "enemyId": "enemy.mire_creeper",
-          "nightOnly": false,
-          "weightPercent": 35
-        },
-        {
-          "enemyId": "enemy.night_shade",
-          "nightOnly": true,
-          "weightPercent": 15
-        }
-      ],
-      "seedCell": [
-        51,
-        24
-      ]
-    },
-    {
-      "cellCount": 26,
-      "cells": {
-        "encoding": "runs",
-        "runs": [
-          [
-            46,
-            32,
-            1
-          ],
-          [
-            46,
-            33,
-            1
-          ],
-          [
-            45,
-            34,
-            2
-          ],
-          [
-            45,
-            35,
-            2
-          ],
-          [
-            45,
-            36,
-            2
-          ],
-          [
-            45,
-            37,
-            3
-          ],
-          [
-            45,
-            38,
-            3
-          ],
-          [
-            46,
-            39,
-            2
-          ],
-          [
-            46,
-            40,
-            2
-          ],
-          [
-            45,
-            41,
-            2
-          ],
-          [
-            45,
-            42,
-            2
-          ],
-          [
-            45,
-            43,
-            1
-          ],
-          [
-            45,
-            44,
-            2
-          ],
-          [
-            46,
-            45,
-            1
-          ]
-        ]
-      },
-      "channel": "world/region.packed_road.1129/reroll.0/territory/0",
-      "dangerBand": 4,
-      "draw": 3,
-      "elitePermille": 30,
-      "id": "territory.region.packed_road.1129.0",
-      "maxActive": 2,
-      "packSize": [
-        2,
-        6
-      ],
-      "regionId": "region.packed_road.1129",
-      "respawnPressure": "medium",
-      "roster": [
-        {
-          "enemyId": "enemy.marauder",
-          "nightOnly": false,
-          "weightPercent": 20
-        }
-      ],
-      "seedCell": [
-        46,
-        34
       ]
     }
   ],

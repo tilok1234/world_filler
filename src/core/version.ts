@@ -21,12 +21,16 @@ export const DIRECTOR_VERSION = "0.1.0";
 // 11: quantile bands gain a min-share rebalance — every wilderness band
 // keeps at least half its fair share of walkable ground (huge regions
 // could starve or skip a band).
-export const DIRECTOR_BEHAVIOR_VERSION = 11;
+// 12: analysis 2 — oversized regions subdivide (region ids change on
+// worlds that had monolithic biomes; invalid locks are diagnosed), and
+// a boss budget whose allocated region has no valid site falls back
+// through the other eligible regions with named failures.
+export const DIRECTOR_BEHAVIOR_VERSION = 12;
 
 export const RULE_PACK_VERSIONS = {
-  analysis: 1,
+  analysis: 2,
   plan: 5,
-  placement: 5,
+  placement: 6,
   territory: 4,
   validate: 3,
   export: 2,

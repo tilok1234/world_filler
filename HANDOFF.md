@@ -208,6 +208,36 @@ placement 5, validate 3; PLACEMENTS_FORMAT 2, CONTENT_PACK_FORMAT 2.
 Canonical: 48 encounters, 52 territories (f8); all four worlds 9/9.
 135 tests green. **Encounter render verdict pending user review.**
 
+## 1d. Post-F9 verdict thread: yellow bands -> region subdivision (behavior 12)
+
+User: "very little yellow danger" — real (band 2 held 1,677/~6,000 fair
+share). Two-step fix, both landed:
+1. Behavior 11: min-share rebalance for mid bands after the pocket pass
+   (boundary-region moves, deficit-improvement criterion, deepest band
+   never touched). Partial: +36% yellow, capped by region granularity.
+2. Behavior 12 / **analysis 2**: MAX_REGION_CELLS=1024 — oversized biome
+   patches subdivide (midline bisection + component re-flood, ids stay
+   content-derived via each part's own anchor index). Canonical bands
+   now 5148/5519/5714/4775 (essentially even). Region ids CHANGED on
+   worlds that had monoliths (invalid locks get diagnosed — the designed
+   migration). Knock-ons handled: boss budgets FALL BACK through other
+   eligible regions with named failures when the allocated region has no
+   site (placement 6); fixture recipe recalibrated because per-region
+   caps bind less on fine regions (encounters 3/1000 cap 2, territories
+   4/1000 cap 2, minCells 40 -> canonical B1/E41/T73/31%; the small
+   fixtures are proportionally sparser than the old approved close-ups:
+   fen now T5/E2 — flagged to the user).
+
+HONEST NOTES flagged to the user, verdict pending:
+- The approved bottom-right endgame island DISSOLVED: its depth was an
+  artifact of the old monolith's single whole-region median; granular
+  medians put bottom-right at bands 2-3. Endgame now concentrates on
+  the true far side (left). danger.overrides is the designed mechanism
+  if the user wants an authored endgame zone there anyway.
+- Subdivision seams are straight (midline bisection) — the danger map
+  reads blockier than the old organic biome edges. Possible polish:
+  distance-watershed subdivision for organic seams (not built).
+
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
 Single-file, no-build, read-only browser viewer (minimap backdrop, layer

@@ -3,7 +3,14 @@
   "name": "basic-direction",
   "directorSeed": 103991,
   "danger": { "assignment": "quantile", "endgamePockets": 3 },
+  "budgets": {
+    "encountersPer1000Walkable": 3,
+    "encounterCapPerRegion": 2,
+    "territoriesPer1000Walkable": 4,
+    "territoryCapPerRegion": 2
+  },
   "worldBossRule": { "minSettlementDistancePermille": 320, "minRoadDistancePermille": 300 },
   "dungeonRule": { "minSettlementDistancePermille": 320 },
-  "territoryRule": { "spacing": 2 }
+  "territoryRule": { "spacing": 2, "minCells": 40 },
+  "encounterRule": {}
 }
