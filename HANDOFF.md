@@ -149,7 +149,7 @@ CLOSED. The approved baseline is behavior 9 under
 fixtures/recipes/basic-direction.json (golden pack pins it). Replacing
 this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
 
-## 1b. F8 status (2026-07-29): implemented, viewer verdict pending
+## 1b. F8 status (2026-07-29): COMPLETE — viewer approved
 
 - `viewer/worldfiller-viewer.html`: single-file, no-build, read-only.
   Drop an exported content pack (+ optionally the world pack for the
@@ -171,8 +171,11 @@ this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
 - Full cycle ran on the canonical world: place → lock boss → reroll
   region.grass.0 → re-place (lock byte-stable, region on reroll.1
   channels) → export → verify-pack OK (11 placements, 53 territories).
-- 134 tests green. Remaining F8 exit criterion: **the user runs/sees
-  the viewer and issues a design verdict** (demo link above).
+- 134 tests green. Viewer verdict: **APPROVED** ("looks cool"). User
+  confirmed understanding that the inspection palette is not game art —
+  real graphics come from TileForge tiles rendered by the Godot game;
+  World Filler stays out of art by doctrine. **F8 complete. Next: the
+  first-arc close-out per ROADMAP** (deferred list stays deferred).
 
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 

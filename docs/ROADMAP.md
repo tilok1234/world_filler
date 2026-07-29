@@ -45,8 +45,8 @@ hover explanations, in-browser hash verification; headless Chromium
 proof on both fixtures), the `unlock`/`reroll` print verbs, the
 workflow doc (docs/WORKFLOW.md), and the full
 direct→review→lock→reroll→export cycle run end to end on the canonical
-world. **The first arc's viewer verdict from the user is pending** —
-the demo instance is published for review.
+world. The viewer verdict is
+**APPROVED (2026-07-29)** — F8 complete; the first-arc close-out is next.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,
