@@ -18,11 +18,14 @@ export const DIRECTOR_VERSION = "0.1.0";
 // instead of only demoting bridges.
 // 10: F9 encounter sites — the encounter budgets the plan has carried
 // since F3 now place (rule encounter_site.v1, pack format 2).
-export const DIRECTOR_BEHAVIOR_VERSION = 10;
+// 11: quantile bands gain a min-share rebalance — every wilderness band
+// keeps at least half its fair share of walkable ground (huge regions
+// could starve or skip a band).
+export const DIRECTOR_BEHAVIOR_VERSION = 11;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 1,
-  plan: 4,
+  plan: 5,
   placement: 5,
   territory: 4,
   validate: 3,

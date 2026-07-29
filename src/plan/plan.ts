@@ -192,6 +192,7 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
       bands[entry.index] = Math.min(band, danger.bandCount - 1);
       cumulative += entry.weight;
     }
+
   }
 
   // Endgame pockets: carve the deepest band into K compact islands
@@ -279,6 +280,70 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
         } else {
           bands[entry.index] = nearBand;
         }
+      }
+    }
+  }
+
+  // Min-share rebalance (quantile assignment only): whole-region
+  // quantiles can starve (or skip) a mid band when one huge region
+  // swallows its window — a world's mid ring can be a single giant
+  // region. After the endgame pockets settle the two deepest bands,
+  // guarantee each MID band (2..bandCount-3... i.e. every wilderness
+  // band except band 1 and the deepest) at least HALF its fair share of
+  // walkable ground by pulling boundary regions from an adjacent band.
+  // The deepest band is never a donor and never a recipient, so the
+  // approved endgame geography is untouched; only boundary regions move
+  // (deepest-from-below / shallowest-from-above), preserving the
+  // monotone-in-median ordering. Donors never drop below the minimum
+  // share themselves.
+  if (danger.assignment === "quantile" && danger.bandCount >= 4 && wilderness.length > 0) {
+    const wildBands = danger.bandCount - 1;
+    const totalWeight = wilderness.reduce((sum, entry) => sum + entry.weight, 0);
+    const minShare = Math.floor(totalWeight / wildBands / 2);
+    const bandTotals = new Array<number>(danger.bandCount).fill(0);
+    const sorted = [...wilderness].sort((a, b) => (a.median !== b.median ? a.median - b.median : a.index - b.index));
+    for (const entry of sorted) {
+      const band = bands[entry.index] as number;
+      if (band >= 1 && band <= wildBands) bandTotals[band] = (bandTotals[band] as number) + entry.weight;
+    }
+    let guard = wilderness.length * danger.bandCount;
+    for (let band = 2; band <= wildBands - 1; band += 1) {
+      while ((bandTotals[band] as number) < minShare && guard > 0) {
+        guard -= 1;
+        // A move is legal when it strictly shrinks the pair's combined
+        // below-minimum deficit — huge boundary regions may overshoot,
+        // but only when the overshoot still leaves both bands closer to
+        // their floors than before (strict improvement also rules out
+        // oscillation).
+        const deficit = (weight: number): number => Math.max(0, minShare - weight);
+        const improves = (donorBand: number, weight: number): boolean => {
+          const before = deficit(bandTotals[band] as number) + deficit(bandTotals[donorBand] as number);
+          const after = deficit((bandTotals[band] as number) + weight) + deficit((bandTotals[donorBand] as number) - weight);
+          return after < before;
+        };
+        const donors: Array<{ band: number; entry: (typeof wilderness)[number] }> = [];
+        const below = sorted.filter((entry) => bands[entry.index] === band - 1);
+        const fromBelow = below[below.length - 1];
+        if (fromBelow !== undefined && improves(band - 1, fromBelow.weight)) {
+          donors.push({ band: band - 1, entry: fromBelow });
+        }
+        if (band + 1 <= wildBands - 1) {
+          const above = sorted.filter((entry) => bands[entry.index] === band + 1);
+          const fromAbove = above[0];
+          if (fromAbove !== undefined && improves(band + 1, fromAbove.weight)) {
+            donors.push({ band: band + 1, entry: fromAbove });
+          }
+        }
+        if (donors.length === 0) break;
+        donors.sort((a, b) => {
+          const weightA = bandTotals[a.band] as number;
+          const weightB = bandTotals[b.band] as number;
+          return weightA !== weightB ? weightB - weightA : a.band - b.band;
+        });
+        const move = donors[0] as (typeof donors)[number];
+        bandTotals[move.band] = (bandTotals[move.band] as number) - move.entry.weight;
+        bandTotals[band] = (bandTotals[band] as number) + move.entry.weight;
+        bands[move.entry.index] = band;
       }
     }
   }
