@@ -3,6 +3,19 @@
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
+> **ECOSYSTEM POINTER (doc 16, designer-accepted).** This repo is one of
+> seven in the Wildshot project (the world director: compiles content
+> packs the game will consume post-Gate-1). The shared map — repo
+> ownership, authority docs, hard cross-repo rules — lives at
+> `Wildshot_adventure_final_planning/docs/16-ECOSYSTEM_MAP.md`.
+> Read your repo's row before working here.
+
+> **SYNC-LOG HOOK (doc 18, ACCEPTED 2026-07-30).** At session end, with
+> the handoff update, append a line to planning `tools/sync_log.json`
+> for every cross-repo event this session caused (pack delivered or
+> intaken, ask opened/resolved, incident, pin change). No event, no
+> entry. Protocol: planning `docs/18-AGENT_SYNC_PROTOCOL.md`.
+
 ## 0. State right now
 
 **The first arc F0–F9 is COMPLETE and CLOSED (2026-07-29)** — freeze
