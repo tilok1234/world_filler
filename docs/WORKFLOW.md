@@ -32,8 +32,12 @@ pinned to a different world.
 
 Open `viewer/worldfiller-viewer.html` in a browser and drop an exported
 pack (step 5) on it — layer toggles, hover/click inspection with each
-placement's full score and funnel, the audit at a glance. Read-only by
-contract. Renders are inspection evidence; the user's design verdict is
+placement's full score and funnel, the audit at a glance. Cards carry
+authoring aids: **copy lock entry** (paste under `locks.placements`;
+edit the coordinates to move the placement — validation refuses bad
+spots by name), **copy reroll entry**, and **shift+drag** selects an
+area to copy a `paint.noContent` / `paint.preferContent` rectangle.
+Copies go to the clipboard only — the viewer is read-only by contract. Renders are inspection evidence; the user's design verdict is
 what approves a layout (AGENTS.md).
 
 ## 3. Lock what must survive

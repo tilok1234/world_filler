@@ -72,6 +72,16 @@
     position: absolute; border: 1.5px solid var(--accent); pointer-events: none; display: none;
     box-shadow: 0 0 0 1px rgba(0,0,0,.6);
   }
+  #select-box {
+    position: absolute; border: 1.5px dashed var(--accent); background: rgba(76, 201, 219, .12);
+    pointer-events: none; display: none;
+  }
+  .copy-btn {
+    font-family: var(--mono); font-size: .68rem; color: var(--bg); background: var(--accent);
+    border: none; border-radius: 3px; padding: .22rem .5rem; cursor: pointer; margin: .25rem .35rem 0 0;
+  }
+  .copy-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .copy-note { font-family: var(--mono); font-size: .64rem; color: var(--muted); margin-top: .25rem; }
 
   #inspector { font-size: .78rem; }
   #inspector .empty { color: var(--muted); }
@@ -123,6 +133,7 @@
   <div id="stage-wrap">
     <div id="stage"></div>
     <div id="cursor-cell"></div>
+    <div id="select-box"></div>
     <div id="drop">
       <div class="big">drop an exported content pack folder here</div>
       <div>optionally together with its world pack folder (minimap backdrop)<br>and an analysis renders folder (extra layers)</div>
@@ -133,7 +144,7 @@
 </main>
 <footer>
   <span>read-only by contract — this page never writes or transmits anything</span>
-  <span id="hint">wheel: zoom · drag: pan · double-click: reset</span>
+  <span id="hint">wheel: zoom · drag: pan · shift+drag: paint rect · double-click: reset</span>
 </footer>
 <script>
 "use strict";
@@ -312,6 +323,40 @@
 
   const esc = (value) => String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
 
+  // Authoring aids: buttons copy recipe entries to the clipboard — the
+  // viewer itself stays read-only (paste into the recipe is the user's
+  // explicit act). Payloads live in a registry; cards reference them by
+  // index so no JSON has to survive attribute escaping.
+  const copyPayloads = [];
+  function copyButton(label, payload, note) {
+    const index = copyPayloads.push(payload) - 1;
+    return `<button class="copy-btn" data-copy="${index}" data-note="${esc(note ?? "")}">${esc(label)}</button>`;
+  }
+  async function copyText(text) {
+    window.__wfLastCopy = text; // observable in tests; harmless otherwise
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      window.prompt("clipboard unavailable — copy manually:", text);
+      return false;
+    }
+  }
+  $("inspector").addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-copy]");
+    if (!button) return;
+    const original = button.textContent;
+    await copyText(copyPayloads[Number(button.dataset.copy)]);
+    const note = button.dataset.note;
+    button.textContent = "copied";
+    setTimeout(() => { button.textContent = original; }, 900);
+    if (note) {
+      const noteBox = button.parentElement.querySelector(".copy-note") ?? button.parentElement.appendChild(Object.assign(document.createElement("div"), { className: "copy-note" }));
+      noteBox.textContent = note;
+    }
+  });
+  const canonical = (value) => JSON.stringify(value, Object.keys(value).sort(), 2);
+
   function renderIdentity() {
     const m = state.manifest;
     const rulePacks = Object.entries(m.rulePacks).map(([key, version]) => `${key[0]}${version}`).join(" ");
@@ -388,6 +433,7 @@
     const { scale, tx, ty } = state.view;
     $("stage").style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
     positionCursorBox();
+    if (typeof drawSelection === "function") drawSelection();
   }
 
   let hoverCell = null;
@@ -447,6 +493,20 @@
           .join("")}<tr><td>score</td><td></td><td></td><td class="n">${placement.score}</td></tr></table>` : ""}
         ${placement.candidateFunnel.length > 0 ? `<table><tr><th>funnel</th><th>left</th></tr>${placement.candidateFunnel
           .map((step) => `<tr><td>${esc(step.stage)}</td><td class="n">${step.remaining}</td></tr>`).join("")}</table>` : ""}
+        <div>${copyButton("copy lock entry", canonical({
+          id: placement.id,
+          rule: placement.rule,
+          regionId: placement.regionId,
+          cell: placement.cell,
+          exclusionRadius: placement.exclusionRadius,
+          anchorPoiId: placement.anchorPoiId,
+          arenaOrigin: placement.arenaOrigin,
+          arenaSide: placement.arenaSide,
+        }), "paste under locks.placements — edit cell/arenaOrigin to move it; validation refuses bad spots by name")}${copyButton(
+          "copy reroll entry",
+          canonical({ regionId: placement.regionId, iteration: 1 }),
+          "paste under rerolls — raise iteration if this region was already rerolled (wf-fill reroll computes it)",
+        )}</div>
       </div>`);
     }
     if (territory) {
@@ -461,6 +521,11 @@
           <dt>respawn</dt><dd>${esc(territory.respawnPressure)} · elite ${territory.elitePermille}‰</dd>
           <dt>channel</dt><dd>${esc(territory.channel)} · draw ${territory.draw}</dd>
         </dl>
+        <div>${copyButton(
+          "copy reroll entry",
+          canonical({ regionId: territory.regionId, iteration: 1 }),
+          "paste under rerolls — raise iteration if this region was already rerolled (wf-fill reroll computes it)",
+        )}</div>
       </div>`);
     }
     if (parts.length === 0) parts.push(`<p class="empty">(${cell.x}, ${cell.y}) — open ground</p>`);
@@ -472,10 +537,62 @@
 
   const wrap = $("stage-wrap");
   let dragging = null;
+  let selecting = null; // shift+drag paint-rect selection, in cell coords
+
+  function selectionRect() {
+    return {
+      x0: Math.min(selecting.start.x, selecting.end.x),
+      y0: Math.min(selecting.start.y, selecting.end.y),
+      x1: Math.max(selecting.start.x, selecting.end.x),
+      y1: Math.max(selecting.start.y, selecting.end.y),
+    };
+  }
+  function drawSelection() {
+    const box = $("select-box");
+    if (!selecting) { box.style.display = "none"; return; }
+    const { x0, y0, x1, y1 } = selectionRect();
+    const { scale, tx, ty } = state.view;
+    box.style.display = "block";
+    box.style.left = `${tx + x0 * scale}px`;
+    box.style.top = `${ty + y0 * scale}px`;
+    box.style.width = `${(x1 - x0 + 1) * scale}px`;
+    box.style.height = `${(y1 - y0 + 1) * scale}px`;
+  }
+  function showPaintCard() {
+    const { x0, y0, x1, y1 } = selectionRect();
+    const rect = [x0, y0, x1, y1];
+    $("inspector").innerHTML = `<div class="card pinned">
+      <div class="kind">paint rect</div>
+      <div class="id">[${rect.join(", ")}] — ${(x1 - x0 + 1)}×${(y1 - y0 + 1)} cells</div>
+      <div>${copyButton("copy noContent", canonical({ rect }), "paste under paint.noContent — nothing will be placed or grown inside")}${copyButton(
+        "copy preferContent", canonical({ rect, bonusPermille: 200 }), "paste under paint.preferContent — scoring bonus steers content here",
+      )}</div>
+      <p class="empty" style="font-size:.68rem;margin:.35rem 0 0">press esc or click the map to clear</p>
+    </div>`;
+  }
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && selecting) {
+      selecting = null;
+      drawSelection();
+      inspect(hoverCell, false);
+    }
+  });
+
   wrap.addEventListener("mousedown", (event) => {
+    if (event.shiftKey && state.manifest) {
+      const cell = cellFromEvent(event);
+      if (cell) { selecting = { start: cell, end: cell, live: true }; drawSelection(); }
+      return;
+    }
+    if (selecting) { selecting = null; drawSelection(); inspect(hoverCell, false); }
     dragging = { x: event.clientX, y: event.clientY, tx: state.view.tx, ty: state.view.ty, moved: false };
   });
   window.addEventListener("mousemove", (event) => {
+    if (selecting?.live) {
+      const cell = cellFromEvent(event);
+      if (cell) { selecting.end = cell; drawSelection(); }
+      return;
+    }
     if (dragging) {
       const dx = event.clientX - dragging.x;
       const dy = event.clientY - dragging.y;
@@ -485,12 +602,17 @@
       applyView();
       return;
     }
-    if (!state.manifest || state.pinned) return;
+    if (!state.manifest || state.pinned || selecting) return;
     hoverCell = cellFromEvent(event);
     positionCursorBox();
     inspect(hoverCell, false);
   });
   window.addEventListener("mouseup", (event) => {
+    if (selecting?.live) {
+      selecting.live = false;
+      showPaintCard();
+      return;
+    }
     if (dragging && !dragging.moved && state.manifest) {
       const cell = cellFromEvent(event);
       if (state.pinned) { state.pinned = null; inspect(cell, false); }

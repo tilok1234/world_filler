@@ -171,6 +171,12 @@ this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
 - Full cycle ran on the canonical world: place → lock boss → reroll
   region.grass.0 → re-place (lock byte-stable, region on reroll.1
   channels) → export → verify-pack OK (11 placements, 53 territories).
+- Authoring aids added after approval (user asked how to place/move/
+  remove content, then took the recommendation): copy-lock / copy-reroll
+  buttons on cards, shift+drag paint-rect copy (noContent /
+  preferContent) — clipboard only, still read-only; proven headlessly
+  (copied lock round-trips the boss id + cell; rect [10,10,14,13]
+  copies exactly). Demo artifact republished (same URL).
 - 134 tests green. Viewer verdict: **APPROVED** ("looks cool"). User
   confirmed understanding that the inspection palette is not game art —
   real graphics come from TileForge tiles rendered by the Godot game;
