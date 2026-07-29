@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>worldfiller viewer</title>
+<!--
+  World Filler read-only viewer (F8). Single file, no build step, no
+  network: open it in a browser and drop an exported content pack
+  directory on it (optionally together with its world pack directory
+  and/or an analysis renders directory). It never writes anything —
+  read-only by contract.
+
+  Data sources, all documented formats:
+    - content pack manifest.json / placements.json / territories.json /
+      content-plan.json / report.json (docs/CONTENT_PACK_FORMAT.md)
+    - the pack's renders/*.png inspection copies as toggleable layers
+    - the world pack's minimap.png as the backdrop, when provided
+    - any other dropped *.png (e.g. wf-fill analyze renders) as layers
+
+  Payload hashes are re-verified against manifest.files when the
+  browser exposes SubtleCrypto (file:// pages in some browsers do not;
+  the viewer says so instead of pretending).
+
+  The viewer deliberately commits to the dark map-room look: the maps
+  are dark pixel renders, and light chrome would fight them.
+-->
+<style>
+  :root {
+    --bg: #12161b; --panel: #1a2027; --edge: #29323c; --ink: #e6e9ec;
+    --muted: #98a2ab; --accent: #4cc9db; --bad: #e05a4e; --good: #6fbf73;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --sans: system-ui, "Segoe UI", "Helvetica Neue", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); display: flex; flex-direction: column; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1.1rem; padding: .6rem 1rem; border-bottom: 1px solid var(--edge); }
+  header h1 { font-family: var(--mono); font-size: .95rem; margin: 0; letter-spacing: .04em; }
+  header h1 span { color: var(--accent); }
+  #identity { font-family: var(--mono); font-size: .72rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+  #identity b { color: var(--ink); font-weight: 600; }
+  #verify-badge { font-family: var(--mono); font-size: .72rem; }
+  #verify-badge.ok { color: var(--good); }
+  #verify-badge.bad { color: var(--bad); }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  #sidebar { width: 300px; flex: none; border-right: 1px solid var(--edge); overflow-y: auto; padding: .8rem .9rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+  #stage-wrap { flex: 1; position: relative; overflow: hidden; background: #0b0e12; }
+
+  h2 { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0 0 .45rem; }
+  #layers label { display: flex; align-items: center; gap: .5rem; font-family: var(--mono); font-size: .78rem; padding: .18rem 0; cursor: pointer; }
+  #layers input { accent-color: var(--accent); }
+  #layers .scale-note { color: var(--muted); margin-left: auto; font-size: .68rem; }
+
+  #drop {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .8rem; color: var(--muted); text-align: center; padding: 2rem;
+  }
+  #drop.armed { outline: 2px dashed var(--accent); outline-offset: -12px; color: var(--accent); }
+  #drop .big { font-family: var(--mono); font-size: 1rem; color: var(--ink); }
+  #drop button {
+    font-family: var(--mono); font-size: .8rem; color: var(--bg); background: var(--accent);
+    border: none; border-radius: 4px; padding: .5rem .9rem; cursor: pointer;
+  }
+  #drop button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  #stage { position: absolute; transform-origin: 0 0; image-rendering: pixelated; }
+  #stage img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; user-select: none; -webkit-user-drag: none; }
+  #cursor-cell {
+    position: absolute; border: 1.5px solid var(--accent); pointer-events: none; display: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.6);
+  }
+
+  #inspector { font-size: .78rem; }
+  #inspector .empty { color: var(--muted); }
+  #inspector .card { border: 1px solid var(--edge); border-radius: 5px; padding: .55rem .65rem; margin-bottom: .6rem; background: color-mix(in srgb, var(--panel) 70%, var(--bg)); }
+  #inspector .card.pinned { border-color: var(--accent); }
+  #inspector .kind { font-family: var(--mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+  #inspector .id { font-family: var(--mono); font-size: .74rem; word-break: break-all; margin: .15rem 0 .3rem; }
+  #inspector dl { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem; margin: .3rem 0; }
+  #inspector dt { color: var(--muted); font-family: var(--mono); font-size: .68rem; }
+  #inspector dd { margin: 0; font-family: var(--mono); font-size: .72rem; font-variant-numeric: tabular-nums; word-break: break-all; }
+  #inspector table { border-collapse: collapse; width: 100%; margin-top: .35rem; }
+  #inspector th, #inspector td { font-family: var(--mono); font-size: .68rem; text-align: left; padding: .12rem .35rem .12rem 0; border-bottom: 1px solid var(--edge); }
+  #inspector th { color: var(--muted); font-weight: 500; }
+  #inspector td.n { text-align: right; font-variant-numeric: tabular-nums; }
+
+  #report-list { font-family: var(--mono); font-size: .72rem; display: grid; gap: .15rem; }
+  #report-list .g-pass::before { content: "PASS "; color: var(--good); }
+  #report-list .g-warn::before { content: "WARN "; color: #e1cd50; }
+  #report-list .g-fail::before { content: "FAIL "; color: var(--bad); }
+
+  footer { padding: .35rem 1rem; border-top: 1px solid var(--edge); font-family: var(--mono); font-size: .66rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+  #hint { margin-left: auto; }
+  details { margin-top: .2rem; }
+  summary { cursor: pointer; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>worldfiller <span>viewer</span></h1>
+  <div id="identity"><span class="empty">no pack loaded</span></div>
+  <span id="verify-badge"></span>
+</header>
+<main>
+  <div id="sidebar">
+    <section>
+      <h2>Layers</h2>
+      <div id="layers"><span class="empty" style="color:var(--muted);font-size:.76rem">drop a pack to list layers</span></div>
+    </section>
+    <section>
+      <h2>Inspector</h2>
+      <div id="inspector"><p class="empty">Hover the map. Click to pin.</p></div>
+    </section>
+    <section id="report-section" hidden>
+      <h2>Audit</h2>
+      <div id="report-list"></div>
+      <details id="failures-details"><summary>failures / unbound anchors</summary><div id="failures-list" style="font-family:var(--mono);font-size:.7rem;color:var(--muted)"></div></details>
+    </section>
+  </div>
+  <div id="stage-wrap">
+    <div id="stage"></div>
+    <div id="cursor-cell"></div>
+    <div id="drop">
+      <div class="big">drop an exported content pack folder here</div>
+      <div>optionally together with its world pack folder (minimap backdrop)<br>and an analysis renders folder (extra layers)</div>
+      <button id="pick">choose folder…</button>
+      <input id="picker" type="file" webkitdirectory multiple hidden>
+    </div>
+  </div>
+</main>
+<footer>
+  <span>read-only by contract — this page never writes or transmits anything</span>
+  <span id="hint">wheel: zoom · drag: pan · double-click: reset</span>
+</footer>
+<script>
+"use strict";
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    files: new Map(),          // normalized name -> { bytes: Uint8Array }
+    world: { width: 0, height: 0 },
+    manifest: null, placements: null, territories: null, plan: null, report: null,
+    territoryByCell: new Map(), bandByRegion: new Map(),
+    layers: [],                // { name, url, defaultOn }
+    pinned: null,
+    view: { scale: 1, tx: 0, ty: 0 },
+  };
+
+  // ---------- file ingestion ----------
+
+  const normalize = (path) => path.replace(/\\/g, "/").replace(/^\.\//, "");
+
+  async function addFile(path, bytes) {
+    state.files.set(normalize(path), { bytes });
+  }
+
+  async function filesFromInput(fileList) {
+    for (const file of fileList) {
+      const path = file.webkitRelativePath || file.name;
+      await addFile(path, new Uint8Array(await file.arrayBuffer()));
+    }
+  }
+
+  function entryFile(entry) {
+    return new Promise((resolve, reject) => entry.file(resolve, reject));
+  }
+  function entryChildren(reader) {
+    return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+  }
+  async function walkEntry(entry, prefix) {
+    if (entry.isFile) {
+      const file = await entryFile(entry);
+      await addFile(prefix + entry.name, new Uint8Array(await file.arrayBuffer()));
+      return;
+    }
+    if (entry.isDirectory) {
+      const reader = entry.createReader();
+      for (;;) {
+        const children = await entryChildren(reader);
+        if (children.length === 0) break;
+        for (const child of children) await walkEntry(child, prefix + entry.name + "/");
+      }
+    }
+  }
+
+  const text = (bytes) => new TextDecoder().decode(bytes);
+  const json = (name) => {
+    const found = findFile(name);
+    return found ? JSON.parse(text(found.bytes)) : null;
+  };
+  // A pack may be dropped as its own root or nested one folder deep;
+  // match by suffix, shortest path wins (the dropped root's own file).
+  function findFile(suffix) {
+    let best = null;
+    for (const [name, file] of state.files) {
+      if (name === suffix || name.endsWith("/" + suffix)) {
+        if (best === null || name.length < best.name.length) best = { name, ...file };
+      }
+    }
+    return best;
+  }
+  function findAll(matcher) {
+    const out = [];
+    for (const [name, file] of state.files) if (matcher(name)) out.push({ name, ...file });
+    return out.sort((a, b) => (a.name < b.name ? -1 : 1));
+  }
+
+  // ---------- pack loading ----------
+
+  function contentManifest() {
+    for (const [name, file] of state.files) {
+      if (!name.endsWith("manifest.json")) continue;
+      try {
+        const parsed = JSON.parse(text(file.bytes));
+        if (parsed.pack === "worldfiller-content-pack") return { name, manifest: parsed };
+      } catch { /* not this one */ }
+    }
+    return null;
+  }
+
+  function sibling(manifestName, payload) {
+    const dir = manifestName.slice(0, manifestName.length - "manifest.json".length);
+    const found = state.files.get(dir + payload);
+    return found ? { name: dir + payload, ...found } : null;
+  }
+
+  function pngUrl(file) {
+    return URL.createObjectURL(new Blob([file.bytes], { type: "image/png" }));
+  }
+
+  async function load() {
+    const found = contentManifest();
+    if (!found) {
+      alert("No worldfiller content pack manifest.json found in the dropped files.");
+      return;
+    }
+    const { name: manifestName, manifest } = found;
+    state.manifest = manifest;
+    state.world = { width: manifest.base.width, height: manifest.base.height };
+    const dir = manifestName.slice(0, manifestName.length - "manifest.json".length);
+
+    const payload = (payloadName) => {
+      const file = sibling(manifestName, payloadName);
+      return file ? JSON.parse(text(file.bytes)) : null;
+    };
+    state.placements = payload("placements.json");
+    state.territories = payload("territories.json");
+    state.plan = payload("content-plan.json");
+    state.report = payload("report.json");
+
+    state.bandByRegion = new Map((state.plan?.regions ?? []).map((region) => [region.id, region]));
+
+    state.territoryByCell = new Map();
+    for (const territory of state.territories?.territories ?? []) {
+      for (const [x, y, length] of territory.cells.runs) {
+        for (let i = 0; i < length; i += 1) state.territoryByCell.set((y * state.world.width) + x + i, territory);
+      }
+    }
+
+    // Layers: world minimap backdrop, pack renders, then any other PNGs.
+    state.layers = [];
+    const minimap = findFile("minimap.png");
+    if (minimap) state.layers.push({ name: "world minimap", url: pngUrl(minimap), on: true });
+    for (const renderName of ["danger.png", "placements.png", "territories.png"]) {
+      const file = state.files.get(dir + "renders/" + renderName);
+      if (file) state.layers.push({ name: renderName.replace(".png", ""), url: pngUrl({ ...file }), on: renderName === "placements.png" });
+    }
+    for (const extra of findAll((fileName) => fileName.endsWith(".png"))) {
+      if (extra.name === minimap?.name || extra.name.startsWith(dir + "renders/")) continue;
+      state.layers.push({ name: extra.name.split("/").pop().replace(".png", ""), url: pngUrl(extra), on: false });
+    }
+
+    renderIdentity();
+    renderLayers();
+    renderReport();
+    fitStage();
+    $("drop").style.display = "none";
+    verifyHashes(dir);
+  }
+
+  // ---------- verification (best-effort, honest) ----------
+
+  async function verifyHashes(dir) {
+    const badge = $("verify-badge");
+    if (!(crypto && crypto.subtle)) {
+      badge.textContent = "hashes: unverifiable here (no SubtleCrypto on this origin)";
+      badge.className = "";
+      return;
+    }
+    const names = Object.keys(state.manifest.files ?? {});
+    let ok = 0;
+    for (const payloadName of names) {
+      const file = state.files.get(dir + payloadName);
+      if (!file) { badge.textContent = `hashes: ${payloadName} missing`; badge.className = "bad"; return; }
+      const digest = await crypto.subtle.digest("SHA-256", file.bytes);
+      const hex = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+      if (hex !== state.manifest.files[payloadName]) {
+        badge.textContent = `hashes: MISMATCH in ${payloadName}`;
+        badge.className = "bad";
+        return;
+      }
+      ok += 1;
+    }
+    badge.textContent = `hashes: ${ok}/${names.length} verified`;
+    badge.className = "ok";
+  }
+
+  // ---------- header / sidebar rendering ----------
+
+  const esc = (value) => String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+  function renderIdentity() {
+    const m = state.manifest;
+    const rulePacks = Object.entries(m.rulePacks).map(([key, version]) => `${key[0]}${version}`).join(" ");
+    $("identity").innerHTML =
+      `<span>world <b>${esc(m.world)}</b> ${m.base.width}×${m.base.height}</span>` +
+      `<span>recipe <b>${esc(m.recipeName)}</b> ${esc(m.directorRecipeSha256.slice(0, 12))}…</span>` +
+      `<span>behavior <b>${m.directorBehaviorVersion}</b> (${esc(rulePacks)})</span>` +
+      `<span>base ${esc(m.base.generationIdentitySha256.slice(0, 12))}…</span>` +
+      `<span>${m.counts.placements} placements · ${m.counts.territories} territories</span>`;
+  }
+
+  function renderLayers() {
+    const box = $("layers");
+    box.innerHTML = "";
+    state.layers.forEach((layer, index) => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = layer.on;
+      input.addEventListener("change", () => { layer.on = input.checked; syncLayerVisibility(); });
+      label.append(input, document.createTextNode(layer.name));
+      box.append(label);
+      layer.index = index;
+    });
+  }
+
+  function renderReport() {
+    const report = state.report;
+    if (!report) return;
+    $("report-section").hidden = false;
+    $("report-list").innerHTML = report.gates
+      .map((gate) => `<span class="g-${esc(gate.status)}">${esc(gate.id)} ${esc(gate.name)}</span>`)
+      .join("");
+    const failures = [
+      ...(state.placements?.failures ?? []).map((failure) => `placement ${failure.rule} in ${failure.regionId}: ${failure.message}`),
+      ...(state.territories?.failures ?? []).map((failure) => `territory ${failure.regionId} slot ${failure.slot}: ${failure.reason}`),
+    ];
+    const unbound = state.placements?.unboundAnchors ?? [];
+    $("failures-list").innerHTML =
+      (failures.map((line) => `<div>${esc(line)}</div>`).join("") || "<div>no failures</div>") +
+      `<div style="margin-top:.3rem">${unbound.length} unbound anchors</div>`;
+  }
+
+  // ---------- stage: layers, pan/zoom, hover ----------
+
+  function syncLayerVisibility() {
+    for (const img of $("stage").querySelectorAll("img")) {
+      img.style.display = state.layers[Number(img.dataset.index)].on ? "block" : "none";
+    }
+  }
+
+  function fitStage() {
+    const stage = $("stage");
+    stage.innerHTML = "";
+    const { width, height } = state.world;
+    // Base logical size: 1 css px per cell, scaled by the view transform.
+    stage.style.width = `${width}px`;
+    stage.style.height = `${height}px`;
+    state.layers.forEach((layer, index) => {
+      const img = document.createElement("img");
+      img.src = layer.url;
+      img.alt = layer.name;
+      img.dataset.index = String(index);
+      stage.append(img);
+    });
+    syncLayerVisibility();
+    const wrap = $("stage-wrap").getBoundingClientRect();
+    const scale = Math.max(1, Math.floor(Math.min(wrap.width / width, wrap.height / height)));
+    state.view = { scale, tx: Math.floor((wrap.width - width * scale) / 2), ty: Math.floor((wrap.height - height * scale) / 2) };
+    applyView();
+  }
+
+  function applyView() {
+    const { scale, tx, ty } = state.view;
+    $("stage").style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    positionCursorBox();
+  }
+
+  let hoverCell = null;
+  function cellFromEvent(event) {
+    const rect = $("stage").getBoundingClientRect();
+    const x = Math.floor(((event.clientX - rect.left) / rect.width) * state.world.width);
+    const y = Math.floor(((event.clientY - rect.top) / rect.height) * state.world.height);
+    if (x < 0 || y < 0 || x >= state.world.width || y >= state.world.height) return null;
+    return { x, y };
+  }
+  function positionCursorBox() {
+    const box = $("cursor-cell");
+    if (!hoverCell || !state.manifest) { box.style.display = "none"; return; }
+    const { scale, tx, ty } = state.view;
+    box.style.display = "block";
+    box.style.left = `${tx + hoverCell.x * scale}px`;
+    box.style.top = `${ty + hoverCell.y * scale}px`;
+    box.style.width = `${scale}px`;
+    box.style.height = `${scale}px`;
+  }
+
+  function placementAt(cell) {
+    let best = null;
+    for (const placement of state.placements?.placements ?? []) {
+      if (placement.arenaOrigin && placement.arenaSide !== null) {
+        const [ox, oy] = placement.arenaOrigin;
+        if (cell.x >= ox && cell.x < ox + placement.arenaSide && cell.y >= oy && cell.y < oy + placement.arenaSide) return placement;
+      }
+      const distance = Math.max(Math.abs(cell.x - placement.cell[0]), Math.abs(cell.y - placement.cell[1]));
+      if (distance <= 2 && (best === null || distance < best.distance)) best = { placement, distance };
+    }
+    return best?.placement ?? null;
+  }
+
+  function inspect(cell, pinned) {
+    const box = $("inspector");
+    if (!cell || !state.manifest) { box.innerHTML = '<p class="empty">Hover the map. Click to pin.</p>'; return; }
+    const parts = [];
+    const placement = placementAt(cell);
+    const territory = state.territoryByCell.get(cell.y * state.world.width + cell.x);
+
+    if (placement) {
+      const region = state.bandByRegion.get(placement.regionId);
+      parts.push(`<div class="card${pinned ? " pinned" : ""}">
+        <div class="kind">${placement.rule === "world_boss.v1" ? "world boss" : "dungeon binding"}${placement.locked ? " · locked" : ""}</div>
+        <div class="id">${esc(placement.id)}</div>
+        <dl>
+          <dt>cell</dt><dd>(${placement.cell[0]}, ${placement.cell[1]}) access (${placement.accessCell[0]}, ${placement.accessCell[1]})</dd>
+          ${placement.anchorPoiId !== null ? `<dt>anchor</dt><dd>${esc(placement.anchorPoiType)} #${placement.anchorPoiId}${placement.inSafeZone ? " (safe zone)" : ""}</dd>` : ""}
+          ${placement.arenaOrigin ? `<dt>arena</dt><dd>${placement.arenaSide}×${placement.arenaSide} @ (${placement.arenaOrigin[0]}, ${placement.arenaOrigin[1]})</dd>` : ""}
+          <dt>region</dt><dd>${esc(placement.regionId)}${region && region.dangerBand !== null ? ` · band ${region.dangerBand}` : ""}</dd>
+          <dt>exclusion</dt><dd>r${placement.exclusionRadius}</dd>
+          <dt>channel</dt><dd>${esc(placement.channel)} · draw ${placement.draw}</dd>
+        </dl>
+        ${placement.scoreTerms.length > 0 ? `<table><tr><th>term</th><th>value</th><th>×w</th><th>=</th></tr>${placement.scoreTerms
+          .map((term) => `<tr><td>${esc(term.term)}</td><td class="n">${term.value}</td><td class="n">${term.weightPermille}</td><td class="n">${term.contribution}</td></tr>`)
+          .join("")}<tr><td>score</td><td></td><td></td><td class="n">${placement.score}</td></tr></table>` : ""}
+        ${placement.candidateFunnel.length > 0 ? `<table><tr><th>funnel</th><th>left</th></tr>${placement.candidateFunnel
+          .map((step) => `<tr><td>${esc(step.stage)}</td><td class="n">${step.remaining}</td></tr>`).join("")}</table>` : ""}
+      </div>`);
+    }
+    if (territory) {
+      const roster = territory.roster.map((entry) => `${esc(entry.enemyId)} ${entry.weightPercent}%${entry.nightOnly ? " (night)" : ""}`).join(", ");
+      parts.push(`<div class="card${pinned ? " pinned" : ""}">
+        <div class="kind">territory · band ${territory.dangerBand}</div>
+        <div class="id">${esc(territory.id)}</div>
+        <dl>
+          <dt>cells</dt><dd>${territory.cellCount} from seed (${territory.seedCell[0]}, ${territory.seedCell[1]})</dd>
+          <dt>roster</dt><dd>${roster || "—"}</dd>
+          <dt>packs</dt><dd>${territory.packSize[0]}–${territory.packSize[1]} · max ${territory.maxActive} active</dd>
+          <dt>respawn</dt><dd>${esc(territory.respawnPressure)} · elite ${territory.elitePermille}‰</dd>
+          <dt>channel</dt><dd>${esc(territory.channel)} · draw ${territory.draw}</dd>
+        </dl>
+      </div>`);
+    }
+    if (parts.length === 0) parts.push(`<p class="empty">(${cell.x}, ${cell.y}) — open ground</p>`);
+    else parts.push(`<p class="empty" style="font-size:.68rem">(${cell.x}, ${cell.y})${pinned ? " — pinned, click map to unpin" : " — click to pin"}</p>`);
+    box.innerHTML = parts.join("");
+  }
+
+  // ---------- events ----------
+
+  const wrap = $("stage-wrap");
+  let dragging = null;
+  wrap.addEventListener("mousedown", (event) => {
+    dragging = { x: event.clientX, y: event.clientY, tx: state.view.tx, ty: state.view.ty, moved: false };
+  });
+  window.addEventListener("mousemove", (event) => {
+    if (dragging) {
+      const dx = event.clientX - dragging.x;
+      const dy = event.clientY - dragging.y;
+      if (Math.abs(dx) + Math.abs(dy) > 3) dragging.moved = true;
+      state.view.tx = dragging.tx + dx;
+      state.view.ty = dragging.ty + dy;
+      applyView();
+      return;
+    }
+    if (!state.manifest || state.pinned) return;
+    hoverCell = cellFromEvent(event);
+    positionCursorBox();
+    inspect(hoverCell, false);
+  });
+  window.addEventListener("mouseup", (event) => {
+    if (dragging && !dragging.moved && state.manifest) {
+      const cell = cellFromEvent(event);
+      if (state.pinned) { state.pinned = null; inspect(cell, false); }
+      else if (cell) { state.pinned = cell; hoverCell = cell; positionCursorBox(); inspect(cell, true); }
+    }
+    dragging = null;
+  });
+  wrap.addEventListener("wheel", (event) => {
+    if (!state.manifest) return;
+    event.preventDefault();
+    const factor = event.deltaY < 0 ? 1.25 : 0.8;
+    const next = Math.min(64, Math.max(0.5, state.view.scale * factor));
+    const rect = wrap.getBoundingClientRect();
+    const px = event.clientX - rect.left;
+    const py = event.clientY - rect.top;
+    state.view.tx = px - ((px - state.view.tx) / state.view.scale) * next;
+    state.view.ty = py - ((py - state.view.ty) / state.view.scale) * next;
+    state.view.scale = next;
+    applyView();
+  }, { passive: false });
+  wrap.addEventListener("dblclick", () => { if (state.manifest) fitStage(); });
+
+  const drop = $("drop");
+  for (const target of [wrap, document.body]) {
+    target.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("armed"); });
+    target.addEventListener("dragleave", () => drop.classList.remove("armed"));
+    target.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      drop.classList.remove("armed");
+      const entries = [...event.dataTransfer.items].map((item) => item.webkitGetAsEntry?.()).filter(Boolean);
+      if (entries.length > 0) for (const entry of entries) await walkEntry(entry, "");
+      else await filesFromInput(event.dataTransfer.files);
+      await load();
+    });
+  }
+  $("pick").addEventListener("click", () => $("picker").click());
+  $("picker").addEventListener("change", async () => { await filesFromInput($("picker").files); await load(); });
+
+  // ---------- embedded / test hook ----------
+
+  // A demo build may inline files as {"name": "<base64>"} in a JSON
+  // script tag; headless tests use the same entry point.
+  window.__wfLoad = async (bundle) => {
+    for (const [name, base64] of Object.entries(bundle)) {
+      const raw = atob(base64);
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+      await addFile(name, bytes);
+    }
+    await load();
+  };
+  const embedded = document.getElementById("wf-embedded");
+  if (embedded) window.__wfLoad(JSON.parse(embedded.textContent));
+})();
+</script>
+</body>
+</html>

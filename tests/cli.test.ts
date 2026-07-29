@@ -68,3 +68,54 @@ describe("wf-fill place and explain", () => {
     }
   });
 });
+
+describe("wf-fill unlock and reroll (read-only print verbs)", () => {
+  it("prints edits without ever touching the recipe file", () => {
+    const base = mkdtempSync(join(tmpdir(), "wf-cli-rr-"));
+    try {
+      const recipePath = join(base, "recipe.json");
+      const recipe = {
+        recipeFormat: 1,
+        name: "loop-recipe",
+        directorSeed: 7,
+        rerolls: [{ regionId: "region.mud.5", iteration: 2 }],
+        locks: {
+          placements: [{
+            id: "placement.world_boss.region.mud.5.0",
+            rule: "world_boss.v1",
+            regionId: "region.mud.5",
+            cell: [10, 10],
+            exclusionRadius: 4,
+            arenaOrigin: [8, 8],
+            arenaSide: 3,
+          }],
+        },
+      };
+      writeFileSync(recipePath, JSON.stringify(recipe));
+      const before = readFileSync(recipePath, "utf8");
+
+      const reroll = runCli(["reroll", recipePath, "region.mud.5"], base);
+      assert.equal(reroll.status, 0, reroll.stderr);
+      assert.match(reroll.stdout, /currently reroll\.2/);
+      assert.match(reroll.stdout, /"iteration": 3/);
+
+      const fresh = runCli(["reroll", recipePath, "region.other.1"], base);
+      assert.equal(fresh.status, 0, fresh.stderr);
+      assert.match(fresh.stdout, /currently at reroll\.0/);
+      assert.match(fresh.stdout, /"iteration": 1/);
+
+      const unlock = runCli(["unlock", recipePath, "placement.world_boss.region.mud.5.0"], base);
+      assert.equal(unlock.status, 0, unlock.stderr);
+      assert.match(unlock.stdout, /drops placement\.world_boss\.region\.mud\.5\.0/);
+      assert.match(unlock.stdout, /\[\]/);
+
+      const missing = runCli(["unlock", recipePath, "placement.dungeon.region.x.0"], base);
+      assert.notEqual(missing.status, 0);
+      assert.match(missing.stderr, /no lock placement\.dungeon\.region\.x\.0/);
+
+      assert.equal(readFileSync(recipePath, "utf8"), before, "recipe file is never modified");
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+});

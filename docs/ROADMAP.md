@@ -39,7 +39,14 @@ re-ran green (behavior 6; docs/FREEZE_REVIEW_FINDINGS.md carries the
 disposition). **Content pack format 1 is final.** **All F2–F5 visual
 verdicts APPROVED (2026-07-29)** after a four-round user review loop
 (behavior 9: quantile bands, endgame-pocket islands, remoteness floors,
-spaced band-colored territories). F8 is next.
+spaced band-colored territories). F8 landed (2026-07-29): the
+single-file read-only viewer (viewer/worldfiller-viewer.html — layers,
+hover explanations, in-browser hash verification; headless Chromium
+proof on both fixtures), the `unlock`/`reroll` print verbs, the
+workflow doc (docs/WORKFLOW.md), and the full
+direct→review→lock→reroll→export cycle run end to end on the canonical
+world. **The first arc's viewer verdict from the user is pending** —
+the demo instance is published for review.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

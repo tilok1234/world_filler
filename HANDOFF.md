@@ -149,6 +149,31 @@ CLOSED. The approved baseline is behavior 9 under
 fixtures/recipes/basic-direction.json (golden pack pins it). Replacing
 this baseline is a user-authority decision (AGENTS.md). **F8 is next.**
 
+## 1b. F8 status (2026-07-29): implemented, viewer verdict pending
+
+- `viewer/worldfiller-viewer.html`: single-file, no-build, read-only.
+  Drop an exported content pack (+ optionally the world pack for the
+  minimap backdrop and analysis renders for extra layers): layer
+  toggles, pan/zoom, hover/click inspection (full scoreTerms +
+  candidateFunnel + topCandidates per placement, roster/band per
+  territory), audit gates, failures list, and in-browser sha256
+  re-verification of the files table (honest fallback message when
+  SubtleCrypto is unavailable). Proven headlessly (Playwright +
+  container Chromium, scratch harness — NOT a committed dependency):
+  both fixture exports load, 9 gates shown, hashes verified, pinning a
+  placement shows its explanation. Demo artifact with embedded
+  fen-hollow data: claude.ai/code/artifact/6e31a452-e643-4dca-967e-314034a8df14
+- New verbs `wf-fill unlock <recipe> <placement-id>` and
+  `wf-fill reroll <recipe> <region-id>`: read-only PRINT verbs (safe-
+  write doctrine — the tool never edits a user recipe); tested.
+- docs/WORKFLOW.md: the direct → review → lock → reroll → export loop
+  + the stale-world (G7) workflow.
+- Full cycle ran on the canonical world: place → lock boss → reroll
+  region.grass.0 → re-place (lock byte-stable, region on reroll.1
+  channels) → export → verify-pack OK (11 placements, 53 territories).
+- 134 tests green. Remaining F8 exit criterion: **the user runs/sees
+  the viewer and issues a design verdict** (demo link above).
+
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
 Single-file, no-build, read-only browser viewer (minimap backdrop, layer

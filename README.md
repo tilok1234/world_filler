@@ -146,8 +146,18 @@ band with outlined territories. The fixture recipe opts into all three;
 the loop ran four rounds (quantile bands + endgame-pocket islands,
 remoteness floors, spaced band-colored territories) and **all F2-F5
 visual verdicts are APPROVED (2026-07-29)** — heatmaps, danger layout,
-placements with honest exhaustion X's, and territories. Next: F8
-(viewer + director UX loop).
+placements with honest exhaustion X's, and territories. F8 is
+implemented: `viewer/worldfiller-viewer.html`, a single-file no-build
+read-only browser viewer (drop an exported pack on it — layer toggles,
+hover/click inspection with each placement's full score and funnel, the
+audit at a glance, payload hashes re-verified in the browser; proven
+headlessly in Chromium on both fixture exports), the missing iteration
+verbs `unlock` and `reroll` (read-only print verbs — recipes are never
+edited by the tool), and the workflow doc `docs/WORKFLOW.md` (the
+direct → review → lock → reroll → export loop plus the stale-world
+workflow), with the full cycle run end to end on the canonical world:
+lock held byte-stable through a regional reroll, export verified in the
+consumption lane.
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

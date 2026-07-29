@@ -40,6 +40,10 @@ function usage(): void {
       "                                        run the full gate battery + audit report",
       "  wf-fill lock <placements.json> <placement-id>",
       "                                        print the recipe lock entry for a placement",
+      "  wf-fill unlock <recipe.json> <placement-id>",
+      "                                        print the recipe's locks minus one placement (never edits the file)",
+      "  wf-fill reroll <recipe.json> <region-id>",
+      "                                        print the next reroll entry for a region (never edits the file)",
       "  wf-fill export <pack-dir> <recipe.json> [out-dir] [--strict]",
       "                                        full pipeline -> audited content pack (refuses on failed gates)",
       "  wf-fill verify-pack <world-pack-dir> <content-pack-dir>",
@@ -405,6 +409,41 @@ function runLock(placementsPath: string, placementId: string): number {
   return 0;
 }
 
+function runUnlock(recipePath: string, placementId: string): number {
+  // Read-only by doctrine: recipes are user-authored intent; this verb
+  // prints the replacement locks block and never edits the file.
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const held = recipe.locks.placements.find((lock) => lock.id === placementId);
+  if (held === undefined) {
+    console.error(
+      `unlock: no lock ${placementId} in ${recipePath}` +
+        (recipe.locks.placements.length > 0
+          ? ` (held: ${recipe.locks.placements.map((lock) => lock.id).join(", ")})`
+          : " (the recipe holds no locks)"),
+    );
+    return 1;
+  }
+  const remaining = recipe.locks.placements.filter((lock) => lock.id !== placementId);
+  console.log(`replace the recipe's locks.placements with (drops ${placementId}):`);
+  process.stdout.write(canonicalJson(remaining));
+  return 0;
+}
+
+function runReroll(recipePath: string, regionId: string): number {
+  // Read-only: prints the rerolls entry to author; the next placement of
+  // that region draws from reroll.<iteration+1> channels.
+  const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
+  const current = recipe.rerolls.find((entry) => entry.regionId === regionId);
+  const next = { regionId, iteration: (current?.iteration ?? 0) + 1 };
+  console.log(
+    current === undefined
+      ? `add to the recipe under rerolls (region currently at reroll.0):`
+      : `replace the region's entry under rerolls (currently reroll.${current.iteration}):`,
+  );
+  process.stdout.write(canonicalJson(next));
+  return 0;
+}
+
 function runExport(dir: string, recipePath: string, outArg: string | undefined, strict: boolean): number {
   const { pack, model } = loadModel(dir);
   const parity = checkParity(pack, model);
@@ -543,6 +582,20 @@ function main(argv: readonly string[]): number {
         return 1;
       }
       return runLock(target, extra);
+    }
+    if (command === "unlock") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runUnlock(target, extra);
+    }
+    if (command === "reroll") {
+      if (extra === undefined) {
+        usage();
+        return 1;
+      }
+      return runReroll(target, extra);
     }
     if (command === "export") {
       if (extra === undefined) {
