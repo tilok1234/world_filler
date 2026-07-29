@@ -7,8 +7,14 @@ Read `AGENTS.md` and the `README.md` reading list before changing anything.
 
 **The first arc F0–F9 is COMPLETE and CLOSED (2026-07-29)** — freeze
 review resolved, every visual verdict thread closed approved at behavior
-12, committed and pushed to `tilok1234/world_filler`, branch
-`claude/world-filler-repo-focus-9fmr60`. **135 tests green** (`npm test`).
+12, committed and pushed to `tilok1234/world_filler`, branch **`main`**
+(this line was promoted to `main` and made the GitHub default in the
+2026-07-30 janitor session, designer-ruled Tier 1; the former
+`claude/world-filler-repo-focus-9fmr60` name is retired — the parallel
+`freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
+its dual-verifier test battery onto this line is a recorded ask; the
+old area-share banding verdict is SUPERSEDED by rounds 1–4).
+**135 tests green** (`npm test`).
 Next milestone: the game-side importer — PREPARED, awaiting the user's
 planning session (§2 below, docs/IMPORTER_READINESS.md).
 WorldForge checkout untouched throughout — verified clean after every
