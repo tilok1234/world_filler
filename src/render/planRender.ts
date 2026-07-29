@@ -46,10 +46,12 @@ export function renderDanger(
   const { width, height } = model.dimensions;
   const terrain = renderTerrain(model);
   const rgba = new Uint8Array(terrain.length);
+  // Unbanded ground keeps enough terrain brightness to read as geography
+  // (mountains, water) rather than void; band tints overwrite the rest.
   for (let i = 0; i < terrain.length; i += 4) {
-    rgba[i] = Math.floor((terrain[i] as number) / 3);
-    rgba[i + 1] = Math.floor((terrain[i + 1] as number) / 3);
-    rgba[i + 2] = Math.floor((terrain[i + 2] as number) / 3);
+    rgba[i] = Math.floor(((terrain[i] as number) * 11) / 20);
+    rgba[i + 1] = Math.floor(((terrain[i + 1] as number) * 11) / 20);
+    rgba[i + 2] = Math.floor(((terrain[i + 2] as number) * 11) / 20);
     rgba[i + 3] = 255;
   }
 
