@@ -341,3 +341,7 @@ Exit criteria:
 3. Territory/danger tuning is taste: keep the verdict loop human, exactly as
    upstream treats visual baselines.
 4. Multi-component worlds: never assume the spawn flood covers the map.
+5. Walkable cliffs are coming (TileForge already has walkable high-cliff
+   tiles): region segmentation voids terrain.rock by material and must
+   become walkability-aware when cliff-walkable worlds are adopted
+   (recorded 2026-07-29; see HANDOFF §1e).

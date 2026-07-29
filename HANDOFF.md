@@ -238,6 +238,24 @@ HONEST NOTES flagged to the user, verdict pending:
   reads blockier than the old organic biome edges. Possible polish:
   distance-watershed subdivision for organic seams (not built).
 
+## 1e. Recorded upstream-facing gap: walkable cliffs (user info, 2026-07-29)
+
+The user says TileForge currently has 3 high-cliff tiles that ARE
+walkable, and real game worlds will have little unwalkable mountain.
+Consequences noted, no action taken yet:
+- Walkability itself is read from each world pack's grid (parity-pinned),
+  so walkable cliffs flow through banding/territories/encounters
+  automatically once upstream worlds carry them — likely alongside an
+  upstream walkability/behavior bump adopted via the documented fixture
+  regeneration process.
+- OUR gap: src/analysis/regions.ts VOID_MATERIALS treats terrain.rock
+  (and water) as region-separating void BY MATERIAL. Walkable rock
+  (cliff tops, and today's route-crossing ford cells) gets no region →
+  the director is blind to that ground for bands/budgets/territories.
+  When adopting cliff-walkable worlds, make segmentation
+  walkability-aware (void = void-material AND unwalkable), which is an
+  ANALYSIS_VERSION bump — coordinate it with the same adoption commit.
+
 ## 2. Then: F8 — Director UX loop (docs/ROADMAP.md § F8)
 
 Single-file, no-build, read-only browser viewer (minimap backdrop, layer
