@@ -1,0 +1,11 @@
+# Line-ending policy: every text file is stored AND checked out with LF.
+#
+# This repository hash-verifies fixture files byte-exactly (world packs,
+# the golden content pack) and the golden tests compare exporter output
+# to committed bytes. A Windows checkout with core.autocrlf=true rewrites
+# text files to CRLF on disk, which breaks every byte-exact assertion —
+# so eol=lf overrides autocrlf for all text files, on every platform.
+* text=auto eol=lf
+
+# Binary payloads: never diffed as text, never eol-converted.
+*.png binary
