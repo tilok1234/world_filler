@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-29, F0–F7 + freeze review resolved + F2-F5 visuals approved)
+# World Filler — handoff (2026-07-29, F0–F9 + freeze review resolved + all visual verdicts approved at behavior 12)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -206,9 +206,10 @@ format-1 packs, and `fixtures/golden/content-pack-fen-hollow-format1/`
 suite + was verified in headless Godot. Versions: behavior 10; plan 4,
 placement 5, validate 3; PLACEMENTS_FORMAT 2, CONTENT_PACK_FORMAT 2.
 Canonical: 48 encounters, 52 territories (f8); all four worlds 9/9.
-135 tests green. **Encounter render verdict pending user review.**
+135 tests green. Encounter render: closed with the §1d approval (amber
+markers were on every shared render since F9, no objection raised).
 
-## 1d. Post-F9 verdict thread: yellow bands -> region subdivision (behavior 12)
+## 1d. Post-F9 verdict thread: yellow bands -> region subdivision (behavior 12) — CLOSED, APPROVED
 
 User: "very little yellow danger" — real (band 2 held 1,677/~6,000 fair
 share). Two-step fix, both landed:
@@ -228,7 +229,14 @@ share). Two-step fix, both landed:
    fixtures are proportionally sparser than the old approved close-ups:
    fen now T5/E2 — flagged to the user).
 
-HONEST NOTES flagged to the user, verdict pending:
+User verdict "approved" (2026-07-29): the subdivision-era danger map —
+essentially even bands, brightened unbanded geography — is the approved
+baseline at behavior 12. The honest notes below were flagged before the
+verdict and stand accepted as-is; the listed mechanisms (danger.overrides
+for an authored endgame zone, watershed subdivision for organic seams)
+remain optional polish, not scheduled work.
+
+HONEST NOTES flagged to the user before the verdict (accepted):
 - The approved bottom-right endgame island DISSOLVED: its depth was an
   artifact of the old monolith's single whole-region median; granular
   medians put bottom-right at bands 2-3. Endgame now concentrates on
@@ -323,16 +331,20 @@ close-out per ROADMAP (deferred list stays deferred).
 - Ultracode swarms: user opts in per-turn, wants them for hard
   review/audit milestones, **max 8 agents concurrent**. (The freeze
   review resolution ran solo — no opt-in was given this session.)
-- Verdict loop: send upscaled renders for visual approval; **visual
-  verdicts on F2–F5 renders are still PENDING** — structural success ≠
-  design approval (AGENTS.md).
+- Verdict loop: send upscaled renders for visual approval — structural
+  success ≠ design approval (AGENTS.md). All verdict threads through
+  behavior 12 are CLOSED APPROVED (§1, §1b, §1d); new design changes
+  reopen the loop.
+- Reply style: short and relevant, minimal images ("this is pretty
+  heavy material and images for me").
 
 ## 6. Versions
 
-director behavior **9** · rule packs: analysis 1, plan 4, placement 4,
-territory 4, validate 2, export 2 · recipe format 1 · plan/placements/
-territories/report formats 1 · content pack format 1 (**frozen, FINAL**)
-· supported upstream: artifact format 8, game pack 1, walkability 1.
+director behavior **12** · rule packs: analysis 2, plan 5, placement 6,
+territory 4, validate 3, export 2 · recipe format 1 · plan/report
+formats 1, placements format 2 · content pack format 2 current, format 1
+**frozen FINAL**, readers accept {1, 2} · supported upstream: artifact
+format 8, game pack 1, walkability 1.
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
 vocabularies; sequential bumps; stamp everything).
 
