@@ -170,9 +170,19 @@ rebalance; region subdivision at MAX_REGION_CELLS 1024 — analysis 2 —
 with boss-budget fallback across eligible regions), and the user
 approved the resulting map: **all visual verdict threads are closed
 approved at behavior 12, and the first arc (F0–F9) is complete**
-(2026-07-29). Next milestone: the game-side `worldfiller_importer` —
-prepared in docs/IMPORTER_READINESS.md, awaiting the game-side
-planning session.
+(2026-07-29). On 2026-07-30 export became a publishing act (planning
+doc 18: publish gate, `manifest.sourceCommit` as pack format 3,
+GitHub releases as transport), segmentation became walkability-aware
+(sl-0026 — fords, wadeable shallows, and piers form regions; analysis
+3), and **behavior-72 walkability was adopted** (sl-0039/sl-0040:
+ladder tables @ WorldForge `bbc10cdb`, 17 rungs including moss-on-rock
+and the WYSIWYG stamp, fixtures re-pinned, the released canonical
+`small-cold-coastal-pack-dusk@b65` and overworld
+`wildshot-overworld-pack-dusk@b72` imported parity-green — behavior
+14). Next: direct the dusk overworld (planning docs/20 step 1 — the
+game consumes that content pack as reference only, then the designer's
+feel verdict); the game-side `worldfiller_importer` (prepared in
+docs/IMPORTER_READINESS.md) comes after that verdict.
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

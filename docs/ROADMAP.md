@@ -62,10 +62,16 @@ danger"): a min-share rebalance for mid bands, then region subdivision
 eligible regions — canonical wilderness bands came out essentially even
 (5148/5519/5714/4775 walkable cells) and the user approved the map.
 **All visual verdict threads are CLOSED APPROVED at behavior 12, and
-the first arc (F0–F9) is COMPLETE.** Next milestone: the game-side
-`worldfiller_importer` — prepared in docs/IMPORTER_READINESS.md
-(2026-07-29), awaiting the user's game-side planning session; no
-game-repo changes made.
+the first arc (F0–F9) is COMPLETE.** 2026-07-30 post-arc work (HANDOFF
+§1f–§1h): publish gate + releases-as-transport (pack format 3),
+walkability-aware segmentation (sl-0026, analysis 3), and the ratified
+behavior-72 walkability adoption (ladder @ `bbc10cdb`, fixtures
+re-pinned, released b65 canonical + b72 dusk overworld imported
+parity-green — behavior 14). Next per planning docs/20: direct the
+dusk overworld (step 1, reference-only consumption + the designer's
+feel verdict); the game-side `worldfiller_importer` — prepared in
+docs/IMPORTER_READINESS.md (2026-07-29), no game-repo changes made —
+follows that verdict at its own planning session.
 
 Milestones are gated: a milestone does not expand until its exit criteria
 pass, and every milestone leaves inspectable evidence (tests, reports,

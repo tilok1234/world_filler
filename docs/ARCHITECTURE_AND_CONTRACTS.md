@@ -7,10 +7,13 @@ dependencies, `tsc` + `node --test`), mirroring the upstream toolchain so the
 same development and agent workflow applies to both repositories. This is the
 working assumption for F0; record an ADR if it changes.
 
-Upstream facts cited below were verified against WorldForge at behavior 47
-(artifact `formatVersion` 8, recipe compiler 28, game pack format 1,
-TileForge adapter 6). Version gates, not these prose numbers, are the
-enforcement mechanism.
+Upstream facts cited below were originally verified against WorldForge at
+behavior 47 (artifact `formatVersion` 8, recipe compiler 28, game pack
+format 1, TileForge adapter 6) and re-verified at the behavior-72
+adoption, 2026-07-30 (commit `bbc10cdb`, recipe compiler 35, adapter 7;
+artifact format and game pack format unchanged — the ladder gained the
+moss-on-rock and art-outline-stamp pack semantics, HANDOFF §1h). Version
+gates, not these prose numbers, are the enforcement mechanism.
 
 ## Architectural principle
 

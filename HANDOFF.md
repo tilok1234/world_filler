@@ -40,8 +40,14 @@ dusk overworld `@b72` sits parity-green in `outputs/local-packs/`.
 (gate + manifest sourceCommit + GitHub-release transport, pack format
 3), and the viewer adopted the refusing run decoder (designer ruling,
 Tier 1).
-Next milestone: the game-side importer — PREPARED, awaiting the user's
-planning session (§2 below, docs/IMPORTER_READINESS.md).
+Next milestone (planning docs/20, designer-sequenced): **direct the
+dusk overworld** — a recipe pinned to `wildshot-overworld-pack-dusk@b72`
+(generation identity in its manifest), the design/verdict loop over it,
+gated export; the game consumes that pack AS REFERENCE ONLY for the
+hand-rehearsal, then the designer's feel verdict. The game-side
+importer (§2, docs/IMPORTER_READINESS.md) follows that verdict at its
+own planning session. NOT started — directing content is design work
+the user drives.
 WorldForge checkout untouched throughout — verified clean after every
 milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
 contract; the user has re-confirmed this twice).
@@ -117,7 +123,10 @@ WorldForge pinned commit `bb7832f` (behavior 47) — the checkout's HEAD
 has moved to behaviors 49-50 and produces a DIFFERENT world that fails
 parity; use `git -C <WorldForge> archive bb7832f | tar -x -C <scratch>`
 and build there. Adopting the newer upstream base remains an explicit
-user decision (not taken).
+user decision (not taken). **[SUPERSEDED 2026-07-30: the decision was
+taken — behavior-72 adoption, §1h. The canonical is now the imported
+`small-cold-coastal-pack-dusk@b65` release; this paragraph stands as
+history of the behavior-47 era.]**
 
 Round-2 verdicts (user): purple read as 2 places, not 3; endgame zones
 too close together; some dungeon binds "right up to the cities";
@@ -477,6 +486,32 @@ user's planning session scopes and schedules them.
 - F7 export + frozen format doc + dual verifiers + **resolved freeze
   review** (format 1 final).
 
+## 3b. Resuming from a fresh environment (phone / cloud / another machine)
+
+Everything needed to continue lives in this repo + GitHub releases —
+machine-local assistant memory is NOT required (this file is the
+tiebreaker over it, per line 3):
+
+1. Clone `tilok1234/world_filler`, branch `main`. Node >= 24.15.
+2. `npm install && npm test` — expect **182 green** on a clean clone
+   (the two local-pack parity lanes only run when `outputs/local-packs/`
+   exists; the Godot lane self-skips without a binary; both are
+   optional).
+3. To restore the full-scale lanes (optional): download releases
+   `small-cold-coastal-pack-dusk@b65` and
+   `wildshot-overworld-pack-dusk@b72` from `tilok1234/WorldForge`,
+   verify each zip's sha256 against its release notes, unzip into
+   `outputs/local-packs/small-cold-coastal` and
+   `outputs/local-packs/wildshot-overworld-pack-dusk` (fixtures/README
+   has the exact steps) — then `npm test` runs 184.
+4. `gh` auth (repo scope) is needed only for release downloads and for
+   publish-gated `wf-fill export`; neither is needed to build, test, or
+   direct content locally (`WORLD_FILLER_DEV_EXPORT=1` for dev export).
+5. Cross-repo duties (sync-log append at session end) need the planning
+   repo `Wildshot_adventure_final_planning` on disk; if it is absent in
+   your environment, record the pending entry in the handoff instead
+   and flag it — do not skip it silently.
+
 ## 4. Toolchain and environment gotchas
 
 - Node **>= 24.15 required**. Container default node is 22 — use
@@ -540,7 +575,7 @@ vocabularies; sequential bumps; stamp everything).
 ## 7. Commands
 
     export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test                                   # build + 133 tests
+    npm test            # build + 184 tests (182 on a clean clone — §3b)
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json

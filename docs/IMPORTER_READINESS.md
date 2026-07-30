@@ -41,10 +41,13 @@ From the planning repo (docs 14 §5, 15 §1–§3, decision register):
 
 ## 3. What World Filler already ships for this (all proven)
 
-- **Content pack formats {1, 2}**, format 1 frozen final, format 2 =
-  format 1 + `encounter_site.v1`. Readers accept both via
-  PACK_FORMAT_PROFILE. `docs/CONTENT_PACK_FORMAT.md` passed the
-  freeze-review "importer buildable from the doc alone" lens.
+- **Content pack formats {1, 2, 3}** (updated 2026-07-30): format 1
+  frozen final, format 2 = format 1 + `encounter_site.v1` (frozen),
+  format 3 = format 2 + the OPTIONAL manifest `sourceCommit` embedded
+  by publish-gated exports. Readers accept all three via
+  PACK_FORMAT_PROFILE and refuse sourceCommit inside frozen formats
+  1–2. `docs/CONTENT_PACK_FORMAT.md` passed the freeze-review
+  "importer buildable from the doc alone" lens.
 - **Six importer obligations**, enforced identically by both reference
   verifiers: files-table completeness, hash-verify-then-parse the same
   bytes, report.ok, payload format pins, closed-enum refusals,
@@ -55,8 +58,10 @@ From the planning repo (docs 14 §5, 15 §1–§3, decision register):
   adversarial refusal battery (malformed packs exit 1 by name, never
   crash or hang). This file is the seed of the addon's verify layer.
 - **Golden packs for fixture-first work**:
-  `fixtures/golden/content-pack-fen-hollow/` (format 2) and
-  `content-pack-fen-hollow-format1/` (frozen behavior-9 format-1 pack).
+  `fixtures/golden/content-pack-fen-hollow/` (format 3, dev-built so no
+  sourceCommit) and `content-pack-fen-hollow-format1/` (format-1 compat
+  pack, re-extracted from the behavior-14 golden at the 2026-07-30 b72
+  adoption — 1 placement, since fen binds no dungeon at behavior 14).
   The canonical 256² content pack regenerates on demand (WORKFLOW).
 
 ## 4. Proposed addon shape (recommendation, not a decision)
@@ -64,7 +69,7 @@ From the planning repo (docs 14 §5, 15 §1–§3, decision register):
 `addons/worldfiller_importer/`:
 
 1. **verify** — port of the reference verifier: all six obligations,
-   named refusals, accepts formats {1, 2}. Trust-but-verify at drop
+   named refusals, accepts formats {1, 2, 3}. Trust-but-verify at drop
    time, exactly like their §4 assembler-importer re-validation.
 2. **typed access** — read-only data layer over the verified pack:
    placements (boss / dungeon binding / encounter site, with rules and
@@ -85,8 +90,12 @@ From the planning repo (docs 14 §5, 15 §1–§3, decision register):
    or wait for Gate 1 (their scope guard; default per docs/15 is
    post-Gate-1 for anything the lab consumes).
 2. **Drop convention** — folder name under `assets/` and which world
-   ships first (the canonical small-cold-coastal 256² is exportable
-   today; their slice-zone dusk world comes later via WorldForge).
+   ships first (updated 2026-07-30: BOTH candidate worlds now exist as
+   verified WorldForge releases — the canonical
+   `small-cold-coastal-pack-dusk@b65` and the game's own
+   `wildshot-overworld-pack-dusk@b72`, which the game has already
+   intaken; per planning docs/20, the dusk overworld's content pack is
+   the step-1 hand-rehearsal substrate).
 3. **Pairing** — how the game stores/loads the world pack + content
    pack pair and where the base-identity cross-check runs (importer
    refuses a mismatched pair vs load-time check).
