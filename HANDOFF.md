@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + refusing viewer decoder)
+# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + refusing viewer decoder + sl-0026 walkability-aware segmentation)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -27,9 +27,10 @@ review resolved, every visual verdict thread closed approved at behavior
 `freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
 its dual-verifier test battery onto this line is a recorded ask; the
 old area-share banding verdict is SUPERSEDED by rounds 1–4).
-**178 tests green** (`npm test`; count includes the ported archived-line
-battery, sl-0012, and the 2026-07-30 publish/format-3 additions — the
-dual-verifier Godot lane runs REAL on this machine).
+**180 tests green** (`npm test`; count includes the ported archived-line
+battery, sl-0012, the 2026-07-30 publish/format-3 additions, and the
+sl-0026 segmentation regressions — the dual-verifier Godot lane runs
+REAL on this machine).
 **Doc 18 items landed 2026-07-30 (§1f): export is now a publishing act**
 (gate + manifest sourceCommit + GitHub-release transport, pack format
 3), and the viewer adopted the refusing run decoder (designer ruling,
@@ -274,7 +275,13 @@ HONEST NOTES flagged to the user before the verdict (accepted):
   reads blockier than the old organic biome edges. Possible polish:
   distance-watershed subdivision for organic seams (not built).
 
-## 1e. Recorded upstream-facing gap: walkable cliffs (user info, 2026-07-29)
+## 1e. Upstream-facing gap: walkable cliffs — SEGMENTATION HALF RESOLVED (sl-0026, §1g)
+
+> The segmentation blindness recorded below was fixed 2026-07-30
+> (designer-ruled sl-0026, executed via planning bundle sl-0037; §1g).
+> The LADDER half (walkable moss-on-rock itself) remains adoption work,
+> scoped in the sl-0037 report — not yet ratified.
+
 
 The user says TileForge currently has 3 high-cliff tiles that ARE
 walkable, and real game worlds will have little unwalkable mountain.
@@ -336,6 +343,62 @@ Planning doc 18 (ratified 2026-07-30) landed here in full:
 Versions after this session: export rule pack **3**, CONTENT_PACK_FORMAT
 **3** (readers accept {1,2,3}); behavior stays 12 — no generation
 semantics changed, placement bytes identical.
+
+## 1g. sl-0037 bundle (2026-07-30): sl-0026 executed + dusk@b71 intake finding + b72 adoption scoped
+
+- **sl-0026 EXECUTED (behavior 13, analysis 3):** region segmentation is
+  walkability-aware — void = void-material AND unwalkable (both the seed
+  scan and the flood join; same-material blocked river cells never join a
+  wadeable patch). Route/street fords, wadeable shallows, and piers now
+  form regions of their own material and enter adjacency (fen: 15 water
+  regions, 147 plan regions total). Regression tests: synthetic
+  ford-bridges-banks + fixture-wide walkable-void property
+  (tests/analysis.test.ts). Fixture knock-on, reviewed and re-recorded
+  via updateGolden (kernel byte-identical): fen-hollow no longer places
+  a dungeon binding — all four anchors sit in zero-budget regions
+  (named region_zero_budget per anchor); golden counts moved
+  4/5/2/3 -> 3 placements / 6 territories / 4 failures / 4 unbound. The
+  binding-dependent tests (dual battery, verifier battery, G2,
+  distance-floors) moved to dust-hollow, which still binds 3-5 dungeons;
+  fen stays the beyond-battery positive + frozen format-1 world. NOTE:
+  canonical-world impact of behavior 13 is UNVERIFIED here (needs the
+  bb7832f scratch regen); the fixture layout change is flagged, not
+  design-approved — reopen the verdict loop if canonical content moves.
+- **dusk@b71 intake finding (user request, verified end-to-end):**
+  WorldForge release wildshot-overworld-pack-dusk@b71 (sourceCommit
+  63632716, zip+manifest+all-8-file hashes verified, GitHub digest
+  agrees) FAILS walkability parity against our b47-era ladder: 306
+  cells, flood 45184 claimed vs 45247 derived. Fully accounted: 172
+  cells = 14 new blocking props (lamp, table_chairs, barrels, topiary,
+  laundry_line, noticeboard, bench, baskets, workbench, anvil, sundial,
+  fishingboat, bollard, cookfire) our BLOCKING_PROPS predates; 134 cells
+  = upstream WYSIWYG-era walkability we don't transcribe yet — ALL
+  walkable-rock disagreements are moss-on-rock apron cells (108/108,
+  raw elev 599-662, terrace-RELATIVE level 0 — NOT walkable cliff tops;
+  sl-0036 frame confirmed), plus 10 walkable swamp and 20 walkable
+  structure cells (footbridge/pass-cell stamps). The pack stays in
+  scratchpad — NOT in outputs/local-packs (the parity lane would
+  honestly refuse it) until adoption.
+- **b72 adoption SCOPED, NOT adopted (designer ratifies after the
+  sl-0037 report):** base candidate wildshot-overworld-pack-dusk@b72,
+  sourceCommit bbc10cdb0..., behavior 72, flood 45202, same spawn/
+  tileforge package. Format question resolved WITH EVIDENCE, no WF ask:
+  WorldForge's GAME_INTEGRATION_PLAN.md §3.3 (verified present at BOTH
+  release commits) defines walkability.json as the consumer's runtime
+  authority ("must not re-derive walkability from tile art") with the
+  grid "computed by the same ladder the TypeScript loader exposes" plus
+  exactly two recorded adjustments (WYSIWYG art-outline stamp; the
+  2026-07-28 moss-walks ruling: bare moss on LEVEL-0 apron rock walks,
+  moss stays solid up terraced peaks) — semantics ride
+  generatorBehaviorVersion + doc-recorded rulings, walkabilityFormat
+  governs shape/encoding and stayed legitimately at 1. Adoption work:
+  transcribe b72 loader tables (blocking props, moss-on-rock walk class
+  = new appended rung, structure pass/stamp tables), regen the three 64²
+  fixtures + provenance at bbc10cdb, re-record expected-coverage +
+  golden, decide the canonical successor (a released
+  small-cold-coastal-pack-dusk@b65 exists — import vs regen is a
+  designer choice), then dusk imports to outputs/local-packs and content
+  over dusk unblocks.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
@@ -421,7 +484,7 @@ user's planning session scopes and schedules them.
 
 ## 6. Versions
 
-director behavior **12** · rule packs: analysis 2, plan 5, placement 6,
+director behavior **13** · rule packs: analysis 3, plan 5, placement 6,
 territory 4, validate 3, export 3 · recipe format 1 · plan/report
 formats 1, placements format 2 · content pack format 3 current
 (format 2 + optional manifest sourceCommit from gated exports),

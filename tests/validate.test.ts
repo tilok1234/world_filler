@@ -82,11 +82,15 @@ describe("gate battery", () => {
   });
 
   it("G2 fails on an exclusion-symmetry violation", () => {
-    const tampered = structuredClone(clean.placements) as unknown as { placements: Placement[] };
+    // dust-hollow pipeline: this gate needs a dungeon binding AND a boss
+    // in one document, and at behavior 13 fen's anchors are all in
+    // zero-budget regions (no binding to tamper with).
+    const dust = pipelineFor("dust-hollow", MINIMAL);
+    const tampered = structuredClone(dust.placements) as unknown as { placements: Placement[] };
     const dungeon = tampered.placements.find((p) => p.rule === "dungeon_binding.v1") as Placement;
     const boss = tampered.placements.find((p) => p.rule === "world_boss.v1") as Placement;
     (dungeon as unknown as { cell: [number, number] }).cell = [boss.cell[0] + 1, boss.cell[1]];
-    const report = runGates({ ...inputsOf(clean), placements: tampered as unknown as PlacementsDoc });
+    const report = runGates({ ...inputsOf(dust), placements: tampered as unknown as PlacementsDoc });
     assert.equal(gateStatus(report, "G2"), "fail");
   });
 

@@ -285,7 +285,9 @@ describe("placement solver", () => {
   it("distance floors are scale-free and explained: floored anchors are named, boss funnels carry the road stage", () => {
     // Near-maximal floors: every reachable anchor sits below the
     // settlement floor and is unbound by name, never silently skipped.
-    const floored = solveFor("fen-hollow", {
+    // dust-hollow, not fen: at behavior 13 fen's dungeon anchors all sit
+    // in zero-budget regions, so no fen anchor ever reaches the floor.
+    const floored = solveFor("dust-hollow", {
       ...MINIMAL,
       name: "floored",
       dungeonRule: { minSettlementDistancePermille: 990 },

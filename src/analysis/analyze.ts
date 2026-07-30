@@ -23,7 +23,11 @@ import { safeZoneMask } from "./safety.js";
 
 // 2: oversized biome patches subdivide (MAX_REGION_CELLS) so banding,
 // budgets, and rerolls get workable granularity on monolithic biomes.
-export const ANALYSIS_VERSION = 2;
+// 3: segmentation void is walkability-aware (sl-0026) — walkable ground
+// on void materials (fords, wadeable shallows, piers, future walkable
+// rock) forms regions and enters adjacency; unwalkable void keeps
+// separating.
+export const ANALYSIS_VERSION = 3;
 
 const CORRIDOR_MATERIALS: ReadonlySet<string> = new Set(["terrain.packed_road", "terrain.cobble"]);
 const WATER_MATERIALS: ReadonlySet<string> = new Set(["water.deep", "water.shallow"]);

@@ -3,7 +3,7 @@
     "name": "worldfiller",
     "version": "0.1.0"
   },
-  "analysisVersion": 2,
+  "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
     "artifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
@@ -13,25 +13,25 @@
   },
   "counts": {
     "placementFailures": 0,
-    "placements": 4,
-    "territories": 5,
-    "territoryFailures": 2,
-    "unboundAnchors": 3
+    "placements": 3,
+    "territories": 6,
+    "territoryFailures": 4,
+    "unboundAnchors": 4
   },
-  "directorBehaviorVersion": 12,
+  "directorBehaviorVersion": 13,
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "504adde7e2a3f6407f08af5f88add05bd826c2ac890d81216b3d89ce474e2302",
-    "placements.json": "feb1d8872375e2286d94183952844d56de2f53ad4730f3233b4af68e39248ecc",
-    "report.json": "7cfbc35fe91e31ced38aad1b176def8bdf6e073855cd7aa2523aa1968be22fe2",
-    "territories.json": "d4d464df3045054058f0b3ed38750903a5bb7e8dc6cef06f58b128f1818b5060"
+    "content-plan.json": "99b5c2f1c9069e2e5696d34ff3474a1f1fca577243e5366649a73dce10dc043e",
+    "placements.json": "f0ecfe68b43929e7107a2d9a842745c9b6043d3f509b4867441a941ea5e98f10",
+    "report.json": "a4f55c0e1e969f7c15e568b5fe8b161891312ad83bbaa74caef43fcfbc343a28",
+    "territories.json": "19ba097469fc6a8609eb26f5adaeb3b02a3dd2b53a993484b688b8ee5bfb658c"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 3,
   "recipeName": "basic-direction",
   "rulePacks": {
-    "analysis": 2,
+    "analysis": 3,
     "export": 3,
     "placement": 6,
     "plan": 5,

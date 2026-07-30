@@ -4,8 +4,13 @@ import type { WorldModel } from "../world/model.js";
  * Director-side region segmentation: contiguous patches of one land
  * material over the material layer (the artifact's regions[] records carry
  * only biome + cell count, and upstream zones never reach the artifact —
- * spatial extents are ours to derive). Water and rock are void: they
- * separate regions and belong to none.
+ * spatial extents are ours to derive). Void is walkability-aware
+ * (sl-0026, designer-ruled 2026-07-30): a cell is void only when it has
+ * a void material AND is unwalkable. Walkable ground on void materials —
+ * route/street ford cells, wadeable shallows, piers — belongs to regions
+ * (patches of its own material), so the director is not blind to
+ * travel-critical ground; unwalkable rock and river/deep water keep
+ * separating regions and belong to none.
  *
  * Region ids are deterministic content-derived labels:
  * `region.<biome-short>.<anchorIndex>` where anchorIndex is the smallest
@@ -44,6 +49,9 @@ export interface Segmentation {
 
 export function segmentRegions(model: WorldModel): Segmentation {
   const { width, height } = model.dimensions;
+  // One derivation shared with parity/flood: void-material cells consult
+  // this grid, so segmentation and walkability can never disagree.
+  const walkable = model.deriveWalkability().bits;
   const labels = new Int32Array(width * height).fill(-1);
   const patches: Array<{
     biome: string;
@@ -63,7 +71,8 @@ export function segmentRegions(model: WorldModel): Segmentation {
   for (let start = 0; start < width * height; start += 1) {
     if (labels[start] !== -1) continue;
     const biome = materialAtIndex(start);
-    if (VOID_MATERIALS.has(biome)) continue;
+    const voidBiome = VOID_MATERIALS.has(biome);
+    if (voidBiome && walkable[start] === 0) continue;
     const label = patches.length;
     labels[start] = label;
     const queue: number[] = [start];
@@ -88,6 +97,10 @@ export function segmentRegions(model: WorldModel): Segmentation {
         const next = ny * width + nx;
         if (labels[next] !== -1) continue;
         if (materialAtIndex(next) !== biome) continue;
+        // Same material is not enough on void biomes: a wadeable shallow
+        // patch must not flood across blocked river cells of the same
+        // material — void cells stay out of every patch.
+        if (voidBiome && walkable[next] === 0) continue;
         labels[next] = label;
         queue.push(next);
       }

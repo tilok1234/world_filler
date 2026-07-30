@@ -11,7 +11,8 @@ import { canonicalJson } from "../src/core/canonicalJson.js";
 import { repoRoot } from "../src/core/guard.js";
 import { encodePng } from "../src/render/png.js";
 import { renderAnalysis } from "../src/render/heatmaps.js";
-import { makeArtifact, setMaterial } from "./helpers/syntheticWorld.js";
+import { segmentRegions } from "../src/analysis/regions.js";
+import { makeArtifact, setLayer, setMaterial } from "./helpers/syntheticWorld.js";
 
 describe("spatial analysis", () => {
   const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
@@ -124,5 +125,87 @@ describe("spatial analysis", () => {
 
   it("png encoder validates input length", () => {
     assert.throws(() => encodePng(2, 2, new Uint8Array(15)), /expected 16 bytes/);
+  });
+});
+
+describe("walkability-aware segmentation (sl-0026)", () => {
+  // The regression case named by the ruling: a route-crossing ford is
+  // walkable ground on a void material. It must belong to a region and
+  // bridge the two banks in adjacency, while the unwalkable river cells
+  // around it (same material) and unwalkable rock stay void.
+  it("regions a route-crossing ford and bridges the banks; blocked river and rock stay void", () => {
+    const artifact = makeArtifact();
+    for (let y = 0; y < 8; y += 1) {
+      setMaterial(artifact, 4, y, "water.shallow");
+      setLayer(artifact, "river", 4, y, 1);
+    }
+    artifact.routes.push({
+      id: 0,
+      routeClass: "route",
+      from: [0, 4],
+      to: [7, 4],
+      length: 8,
+      crossings: [{ cell: [4, 4], kind: "ford" }],
+    });
+    setMaterial(artifact, 1, 1, "water.shallow");
+    setMaterial(artifact, 2, 1, "water.shallow");
+    setMaterial(artifact, 6, 6, "terrain.rock");
+
+    const model = new WorldModel(artifact);
+    assert.equal(model.classifyCell(4, 4), "crossing_route_walk");
+    assert.equal(model.classifyCell(4, 3), "river_stream_block");
+    assert.equal(model.classifyCell(1, 1), "shallow_wade");
+
+    const { regions, labels } = segmentRegions(model);
+    const at = (x: number, y: number): number => labels[y * 8 + x] as number;
+
+    const west = at(0, 0);
+    const east = at(7, 0);
+    assert.ok(west >= 0 && east >= 0 && west !== east, "river still separates the banks");
+
+    const ford = at(4, 4);
+    assert.ok(ford >= 0, "ford cell belongs to a region");
+    const fordRegion = regions[ford];
+    assert.ok(fordRegion !== undefined);
+    assert.equal(fordRegion.biome, "water.shallow");
+    assert.equal(fordRegion.id, "region.shallow.36");
+    const westId = regions[west]?.id as string;
+    const eastId = regions[east]?.id as string;
+    assert.ok(
+      fordRegion.neighborIds.includes(westId) && fordRegion.neighborIds.includes(eastId),
+      `ford bridges both banks in adjacency: ${JSON.stringify(fordRegion.neighborIds)}`,
+    );
+
+    for (let y = 0; y < 8; y += 1) {
+      if (y === 4) continue;
+      assert.equal(at(4, y), -1, `blocked river cell (4, ${y}) stays void`);
+    }
+    assert.equal(at(6, 6), -1, "unwalkable rock stays void");
+
+    const pool = at(1, 1);
+    assert.ok(pool >= 0 && pool === at(2, 1) && pool !== ford, "wadeable pool is its own shallow region");
+    assert.equal(regions[pool]?.biome, "water.shallow");
+  });
+
+  it("on a real fixture, void-material cells are regioned exactly when walkable", () => {
+    const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
+    const model = new WorldModel(pack.artifact);
+    const { labels } = segmentRegions(model);
+    const voidMaterials = new Set(["water.deep", "water.shallow", "terrain.rock"]);
+    const { width, height } = model.dimensions;
+    let walkableVoidCells = 0;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        if (!voidMaterials.has(model.materialAt(x, y))) continue;
+        const label = labels[y * width + x] as number;
+        if (model.walkableAt(x, y)) {
+          walkableVoidCells += 1;
+          assert.ok(label >= 0, `walkable ${model.materialAt(x, y)} at (${x}, ${y}) must be regioned`);
+        } else {
+          assert.equal(label, -1, `unwalkable ${model.materialAt(x, y)} at (${x}, ${y}) must stay void`);
+        }
+      }
+    }
+    assert.ok(walkableVoidCells > 0, "fixture exercises the rule (fords/wades/piers exist)");
   });
 });

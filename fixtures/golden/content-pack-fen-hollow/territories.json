@@ -1,5 +1,5 @@
 {
-  "analysisVersion": 2,
+  "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
     "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
@@ -466,9 +466,9 @@
       },
       {
         "budget": 2,
-        "coveragePermille": 174,
-        "covered": 131,
-        "emitted": 1,
+        "coveragePermille": 254,
+        "covered": 191,
+        "emitted": 2,
         "hostileWalkable": 751,
         "regionId": "region.mud.1245"
       },
@@ -623,6 +623,142 @@
         "emitted": 0,
         "hostileWalkable": 40,
         "regionId": "region.packed_road.1562"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 1,
+        "regionId": "region.rock.2450"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 2,
+        "regionId": "region.rock.3229"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 2,
+        "regionId": "region.shallow.1024"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 14,
+        "regionId": "region.shallow.1172"
+      },
+      {
+        "budget": 1,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 123,
+        "regionId": "region.shallow.13"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 15,
+        "regionId": "region.shallow.1435"
+      },
+      {
+        "budget": 1,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 66,
+        "regionId": "region.shallow.1456"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 8,
+        "regionId": "region.shallow.2464"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 9,
+        "regionId": "region.shallow.2540"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 0,
+        "regionId": "region.shallow.2694"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 6,
+        "regionId": "region.shallow.2780"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 26,
+        "regionId": "region.shallow.2788"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 9,
+        "regionId": "region.shallow.2832"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 0,
+        "regionId": "region.shallow.3447"
+      },
+      {
+        "budget": 1,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 86,
+        "regionId": "region.shallow.575"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 26,
+        "regionId": "region.shallow.607"
+      },
+      {
+        "budget": 0,
+        "coveragePermille": 0,
+        "covered": 0,
+        "emitted": 0,
+        "hostileWalkable": 8,
+        "regionId": "region.shallow.662"
       },
       {
         "budget": 0,
@@ -1049,29 +1185,41 @@
         "regionId": "region.swamp.9"
       }
     ],
-    "totalCovered": 420,
-    "totalHostileWalkable": 1960
+    "totalCovered": 480,
+    "totalHostileWalkable": 2361
   },
-  "directorBehaviorVersion": 12,
+  "directorBehaviorVersion": 13,
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "failures": [
     {
-      "message": "93 eligible cells remain in region.mud.1245 but no connected pocket reaches 40 cells (largest: 24)",
-      "reason": "fragmented_hostile_ground",
-      "regionId": "region.mud.1245",
-      "slot": 1
-    },
-    {
-      "message": "55 eligible cells remain in region.packed_road.1129 but no connected pocket reaches 40 cells (largest: 37)",
+      "message": "63 eligible cells remain in region.packed_road.1129 but no connected pocket reaches 40 cells (largest: 37)",
       "reason": "fragmented_hostile_ground",
       "regionId": "region.packed_road.1129",
+      "slot": 0
+    },
+    {
+      "message": "no enemy in the content library matches biome water.shallow at band 4",
+      "reason": "no_matching_roster",
+      "regionId": "region.shallow.13",
+      "slot": 0
+    },
+    {
+      "message": "no enemy in the content library matches biome water.shallow at band 3",
+      "reason": "no_matching_roster",
+      "regionId": "region.shallow.1456",
+      "slot": 0
+    },
+    {
+      "message": "no enemy in the content library matches biome water.shallow at band 4",
+      "reason": "no_matching_roster",
+      "regionId": "region.shallow.575",
       "slot": 0
     }
   ],
   "recipeName": "basic-direction",
   "rulePacks": {
-    "analysis": 2,
+    "analysis": 3,
     "export": 3,
     "placement": 6,
     "plan": 5,
@@ -1332,9 +1480,14 @@
         "encoding": "runs",
         "runs": [
           [
+            40,
+            20,
+            1
+          ],
+          [
             39,
             21,
-            2
+            3
           ],
           [
             39,
@@ -1342,14 +1495,19 @@
             2
           ],
           [
-            37,
-            23,
-            6
+            42,
+            22,
+            1
           ],
           [
-            36,
+            38,
+            23,
+            5
+          ],
+          [
+            37,
             24,
-            9
+            7
           ],
           [
             36,
@@ -1548,6 +1706,122 @@
       ]
     },
     {
+      "cellCount": 60,
+      "cells": {
+        "encoding": "runs",
+        "runs": [
+          [
+            22,
+            34,
+            2
+          ],
+          [
+            22,
+            35,
+            2
+          ],
+          [
+            20,
+            36,
+            3
+          ],
+          [
+            20,
+            37,
+            4
+          ],
+          [
+            15,
+            38,
+            1
+          ],
+          [
+            19,
+            38,
+            5
+          ],
+          [
+            15,
+            39,
+            2
+          ],
+          [
+            18,
+            39,
+            7
+          ],
+          [
+            16,
+            40,
+            1
+          ],
+          [
+            18,
+            40,
+            8
+          ],
+          [
+            16,
+            41,
+            10
+          ],
+          [
+            18,
+            42,
+            8
+          ],
+          [
+            23,
+            43,
+            3
+          ],
+          [
+            23,
+            44,
+            2
+          ],
+          [
+            22,
+            45,
+            2
+          ]
+        ]
+      },
+      "channel": "world/region.mud.1245/reroll.0/territory/1",
+      "dangerBand": 2,
+      "draw": 4,
+      "elitePermille": 30,
+      "id": "territory.region.mud.1245.1",
+      "maxActive": 4,
+      "packSize": [
+        2,
+        6
+      ],
+      "regionId": "region.mud.1245",
+      "respawnPressure": "medium",
+      "roster": [
+        {
+          "enemyId": "enemy.marauder",
+          "nightOnly": false,
+          "weightPercent": 20
+        },
+        {
+          "enemyId": "enemy.mire_creeper",
+          "nightOnly": false,
+          "weightPercent": 35
+        },
+        {
+          "enemyId": "enemy.night_shade",
+          "nightOnly": true,
+          "weightPercent": 15
+        }
+      ],
+      "seedCell": [
+        23,
+        38
+      ]
+    },
+    {
       "cellCount": 103,
       "cells": {
         "encoding": "runs",
@@ -1685,7 +1959,7 @@
         ]
       },
       "channel": "world/region.mud.43/reroll.0/territory/0",
-      "dangerBand": 4,
+      "dangerBand": 3,
       "draw": 2,
       "elitePermille": 30,
       "id": "territory.region.mud.43.0",

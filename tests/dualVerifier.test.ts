@@ -282,7 +282,10 @@ describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal
   before(() => {
     base = mkdtempSync(join(tmpdir(), "wf-dual-"));
     honest = join(base, "honest");
-    exportPack(FEN, "fen-hollow", honest);
+    // dust-hollow, not fen: the battery's anchor-tamper case needs a
+    // dungeon binding, and at behavior 13 fen places none (all four
+    // anchors sit in zero-budget regions).
+    exportPack(DUST, "dust-hollow", honest);
     // Materialize every case up front; each it() then judges one case in
     // both lanes, so a lane disagreement names its case in the test tree.
     for (const [index, batteryCase] of BATTERY.entries()) {
@@ -316,11 +319,11 @@ describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal
 
       // TS lane.
       if (batteryCase.ts === undefined) {
-        const summary = verifyContentPack(FEN, dir);
+        const summary = verifyContentPack(DUST, dir);
         assert.ok(summary.placements >= 1);
       } else {
         assert.throws(
-          () => verifyContentPack(FEN, dir),
+          () => verifyContentPack(DUST, dir),
           (error: unknown) => {
             assert.ok(error instanceof VerifyError, `TS lane: expected VerifyError, got ${String(error)}`);
             assert.match(error.message, batteryCase.ts as RegExp, "TS lane: wrong named refusal");
@@ -332,7 +335,7 @@ describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal
       // Godot lane: same pack bytes, same verdict, refusal named — and a
       // refusal is always a refusal, never a script error.
       if (!godotAvailable) return;
-      const godot = runGodotVerifier(FEN, dir);
+      const godot = runGodotVerifier(DUST, dir);
       assert.ok(!godot.stderr.includes("SCRIPT ERROR"), `Godot lane crashed instead of refusing:\n${godot.stderr}`);
       if (batteryCase.gd === undefined) {
         assert.equal(godot.status, 0, `Godot lane refused the honest pack:\n${godot.stderr}`);
@@ -347,12 +350,15 @@ describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal
 });
 
 describe("dual consumption proof beyond the battery world", () => {
-  it("both lanes accept a fresh dust-hollow export and the frozen format-1 golden pack", (t) => {
-    const base = mkdtempSync(join(tmpdir(), "wf-dual-dust-"));
+  it("both lanes accept a fresh fen-hollow export and the frozen format-1 golden pack", (t) => {
+    // fen is the beyond-battery world now that the battery runs on dust;
+    // its fresh export is boss + encounters + territories (no dungeon
+    // binding at behavior 13), still a valid pack both lanes must accept.
+    const base = mkdtempSync(join(tmpdir(), "wf-dual-fen-"));
     try {
-      const dust = join(base, "pack");
-      exportPack(DUST, "dust-hollow", dust);
-      assert.ok(verifyContentPack(DUST, dust).placements >= 1);
+      const fen = join(base, "pack");
+      exportPack(FEN, "fen-hollow", fen);
+      assert.ok(verifyContentPack(FEN, fen).placements >= 1);
 
       const format1 = join(ROOT, "fixtures", "golden", "content-pack-fen-hollow-format1");
       assert.ok(verifyContentPack(FEN, format1).placements >= 1);
@@ -361,7 +367,7 @@ describe("dual consumption proof beyond the battery world", () => {
         t.diagnostic("Godot lane skipped: no binary available");
         return;
       }
-      for (const [world, pack] of [[DUST, dust], [FEN, format1]] as const) {
+      for (const [world, pack] of [[FEN, fen], [FEN, format1]] as const) {
         const godot = runGodotVerifier(world, pack);
         assert.equal(godot.status, 0, godot.stderr);
         assert.match(godot.stdout, /verify-content-pack: OK/);

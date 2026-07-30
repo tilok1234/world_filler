@@ -24,6 +24,11 @@ import { repoRoot } from "../src/core/guard.js";
  */
 
 const FEN = join(repoRoot(), "fixtures", "packs", "fen-hollow");
+// The battery's fresh pack builds from dust-hollow: at behavior 13 fen
+// places no dungeon binding (zero-budget regions), and the battery's
+// anchor-tamper case needs one. FEN stays for the frozen format-1 golden,
+// which is a fen pack.
+const DUST = join(repoRoot(), "fixtures", "packs", "dust-hollow");
 const RECIPE = join(repoRoot(), "fixtures", "recipes", "basic-direction.json");
 
 describe("content pack verifier — adversarial battery", () => {
@@ -35,7 +40,7 @@ describe("content pack verifier — adversarial battery", () => {
   before(() => {
     base = mkdtempSync(join(tmpdir(), "wf-verify-"));
     packDir = join(base, "pack");
-    const pack = readGamePack(FEN);
+    const pack = readGamePack(DUST);
     const model = new WorldModel(pack.artifact);
     const recipe = normalizeRecipe(JSON.parse(readFileSync(RECIPE, "utf8")));
     const bundle = analyzeWorld(model);
@@ -93,7 +98,7 @@ describe("content pack verifier — adversarial battery", () => {
 
   function refuses(dir: string, pattern: RegExp): void {
     assert.throws(
-      () => verifyContentPack(FEN, dir),
+      () => verifyContentPack(DUST, dir),
       (error: unknown) => {
         assert.ok(error instanceof VerifyError, `expected VerifyError, got: ${String(error)}`);
         assert.match((error as Error).message, pattern);
@@ -103,7 +108,7 @@ describe("content pack verifier — adversarial battery", () => {
   }
 
   it("accepts the untampered pack", () => {
-    const summary = verifyContentPack(FEN, packDir);
+    const summary = verifyContentPack(DUST, packDir);
     assert.ok(summary.placements >= 1);
     assert.ok(summary.territories >= 1);
   });
@@ -190,7 +195,7 @@ describe("content pack verifier — adversarial battery", () => {
     const sourceCommit = "0123456789abcdef0123456789abcdef01234567";
     const gatedDir = join(base, "gated-pack");
     writeContentPack(buildContentPack(inputs, { sourceCommit }), gatedDir);
-    const summary = verifyContentPack(FEN, gatedDir);
+    const summary = verifyContentPack(DUST, gatedDir);
     assert.ok(summary.placements >= 1);
     const manifest = JSON.parse(readFileSync(join(gatedDir, "manifest.json"), "utf8")) as { sourceCommit?: string };
     assert.equal(manifest.sourceCommit, sourceCommit, "the gated manifest carries the proved commit");

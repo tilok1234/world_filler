@@ -25,10 +25,16 @@ export const DIRECTOR_VERSION = "0.1.0";
 // worlds that had monolithic biomes; invalid locks are diagnosed), and
 // a boss budget whose allocated region has no valid site falls back
 // through the other eligible regions with named failures.
-export const DIRECTOR_BEHAVIOR_VERSION = 12;
+// 13: analysis 3 — segmentation void is walkability-aware (sl-0026):
+// void = void-material AND unwalkable, so route/street fords, wadeable
+// shallows, piers, and (once a ladder supports them) walkable rock cells
+// form regions of their own material and appear in adjacency; region
+// ids and neighbor sets move on worlds with walkable water ground, and
+// invalidated locks are diagnosed per the designed migration.
+export const DIRECTOR_BEHAVIOR_VERSION = 13;
 
 export const RULE_PACK_VERSIONS = {
-  analysis: 2,
+  analysis: 3,
   plan: 5,
   placement: 6,
   territory: 4,

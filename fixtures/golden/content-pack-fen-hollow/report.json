@@ -1,10 +1,10 @@
 {
-  "analysisVersion": 2,
+  "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
     "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26"
   },
-  "directorBehaviorVersion": 12,
+  "directorBehaviorVersion": 13,
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "gates": [
     {
@@ -66,7 +66,7 @@
   "recipeName": "basic-direction",
   "reportFormat": 1,
   "rulePacks": {
-    "analysis": 2,
+    "analysis": 3,
     "export": 3,
     "placement": 6,
     "plan": 5,
