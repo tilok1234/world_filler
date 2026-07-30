@@ -22,9 +22,9 @@ import { repoRoot } from "../src/core/guard.js";
  * (tag archive/claude/freeze-review-resolution-tf6bkf): both reference
  * verifiers — src/consume/verifyPack.ts and the headless-Godot proof
  * consumers/godot-proof/verify_content_pack.gd — must agree
- * refusal-for-refusal across a 20-case battery (the honest pack plus 19
- * tamper classes), each refusal NAMED in both lanes and never a script
- * error. The TS lane always runs; the Godot lane runs when a Godot 4
+ * refusal-for-refusal across a 23-case battery (the honest pack, the
+ * gated format-3 provenance variant, plus 21 tamper classes), each
+ * refusal NAMED in both lanes and never a script error. The TS lane always runs; the Godot lane runs when a Godot 4
  * binary is reachable (WORLD_FILLER_GODOT, or `godot` on PATH) and is
  * reported skipped otherwise, so clean checkouts without Godot stay
  * green while any machine with the binary proves both lanes.
@@ -121,9 +121,11 @@ interface BatteryCase {
   readonly gd?: RegExp;
 }
 
-// The 20-case battery: 1 honest accept + 19 tamper refusals. Every
-// refusal expectation is main's actual wording — the implementation on
-// this line is the approved source of truth, not the archived line's.
+// The 23-case battery: 2 accepts (the honest pack, and the same pack
+// with the format-3 provenance field a gated export embeds) + 21 tamper
+// refusals. Every refusal expectation is main's actual wording — the
+// implementation on this line is the approved source of truth, not the
+// archived line's.
 const BATTERY: ReadonlyArray<BatteryCase> = [
   { name: "honest pack accepted" },
   {
@@ -252,6 +254,24 @@ const BATTERY: ReadonlyArray<BatteryCase> = [
     ts: /binds anchor poi #999 which does not exist/,
     gd: /binds anchor poi #999 which does not exist/,
   },
+  {
+    // Not a tamper in spirit: this is exactly the manifest a publish-
+    // gated export writes (pack format 3, optional provenance present).
+    name: "gated pack with a valid embedded sourceCommit",
+    tamper: (dir) => rewriteManifest(dir, (m) => { m.sourceCommit = "0123456789abcdef0123456789abcdef01234567"; }),
+  },
+  {
+    name: "sourceCommit smuggled into a frozen format-2 manifest",
+    tamper: (dir) => rewriteManifest(dir, (m) => { m.packFormat = 2; m.sourceCommit = "0123456789abcdef0123456789abcdef01234567"; }),
+    ts: /sourceCommit is a format-3 field; format-2 manifests do not carry it/,
+    gd: /sourceCommit is a format-3 field; format-2 manifests do not carry it/,
+  },
+  {
+    name: "malformed sourceCommit in a format-3 manifest",
+    tamper: (dir) => rewriteManifest(dir, (m) => { m.sourceCommit = "deadbeef"; }),
+    ts: /sourceCommit .* is not a 40-hex commit hash/,
+    gd: /sourceCommit .* is not a 40-hex commit hash/,
+  },
 ];
 
 describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal", () => {
@@ -290,7 +310,7 @@ describe("dual-verifier battery: TS and headless Godot agree refusal-for-refusal
   });
 
   for (const batteryCase of BATTERY) {
-    it(`${batteryCase.tamper === undefined ? "accepts" : "refuses"}: ${batteryCase.name}`, () => {
+    it(`${batteryCase.ts === undefined ? "accepts" : "refuses"}: ${batteryCase.name}`, () => {
       const dir = caseDirs.get(batteryCase.name);
       assert.ok(dir !== undefined);
 

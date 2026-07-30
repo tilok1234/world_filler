@@ -22,7 +22,9 @@ function runCli(args: readonly string[], extraRoots: string): { status: number; 
   try {
     const stdout = execFileSync(process.execPath, [CLI, ...args], {
       encoding: "utf8",
-      env: { ...process.env, WORLD_FILLER_EXTRA_OUT_ROOTS: extraRoots },
+      // Development bypass: suite exports must not hit the publish gate
+      // or upload releases (tests run from dirty trees by design).
+      env: { ...process.env, WORLD_FILLER_EXTRA_OUT_ROOTS: extraRoots, WORLD_FILLER_DEV_EXPORT: "1" },
     });
     return { status: 0, stdout, stderr: "" };
   } catch (error) {
@@ -52,10 +54,12 @@ describe("content pack export", () => {
 
       const manifest = JSON.parse(readFileSync(join(outA, "manifest.json"), "utf8")) as {
         packFormat: number;
+        sourceCommit?: string;
         files: Record<string, string>;
         base: { artifactSha256: string };
       };
-      assert.equal(manifest.packFormat, 2);
+      assert.equal(manifest.packFormat, 3);
+      assert.equal(manifest.sourceCommit, undefined, "dev-bypass builds carry no provenance (the golden pins field-free bytes)");
       assert.deepEqual(
         Object.keys(manifest.files).sort(),
         ["content-plan.json", "placements.json", "report.json", "territories.json"],

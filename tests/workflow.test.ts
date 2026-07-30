@@ -27,7 +27,9 @@ function runCli(args: readonly string[], extraRoots: string): { status: number; 
   try {
     const stdout = execFileSync(process.execPath, [CLI, ...args], {
       encoding: "utf8",
-      env: { ...process.env, WORLD_FILLER_EXTRA_OUT_ROOTS: extraRoots },
+      // Development bypass: the cycle's strict export must not hit the
+      // publish gate or upload a release from a test run.
+      env: { ...process.env, WORLD_FILLER_EXTRA_OUT_ROOTS: extraRoots, WORLD_FILLER_DEV_EXPORT: "1" },
     });
     return { status: 0, stdout, stderr: "" };
   } catch (error) {

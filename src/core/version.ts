@@ -33,7 +33,11 @@ export const RULE_PACK_VERSIONS = {
   placement: 6,
   territory: 4,
   validate: 3,
-  export: 2,
+  // 3: publish gate + releases (planning doc 18 §4, ratified 2026-07-30) —
+  // export is a publishing act: it refuses dirty/unpushed source, embeds
+  // the gated sourceCommit in the manifest (pack format 3), and uploads
+  // the pack zip as a non-overwriting GitHub release.
+  export: 3,
 } as const;
 
 export const RECIPE_FORMAT = 1;
@@ -45,14 +49,19 @@ export const SUPPORTED_PLACEMENTS_FORMATS: readonly number[] = [1, 2];
 export const TERRITORIES_FORMAT = 1;
 export const REPORT_FORMAT = 1;
 // Pack format 2 = format 1 with placementsFormat 2 (encounter sites).
-// Format-1 packs remain valid; readers accept both.
-export const CONTENT_PACK_FORMAT = 2;
-export const SUPPORTED_CONTENT_PACK_FORMATS: readonly number[] = [1, 2];
-/** Per pack format: the placements format and legal placement rules. */
+// Pack format 3 = format 2 plus exactly one append: the OPTIONAL manifest
+// field sourceCommit (the pushed commit the publish gate proved, embedded
+// by gated exports; development-bypass builds omit it). Formats 1-2 are
+// frozen and do not carry the field; readers accept all three.
+export const CONTENT_PACK_FORMAT = 3;
+export const SUPPORTED_CONTENT_PACK_FORMATS: readonly number[] = [1, 2, 3];
+/** Per pack format: placements format, legal rules, manifest provenance. */
 export const PACK_FORMAT_PROFILE: Readonly<Record<number, {
   readonly placementsFormat: number;
   readonly placementRules: readonly string[];
+  readonly manifestSourceCommit: "refused" | "optional";
 }>> = {
-  1: { placementsFormat: 1, placementRules: ["world_boss.v1", "dungeon_binding.v1"] },
-  2: { placementsFormat: 2, placementRules: ["world_boss.v1", "dungeon_binding.v1", "encounter_site.v1"] },
+  1: { placementsFormat: 1, placementRules: ["world_boss.v1", "dungeon_binding.v1"], manifestSourceCommit: "refused" },
+  2: { placementsFormat: 2, placementRules: ["world_boss.v1", "dungeon_binding.v1", "encounter_site.v1"], manifestSourceCommit: "refused" },
+  3: { placementsFormat: 2, placementRules: ["world_boss.v1", "dungeon_binding.v1", "encounter_site.v1"], manifestSourceCommit: "optional" },
 };

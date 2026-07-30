@@ -44,6 +44,7 @@
   #verify-badge { font-family: var(--mono); font-size: .72rem; }
   #verify-badge.ok { color: var(--good); }
   #verify-badge.bad { color: var(--bad); }
+  #payload-error { font-family: var(--mono); font-size: .72rem; color: var(--bad); flex-basis: 100%; }
 
   main { flex: 1; display: flex; min-height: 0; }
   #sidebar { width: 300px; flex: none; border-right: 1px solid var(--edge); overflow-y: auto; padding: .8rem .9rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
@@ -113,6 +114,7 @@
   <h1>worldfiller <span>viewer</span></h1>
   <div id="identity"><span class="empty">no pack loaded</span></div>
   <span id="verify-badge"></span>
+  <div id="payload-error" hidden></div>
 </header>
 <main>
   <div id="sidebar">
@@ -154,7 +156,7 @@
     files: new Map(),          // normalized name -> { bytes: Uint8Array }
     world: { width: 0, height: 0 },
     manifest: null, placements: null, territories: null, plan: null, report: null,
-    territoryByCell: new Map(), bandByRegion: new Map(),
+    territoryByCell: new Map(), bandByRegion: new Map(), territoryError: null,
     layers: [],                // { name, url, defaultOn }
     pinned: null,
     view: { scale: 1, tx: 0, ty: 0 },
@@ -264,11 +266,44 @@
 
     state.bandByRegion = new Map((state.plan?.regions ?? []).map((region) => [region.id, region]));
 
+    // Refusing run decoder (designer ruling 2026-07-30): the viewer reads
+    // territory runs with the format-1 reference reader rules — a run
+    // must be an integer [x, y, length] triple inside the grid that
+    // never crosses its row, and cellCount must equal the distinct cells
+    // the runs decode to. The first illegal territory refuses the whole
+    // territories payload by name (like both reference verifiers);
+    // nothing is drawn from it permissively.
     state.territoryByCell = new Map();
-    for (const territory of state.territories?.territories ?? []) {
-      for (const [x, y, length] of territory.cells.runs) {
-        for (let i = 0; i < length; i += 1) state.territoryByCell.set((y * state.world.width) + x + i, territory);
+    state.territoryError = null;
+    const { width, height } = state.world;
+    const refuseTerritories = (message) => {
+      state.territoryError =
+        `territories.json refused: ${message} — territory inspection disabled (format-1 reference reader rule)`;
+      state.territoryByCell = new Map();
+    };
+    decode: for (const territory of state.territories?.territories ?? []) {
+      const runs = territory.cells?.runs ?? [];
+      const decoded = new Set();
+      for (let index = 0; index < runs.length; index += 1) {
+        const run = runs[index];
+        const triple = Array.isArray(run) && run.length === 3 && run.every(Number.isInteger);
+        const [x, y, length] = triple ? run : [0, 0, 1];
+        const defect = !triple
+          ? "is not an integer [x, y, length] triple"
+          : (x < 0 || y < 0 || length < 1 || y >= height || x + length > width)
+            ? `leaves the grid at row ${y} (runs never cross rows)`
+            : null;
+        if (defect) {
+          refuseTerritories(`${territory.id} run #${index} [${String(run)}] ${defect}`);
+          break decode;
+        }
+        for (let i = 0; i < length; i += 1) decoded.add((y * width) + x + i);
       }
+      if (territory.cellCount !== decoded.size) {
+        refuseTerritories(`${territory.id} cellCount ${territory.cellCount} does not match its runs (${decoded.size} distinct cells)`);
+        break decode;
+      }
+      for (const cell of decoded) state.territoryByCell.set(cell, territory);
     }
 
     // Layers: world minimap backdrop, pack renders, then any other PNGs.
@@ -285,6 +320,7 @@
     }
 
     renderIdentity();
+    renderPayloadError();
     renderLayers();
     renderReport();
     fitStage();
@@ -366,6 +402,13 @@
       `<span>behavior <b>${m.directorBehaviorVersion}</b> (${esc(rulePacks)})</span>` +
       `<span>base ${esc(m.base.generationIdentitySha256.slice(0, 12))}…</span>` +
       `<span>${m.counts.placements} placements · ${m.counts.territories} territories</span>`;
+  }
+
+  function renderPayloadError() {
+    const strip = $("payload-error");
+    // textContent on purpose: the refusal quotes pack-supplied ids.
+    strip.textContent = state.territoryError ?? "";
+    strip.hidden = state.territoryError === null;
   }
 
   function renderLayers() {

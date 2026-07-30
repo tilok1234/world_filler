@@ -186,6 +186,45 @@ describe("content pack verifier — adversarial battery", () => {
     );
   });
 
+  it("accepts a publish-gated pack and reads back its embedded sourceCommit (pack format 3)", () => {
+    const sourceCommit = "0123456789abcdef0123456789abcdef01234567";
+    const gatedDir = join(base, "gated-pack");
+    writeContentPack(buildContentPack(inputs, { sourceCommit }), gatedDir);
+    const summary = verifyContentPack(FEN, gatedDir);
+    assert.ok(summary.placements >= 1);
+    const manifest = JSON.parse(readFileSync(join(gatedDir, "manifest.json"), "utf8")) as { sourceCommit?: string };
+    assert.equal(manifest.sourceCommit, sourceCommit, "the gated manifest carries the proved commit");
+  });
+
+  it("refuses sourceCommit inside a frozen format-1/2 manifest and malformed values in format 3", () => {
+    // A format-3 dev pack relabeled format 2 is a valid format-2 pack
+    // (same shapes) — until it claims provenance the frozen format
+    // never carried.
+    refuses(
+      tamper((dir) => rewriteManifest(dir, (m) => { m.packFormat = 2; m.sourceCommit = "ab".repeat(20); })),
+      /sourceCommit is a format-3 field; format-2 manifests do not carry it/,
+    );
+    refuses(
+      tamper((dir) => rewriteManifest(dir, (m) => { m.sourceCommit = "not-a-commit"; })),
+      /sourceCommit .* is not a 40-hex commit hash/,
+    );
+    refuses(
+      tamper((dir) => rewriteManifest(dir, (m) => { m.sourceCommit = "AB".repeat(20); })),
+      /is not a 40-hex commit hash/,
+    );
+    refuses(
+      tamper((dir) => rewriteManifest(dir, (m) => { m.sourceCommit = 42; })),
+      /is not a 40-hex commit hash/,
+    );
+  });
+
+  it("buildContentPack refuses a malformed provenance commit", () => {
+    assert.throws(
+      () => buildContentPack(inputs, { sourceCommit: "HEAD" }),
+      /sourceCommit "HEAD" is not a 40-hex commit hash/,
+    );
+  });
+
   it("buildContentPack refuses a report (or payload doc) from a different pipeline run", () => {
     assert.throws(
       () => buildContentPack({ ...inputs, report: { ...inputs.report, directorRecipeSha256: "f".repeat(64) } }),

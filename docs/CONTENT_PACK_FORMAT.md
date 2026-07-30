@@ -1,13 +1,20 @@
-# Worldfiller content pack — formats 1–2 (FROZEN)
+# Worldfiller content pack — formats 1–3 (1–2 FROZEN)
 
 Status: **Format 1 frozen** (freeze review resolved 2026-07-28; see
 `docs/FREEZE_REVIEW_FINDINGS.md`); **format 2 frozen 2026-07-29** —
 format 2 is format 1 plus exactly one append: `placementsFormat` 2,
 whose `rule` vocabulary adds `encounter_site.v1` (encounter sites carry
 no anchor and no arena; their `cell` equals their `accessCell` and both
-anchor/arena fields are null — no field shapes changed). Format-1 packs
-remain valid; this build's readers accept both formats and refuse an
-encounter rule inside a format-1 pack as an unknown enum value. File
+anchor/arena fields are null — no field shapes changed). **Format 3
+(current, 2026-07-30)** is format 2 plus exactly one append: the
+OPTIONAL manifest field `sourceCommit` — the pushed git commit the
+exporter's publish gate proved (planning doc 18 §4.2, ratified
+2026-07-30). Gated exports embed it; development-bypass builds omit it
+(they are not publishable artifacts). No payload file changed:
+format 3 carries `placementsFormat` 2. Format-1 and format-2 packs
+remain valid; this build's readers accept all three formats, refuse an
+encounter rule inside a format-1 pack as an unknown enum value, and
+refuse `sourceCommit` inside a format-1 or format-2 manifest. File
 names, field names, and id schemes never change shape within a format;
 later format versions may append fields but never repurpose them. This document plus the reference
 verifiers (`src/consume/verifyPack.ts`,
@@ -27,10 +34,21 @@ write anything unless the nine-gate audit passed. The pack never modifies
 the world and never changes walkability — every claim it makes is verifiable
 against the world pack alone.
 
-Export refusal semantics: a recipe whose `base.generationIdentitySha256`
-pin does not match the world pack refuses at export in **every** mode,
-exactly like `plan`/`place`/`territories` (`validate` deliberately still
-runs on a stale pin — its G7 gate is the diagnosis). Invalid locks are
+Export refusal semantics: exporting is a **publishing act** (planning
+doc 18 §4, ratified 2026-07-30). The exporter refuses to run when the
+repository working tree is dirty (`git status --porcelain` non-empty)
+or HEAD is on no remote branch (`git branch -r --contains HEAD` empty),
+naming the failed check; a gated export embeds the proved commit as
+`manifest.sourceCommit` and uploads the pack zip as a non-overwriting
+GitHub release tagged with the artifact id
+(`<world>-content-<sha256(manifest bytes)[0..12]>`). The documented
+development bypass (`WORLD_FILLER_DEV_EXPORT=1`) skips gate, provenance,
+and release for local iteration and the test suite — a bypass build is
+not a publishable artifact. Additionally, a recipe whose
+`base.generationIdentitySha256` pin does not match the world pack
+refuses at export in **every** mode, exactly like
+`plan`/`place`/`territories` (`validate` deliberately still runs on a
+stale pin — its G7 gate is the diagnosis). Invalid locks are
 dropped with a per-lock diagnosis in `lockReport` and a G6 warning by
 default; under `--strict` they are failing gates and the export refuses.
 
@@ -63,7 +81,9 @@ timestamps exist anywhere; identity is hashes.
 ```jsonc
 {
   "pack": "worldfiller-content-pack",
-  "packFormat": 2,
+  "packFormat": 3,
+  "sourceCommit": "<40 hex>",                  // OPTIONAL, format 3 only: the pushed commit the
+                                               // publish gate proved; absent in dev-bypass builds
   "world": "fen-hollow",                       // world pack directory name at export time
   "adapter": { "name": "worldfiller", "version": "0.1.0" },
   "directorBehaviorVersion": 10,
@@ -112,7 +132,14 @@ An importer MUST, in order:
    Within packFormat 1 every payload format field is likewise 1:
    `planFormat`, `placementsFormat`, `territoriesFormat`, `reportFormat`
    MUST each equal 1, refused otherwise. (`packFormat == 2` is identical
-   except `placementsFormat` MUST equal 2.)
+   except `placementsFormat` MUST equal 2; `packFormat == 3` is
+   identical to 2 except the manifest MAY carry `sourceCommit`.)
+   `sourceCommit` inside a format-1 or format-2 manifest MUST be
+   refused; when present in format 3 it MUST be 40 lowercase hex
+   characters, refused otherwise. An intake pipeline SHOULD verify a
+   present `sourceCommit` against its delivery record (planning doc 18
+   §5.2); the field's absence marks a development build that was never
+   publishable.
 2. Require `files` to list exactly the four payload names, hash-verify
    every entry against the payload bytes, and parse the payloads from
    the same bytes that were verified.

@@ -419,7 +419,7 @@
   "recipeName": "basic-direction",
   "rulePacks": {
     "analysis": 2,
-    "export": 2,
+    "export": 3,
     "placement": 6,
     "plan": 5,
     "territory": 4,

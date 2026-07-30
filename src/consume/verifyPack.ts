@@ -80,6 +80,22 @@ export function verifyContentPack(worldPackDir: string, contentPackDir: string):
   const profile = PACK_FORMAT_PROFILE[manifest.packFormat] as (typeof PACK_FORMAT_PROFILE)[number];
   const placementRules = new Set(profile.placementRules);
 
+  // Pack format 3 appends the OPTIONAL manifest field sourceCommit (the
+  // pushed commit a gated export embedded). Frozen formats 1-2 never
+  // carry it — its presence there is a tampered or hand-built manifest;
+  // in format 3 a present value must be a 40-hex commit hash.
+  const sourceCommit = (manifest as { readonly sourceCommit?: unknown }).sourceCommit;
+  if (sourceCommit !== undefined) {
+    if (profile.manifestSourceCommit === "refused") {
+      throw new VerifyError(
+        `verify: manifest.sourceCommit is a format-3 field; format-${manifest.packFormat} manifests do not carry it`,
+      );
+    }
+    if (typeof sourceCommit !== "string" || !/^[0-9a-f]{40}$/.test(sourceCommit)) {
+      throw new VerifyError(`verify: manifest.sourceCommit ${JSON.stringify(sourceCommit)} is not a 40-hex commit hash`);
+    }
+  }
+
   // The files table must list exactly the four format-1 payload files —
   // a shorter table would leave consumed bytes unhashed, a longer one is
   // an unknown name (obligation 5). Payloads are parsed from the very

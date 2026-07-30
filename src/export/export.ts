@@ -30,9 +30,11 @@ import {
  *
  * Every payload file is canonical JSON, hashed in manifest.files. The
  * manifest records the base world identity (generation identity AND the
- * world.json byte hash) plus the full director version identity. No
- * timestamps anywhere — identity is hashes, packs are byte-stable.
- * Renders are inspection evidence, never pack payload.
+ * world.json byte hash) plus the full director version identity — and,
+ * in publish-gated builds (pack format 3), the pushed sourceCommit the
+ * pack is reproducible from. No timestamps anywhere — identity is
+ * hashes, packs are byte-stable. Renders are inspection evidence, never
+ * pack payload.
  *
  * An export happens only when the gate battery passed: a failing audit
  * refuses before a single byte is written.
@@ -43,6 +45,13 @@ export class ExportError extends Error {}
 export interface ContentPackManifest {
   readonly pack: "worldfiller-content-pack";
   readonly packFormat: number;
+  /**
+   * Pack format 3, publish-gated exports only (planning doc 18 §4.2):
+   * the pushed commit every byte of this pack is reproducible from.
+   * Development-bypass builds omit it — they are not publishable
+   * artifacts, and the golden fixture pins the field-free bytes.
+   */
+  readonly sourceCommit?: string;
   readonly world: string;
   readonly adapter: { readonly name: "worldfiller"; readonly version: string };
   readonly directorBehaviorVersion: number;
@@ -119,11 +128,17 @@ function requireCoherentInputs(inputs: ExportInputs): void {
   }
 }
 
-export function buildContentPack(inputs: ExportInputs): BuiltContentPack {
+export function buildContentPack(
+  inputs: ExportInputs,
+  provenance?: { readonly sourceCommit: string },
+): BuiltContentPack {
   const { model, recipe, plan, placements, territories, report } = inputs;
   if (!report.ok) {
     const failed = report.gates.filter((gate) => gate.status === "fail").map((gate) => `${gate.id} ${gate.name}`);
     throw new ExportError(`export: refusing — the audit failed: ${failed.join("; ")}`);
+  }
+  if (provenance !== undefined && !/^[0-9a-f]{40}$/.test(provenance.sourceCommit)) {
+    throw new ExportError(`export: refusing — sourceCommit ${JSON.stringify(provenance.sourceCommit)} is not a 40-hex commit hash`);
   }
   requireCoherentInputs(inputs);
 
@@ -141,6 +156,7 @@ export function buildContentPack(inputs: ExportInputs): BuiltContentPack {
   const manifest: ContentPackManifest = {
     pack: "worldfiller-content-pack",
     packFormat: CONTENT_PACK_FORMAT,
+    ...(provenance === undefined ? {} : { sourceCommit: provenance.sourceCommit }),
     world: inputs.worldName,
     adapter: { name: "worldfiller", version: DIRECTOR_VERSION },
     directorBehaviorVersion: DIRECTOR_BEHAVIOR_VERSION,

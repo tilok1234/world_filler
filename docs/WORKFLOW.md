@@ -69,9 +69,19 @@ Repeat 1–4 until the layout earns the design verdict.
     wf-fill verify-pack <pack> <content-pack-dir>      # consumption proof
 
 Export refuses any failed gate and any stale base pin, stages the pack
-atomically, and writes byte-stable output (docs/CONTENT_PACK_FORMAT.md,
-frozen format 1). The Godot lane proof is
+atomically, and writes byte-stable output (docs/CONTENT_PACK_FORMAT.md).
+The Godot lane proof is
 `consumers/godot-proof/verify_content_pack.gd`.
+
+**Exporting is a publishing act** (planning doc 18, ratified
+2026-07-30): it refuses a dirty working tree or an unpushed HEAD by
+name, embeds the proved source commit as `manifest.sourceCommit` (pack
+format 3), and uploads the pack zip as a GitHub release tagged with the
+artifact id (`gh` must be authenticated; an existing tag refuses —
+releases are never overwritten). For local iteration and the test
+suite, `WORLD_FILLER_DEV_EXPORT=1` bypasses gate, provenance, and
+release — a bypass build carries no `sourceCommit` and is not a
+publishable artifact.
 
 ## The stale-world workflow (upstream regenerated)
 

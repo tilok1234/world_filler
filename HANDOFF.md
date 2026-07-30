@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-29, F0–F9 + freeze review resolved + all visual verdicts approved at behavior 12)
+# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + refusing viewer decoder)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -27,7 +27,13 @@ review resolved, every visual verdict thread closed approved at behavior
 `freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
 its dual-verifier test battery onto this line is a recorded ask; the
 old area-share banding verdict is SUPERSEDED by rounds 1–4).
-**135 tests green** (`npm test`).
+**178 tests green** (`npm test`; count includes the ported archived-line
+battery, sl-0012, and the 2026-07-30 publish/format-3 additions — the
+dual-verifier Godot lane runs REAL on this machine).
+**Doc 18 items landed 2026-07-30 (§1f): export is now a publishing act**
+(gate + manifest sourceCommit + GitHub-release transport, pack format
+3), and the viewer adopted the refusing run decoder (designer ruling,
+Tier 1).
 Next milestone: the game-side importer — PREPARED, awaiting the user's
 planning session (§2 below, docs/IMPORTER_READINESS.md).
 WorldForge checkout untouched throughout — verified clean after every
@@ -286,6 +292,51 @@ Consequences noted, no action taken yet:
   walkability-aware (void = void-material AND unwalkable), which is an
   ANALYSIS_VERSION bump — coordinate it with the same adoption commit.
 
+## 1f. Publish gate + releases + refusing viewer decoder (2026-07-30, doc 18 ratified)
+
+Planning doc 18 (ratified 2026-07-30) landed here in full:
+
+- **Publish gate (§4.1):** `wf-fill export` refuses a dirty tree or an
+  unpushed HEAD by name before doing any work (src/publish/gate.ts).
+  The dirty-tree refusal was exercised for real (19-file dirty tree,
+  exit 1, nothing written). Dev bypass for local iteration and the test
+  suite: `WORLD_FILLER_DEV_EXPORT=1` (no gate, no provenance, no
+  release; the suite exports through it).
+- **Manifest provenance (§4.2) = pack format 3:** format 2 is frozen,
+  and appends land as a new format number (format doc doctrine), so the
+  gated export's `manifest.sourceCommit` (40-hex, the proved pushed
+  commit) is format 3 — format 2 plus exactly that one OPTIONAL append,
+  payloads unchanged (placementsFormat stays 2). Dev-bypass builds omit
+  the field, which keeps the golden byte-pin commit-independent. Both
+  reference verifiers accept formats {1,2,3}, refuse sourceCommit
+  inside frozen formats 1-2, and refuse malformed values in format 3 —
+  proven refusal-for-refusal in the dual battery (now 23 cases, real
+  Godot lane). NOTE: the designer brief said "manifest carries
+  sourceCommit"; the format-number bump is this repo's doctrine-
+  compliant execution of that (flagged in the session report).
+- **Releases as transport (§4.4, ADOPTED NOW):** a gated export zips
+  the pack deterministically (src/publish/zip.ts — fixed DOS epoch,
+  sorted entries, byte-stable) and uploads it as a GitHub release
+  tagged with the artifact id `<world>-content-<sha256(manifest)[..12]>`,
+  targeting the proved commit; notes carry sourceCommit + zip SHA-256 +
+  manifest SHA-256. An existing tag REFUSES (never overwritten). gh
+  verified authenticated (tilok1234, repo scope) and the repo reachable;
+  release list is empty — prior packs grandfathered, NO release was
+  created this session (no delivery has happened; the create path is
+  unit-tested via an injected runner).
+- **Refusing viewer decoder (designer ruling 2026-07-30, Tier 1,
+  closing the sl-0012 flag):** the viewer now decodes territory runs
+  with the reference reader rules — non-integer triples, out-of-grid
+  and row-crossing runs, and lying cellCounts refuse the whole
+  territories payload with an on-page error naming territory id, run
+  index, and defect; nothing renders permissively. Pinned in
+  viewer.test.ts and exercised live through the real file-intake path
+  (all three cases: two refusals named on-page, honest pack clean).
+
+Versions after this session: export rule pack **3**, CONTENT_PACK_FORMAT
+**3** (readers accept {1,2,3}); behavior stays 12 — no generation
+semantics changed, placement bytes identical.
+
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
 F8 shipped (§1b) and the first arc is closed, so the next milestone is
@@ -371,10 +422,11 @@ user's planning session scopes and schedules them.
 ## 6. Versions
 
 director behavior **12** · rule packs: analysis 2, plan 5, placement 6,
-territory 4, validate 3, export 2 · recipe format 1 · plan/report
-formats 1, placements format 2 · content pack format 2 current, format 1
-**frozen FINAL**, readers accept {1, 2} · supported upstream: artifact
-format 8, game pack 1, walkability 1.
+territory 4, validate 3, export 3 · recipe format 1 · plan/report
+formats 1, placements format 2 · content pack format 3 current
+(format 2 + optional manifest sourceCommit from gated exports),
+formats 1–2 **frozen** (1 FINAL), readers accept {1, 2, 3} · supported
+upstream: artifact format 8, game pack 1, walkability 1.
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
 vocabularies; sequential bumps; stamp everything).
 

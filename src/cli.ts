@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { readGamePack } from "./pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
 import { checkParity } from "./parity.js";
@@ -18,6 +18,10 @@ import { verifyContentPack } from "./consume/verifyPack.js";
 import { SUPPORTED_PLACEMENTS_FORMATS } from "./core/version.js";
 import { canonicalJson } from "./core/canonicalJson.js";
 import { assertOutputRoot, repoRoot } from "./core/guard.js";
+import { sha256Hex } from "./core/sha256.js";
+import { assertPublishable, PublishGateError, type PublishProvenance } from "./publish/gate.js";
+import { packArtifactId, publishRelease } from "./publish/release.js";
+import { zipDirectory } from "./publish/zip.js";
 
 function usage(): void {
   console.log(
@@ -45,7 +49,11 @@ function usage(): void {
       "  wf-fill reroll <recipe.json> <region-id>",
       "                                        print the next reroll entry for a region (never edits the file)",
       "  wf-fill export <pack-dir> <recipe.json> [out-dir] [--strict]",
-      "                                        full pipeline -> audited content pack (refuses on failed gates)",
+      "                                        full pipeline -> audited content pack (refuses on failed gates).",
+      "                                        publishing act: refuses a dirty or unpushed tree, embeds the",
+      "                                        source commit in the manifest, and uploads the pack zip as a",
+      "                                        GitHub release tagged with the artifact id (never overwrites;",
+      "                                        dev bypass: WORLD_FILLER_DEV_EXPORT=1)",
       "  wf-fill verify-pack <world-pack-dir> <content-pack-dir>",
       "                                        consumption proof: verify a content pack against its world pack",
       "",
@@ -445,6 +453,24 @@ function runReroll(recipePath: string, regionId: string): number {
 }
 
 function runExport(dir: string, recipePath: string, outArg: string | undefined, strict: boolean): number {
+  // Publish gate (doc 18 §4.1): exports are publishing acts — refuse
+  // before doing any work unless every byte is reproducible from a
+  // pushed commit. The test suite exports through the documented
+  // development bypass; a published pack never does.
+  let provenance: PublishProvenance | null = null;
+  if (process.env["WORLD_FILLER_DEV_EXPORT"] !== "1") {
+    try {
+      provenance = assertPublishable(repoRoot());
+    } catch (error) {
+      if (error instanceof PublishGateError) {
+        console.error(`export: refusing — ${error.message}`);
+        console.error(`  ${error.remedy}`);
+        console.error("  (development-only bypass: WORLD_FILLER_DEV_EXPORT=1 exports without publishing)");
+        return 1;
+      }
+      throw error;
+    }
+  }
   const { pack, model } = loadModel(dir);
   const parity = checkParity(pack, model);
   if (!parity.ok) {
@@ -476,16 +502,22 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     },
   });
 
-  const built = buildContentPack({
-    model,
-    worldName: basename(dir),
-    baseArtifactSha256: pack.manifest.baseArtifactSha256,
-    recipe,
-    plan,
-    placements,
-    territories,
-    report,
-  });
+  // A gated export embeds the proved commit (manifest.sourceCommit,
+  // pack format 3) — the pack itself names the source every byte is
+  // reproducible from. Dev-bypass builds omit the field.
+  const built = buildContentPack(
+    {
+      model,
+      worldName: basename(dir),
+      baseArtifactSha256: pack.manifest.baseArtifactSha256,
+      recipe,
+      plan,
+      placements,
+      territories,
+      report,
+    },
+    provenance === null ? undefined : { sourceCommit: provenance.sourceCommit },
+  );
 
   const outDir = assertOutputRoot(
     outArg ?? join(repoRoot(), "outputs", "export", `${basename(dir)}-${recipe.name}-content`),
@@ -503,6 +535,35 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
   console.log(`base: ${built.manifest.base.generationIdentitySha256.slice(0, 12)}… (world.json ${built.manifest.base.artifactSha256.slice(0, 12)}…)`);
   console.log(`recipe: ${built.manifest.recipeName} (${built.manifest.directorRecipeSha256.slice(0, 12)}…)`);
   console.log(`wrote ${outDir} (renders are inspection copies, not hashed payload)`);
+
+  // Release archival (doc 18 §4.4): pin the original as a GitHub
+  // release tagged with the artifact id, targeting the gated commit.
+  if (provenance !== null) {
+    const manifestBytes = canonicalJson(built.manifest);
+    const artifactId = packArtifactId(basename(dir), manifestBytes);
+    const zipBytes = zipDirectory(outDir);
+    const zipPath = join(dirname(outDir), `${artifactId}.zip`);
+    writeFileSync(zipPath, zipBytes);
+    console.log(`zip: ${zipPath} (sha256 ${sha256Hex(zipBytes).slice(0, 12)}…)`);
+    try {
+      publishRelease({
+        repoDir: repoRoot(),
+        artifactId,
+        zipPath,
+        zipSha256: sha256Hex(zipBytes),
+        manifestSha256: sha256Hex(manifestBytes),
+        sourceCommit: provenance.sourceCommit,
+        manifest: built.manifest,
+      });
+      console.log(`release: ${artifactId} uploaded (source commit ${provenance.sourceCommit.slice(0, 12)})`);
+    } catch (error) {
+      console.error(
+        `export: pack written to ${outDir}, but the release upload failed — ` +
+          `${error instanceof Error ? error.message : String(error)}`,
+      );
+      return 1;
+    }
+  }
   return 0;
 }
 

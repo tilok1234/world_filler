@@ -1,4 +1,4 @@
-# Headless consumption proof for worldfiller content packs (formats 1-2).
+# Headless consumption proof for worldfiller content packs (formats 1-3).
 #
 # Run:
 #   godot --headless --script verify_content_pack.gd -- <world-pack-dir> <content-pack-dir>
@@ -89,6 +89,17 @@ func _int_pair(value: Variant) -> bool:
 	return pair.size() == 2 and _is_int(pair[0]) and _is_int(pair[1])
 
 
+# 40 lowercase hex characters — the shape of an embedded sourceCommit.
+func _is_hex40(value: String) -> bool:
+	if value.length() != 40:
+		return false
+	for i in value.length():
+		var code := value.unicode_at(i)
+		if not ((code >= 48 and code <= 57) or (code >= 97 and code <= 102)):
+			return false
+	return true
+
+
 func _walkable(grid: PackedByteArray, width: int, height: int, x: int, y: int) -> bool:
 	if x < 0 or y < 0 or x >= width or y >= height:
 		return false
@@ -115,11 +126,25 @@ func _verify(world_dir: String, content_dir: String) -> bool:
 		_refuse("manifest.pack is not worldfiller-content-pack")
 		return false
 	var pack_format: Variant = manifest.get("packFormat")
-	if not _is_int(pack_format) or (pack_format != 1.0 and pack_format != 2.0):
-		_refuse("unsupported packFormat " + str(pack_format) + "; this verifier reads formats 1-2")
+	if not _is_int(pack_format) or (pack_format != 1.0 and pack_format != 2.0 and pack_format != 3.0):
+		_refuse("unsupported packFormat " + str(pack_format) + "; this verifier reads formats 1-3")
 		return false
 	var placement_rules: Array[String] = PLACEMENT_RULES_V1 if pack_format == 1.0 else PLACEMENT_RULES_V2
-	var expected_placements_format: float = pack_format
+	# Formats 2 and 3 share placementsFormat 2 (format 3 appends only the
+	# optional manifest sourceCommit).
+	var expected_placements_format: float = minf(pack_format, 2.0)
+
+	# Pack format 3 appends the OPTIONAL manifest field sourceCommit (the
+	# pushed commit a gated export embedded). Frozen formats 1-2 never
+	# carry it; in format 3 a present value must be a 40-hex commit hash.
+	if manifest.has("sourceCommit"):
+		if pack_format < 3.0:
+			_refuse("manifest.sourceCommit is a format-3 field; format-" + str(int(pack_format)) + " manifests do not carry it")
+			return false
+		var source_commit: Variant = manifest.get("sourceCommit")
+		if typeof(source_commit) != TYPE_STRING or not _is_hex40(source_commit):
+			_refuse("manifest.sourceCommit " + str(source_commit) + " is not a 40-hex commit hash")
+			return false
 
 	# The files table must list exactly the four format-1 payload files —
 	# a shorter table would leave consumed bytes unhashed, a longer one is

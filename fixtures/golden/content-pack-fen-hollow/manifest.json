@@ -22,17 +22,17 @@
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "dab6da93ec7611d9f9c5e194576f417d6da315da5c64218a043320f6514c775e",
-    "placements.json": "a06c69aff03a568d7ce974b7f2958f6b6569cf28bd91a3c625fbfe6249618a46",
-    "report.json": "65779aca0fd9a31770e774cd86b8c6e479b44577e1d682819abe7318cec97277",
-    "territories.json": "5c59835c7705df728b40be27c705f9f647c8271fdc9781bc84acef05531131f3"
+    "content-plan.json": "504adde7e2a3f6407f08af5f88add05bd826c2ac890d81216b3d89ce474e2302",
+    "placements.json": "feb1d8872375e2286d94183952844d56de2f53ad4730f3233b4af68e39248ecc",
+    "report.json": "7cfbc35fe91e31ced38aad1b176def8bdf6e073855cd7aa2523aa1968be22fe2",
+    "territories.json": "d4d464df3045054058f0b3ed38750903a5bb7e8dc6cef06f58b128f1818b5060"
   },
   "pack": "worldfiller-content-pack",
-  "packFormat": 2,
+  "packFormat": 3,
   "recipeName": "basic-direction",
   "rulePacks": {
     "analysis": 2,
-    "export": 2,
+    "export": 3,
     "placement": 6,
     "plan": 5,
     "territory": 4,
