@@ -29,7 +29,7 @@ describe("golden content pack", () => {
     const goldenDir = join(root, "fixtures", "golden", "content-pack-fen-hollow");
     const fenDir = join(root, "fixtures", "packs", "fen-hollow");
     const pack = readGamePack(fenDir);
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const recipe = normalizeRecipe(
       JSON.parse(readFileSync(join(root, "fixtures", "recipes", "basic-direction.json"), "utf8")),
     );

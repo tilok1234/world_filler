@@ -66,7 +66,7 @@ function usage(): void {
 
 function loadModel(dir: string): { pack: ReturnType<typeof readGamePack>; model: WorldModel } {
   const pack = readGamePack(dir);
-  const model = new WorldModel(pack.artifact);
+  const model = new WorldModel(pack.artifact, pack.adapterElev);
   return { pack, model };
 }
 

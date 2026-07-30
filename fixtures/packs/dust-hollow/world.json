@@ -2492,28 +2492,28 @@
           [
             0,
             5,
-            0,
+            51,
             0,
             0,
             17,
             0,
             17,
+            73,
             0,
             0,
             0,
             0,
             0,
             0,
-            0,
-            0
+            73
           ],
           [
             5,
             17,
+            75,
             0,
             0,
-            0,
-            0,
+            53,
             0,
             0,
             0,
@@ -2528,25 +2528,7 @@
           [
             9,
             0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
+            74,
             0,
             0,
             0,
@@ -2586,6 +2568,24 @@
             0,
             0,
             0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            73,
+            70,
             0,
             0,
             0,
@@ -5996,7 +5996,7 @@
             0
           ],
           [
-            0,
+            73,
             5,
             0,
             0,
@@ -6014,7 +6014,7 @@
             0
           ],
           [
-            0,
+            70,
             10,
             0,
             5,
@@ -6032,7 +6032,7 @@
             0
           ],
           [
-            0,
+            69,
             0,
             5,
             17,
@@ -6050,7 +6050,7 @@
             0
           ],
           [
-            0,
+            76,
             5,
             0,
             67,
@@ -9317,8 +9317,8 @@
             5,
             0,
             33,
-            0,
-            0,
+            51,
+            53,
             17
           ],
           [
@@ -9352,7 +9352,7 @@
             0,
             0,
             0,
-            0,
+            75,
             0,
             0,
             17
@@ -9370,7 +9370,7 @@
             0,
             17,
             0,
-            0,
+            74,
             0,
             0,
             0
@@ -12510,7 +12510,7 @@
             0,
             0,
             0,
-            1,
+            2,
             0,
             0,
             0,
@@ -12962,25 +12962,7 @@
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
+            74,
             0,
             0,
             0,
@@ -13032,7 +13014,25 @@
             0,
             0,
             0,
+            73,
             0,
+            73,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            73,
             0,
             17,
             0,
@@ -13041,7 +13041,7 @@
             0,
             0,
             0,
-            0
+            74
           ],
           [
             0,
@@ -16284,7 +16284,7 @@
             0,
             0,
             0,
-            0,
+            73,
             0,
             0,
             0,
@@ -26754,10 +26754,10 @@
             0,
             0,
             0,
+            74,
             0,
             0,
-            0,
-            0,
+            75,
             0,
             7
           ],
@@ -55819,7 +55819,8 @@
   "cropTypes": [
     "crop.wheat",
     "crop.pumpkin",
-    "crop.corn"
+    "crop.corn",
+    "crop.grapes"
   ],
   "decalTypes": [
     "decal.leaves",
@@ -55903,16 +55904,18 @@
   },
   "fenceTypes": [
     "fence.pen",
-    "fence.iron"
+    "fence.iron",
+    "fence.wood",
+    "fence.hedge"
   ],
   "formatVersion": 8,
   "generator": {
-    "generationIdentitySha256": "37908db38c9dcd58631d269c93683115830e8c31e73c3f568bbfbe09eb20c81d",
-    "generatorBehaviorVersion": 47,
+    "generationIdentitySha256": "773b747ebed21d6956fe340c7c68f0fbec6d853f8deecec411511d1f1c2055a2",
+    "generatorBehaviorVersion": 72,
     "name": "worldforge",
-    "recipeCompilerVersion": 28,
+    "recipeCompilerVersion": 35,
     "recipeSha256": "ca40a6906cc79f9004a3cc79b0f7d816522e0d9ea9782b772cd61a60ba72d553",
-    "resolvedConfigSha256": "65e89dc9b71373f225bb28ddcb3473699de1159367bbfc86413f09d4c3bb235d",
+    "resolvedConfigSha256": "b1ecad1156d66dae43807c544239808771483475ba3ab6d30550e046e6e38a29",
     "seed": 20093,
     "version": "0.1.0"
   },
@@ -55976,7 +55979,8 @@
     }
   ],
   "pierTypes": [
-    "pier.pier"
+    "pier.pier",
+    "pier.jetty"
   ],
   "pois": [
     {
@@ -56263,7 +56267,23 @@
     "prop.corrupted_tree",
     "prop.beehive",
     "prop.cactus",
-    "prop.flower_bed"
+    "prop.flower_bed",
+    "prop.lamp",
+    "prop.barrels",
+    "prop.bench",
+    "prop.noticeboard",
+    "prop.table_chairs",
+    "prop.anvil",
+    "prop.workbench",
+    "prop.laundry_line",
+    "prop.baskets",
+    "prop.fishingboat",
+    "prop.bollard",
+    "prop.coop",
+    "prop.topiary",
+    "prop.planter_urn",
+    "prop.sundial",
+    "prop.cookfire"
   ],
   "regions": [
     {
@@ -57531,6 +57551,17 @@
     "structure.crystal_spire",
     "structure.lighthouse",
     "structure.hunter_lodge",
-    "structure.hermit_hut"
+    "structure.hermit_hut",
+    "structure.windmill",
+    "structure.watermill",
+    "structure.sawmill",
+    "structure.quarry",
+    "structure.store",
+    "structure.warehouse",
+    "structure.guardhouse",
+    "structure.fisher_hut",
+    "structure.tent",
+    "structure.dock",
+    "structure.city_gate"
   ]
 }

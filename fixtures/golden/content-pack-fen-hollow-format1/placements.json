@@ -1,75 +1,17 @@
 {
-  "analysisVersion": 1,
+  "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
-    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da",
     "height": 64,
     "width": 64
   },
-  "directorBehaviorVersion": 9,
-  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
+  "directorBehaviorVersion": 14,
+  "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "failures": [],
   "lockReport": [],
   "placements": [
-    {
-      "accessCell": [
-        18,
-        38
-      ],
-      "anchorPoiId": 3,
-      "anchorPoiType": "poi.cave",
-      "arenaOrigin": null,
-      "arenaSide": null,
-      "candidateFunnel": [
-        {
-          "remaining": 1,
-          "stage": "anchors_in_region"
-        },
-        {
-          "remaining": 1,
-          "stage": "reachable"
-        },
-        {
-          "remaining": 1,
-          "stage": "above_distance_floor"
-        },
-        {
-          "remaining": 1,
-          "stage": "spacing_clear"
-        }
-      ],
-      "cell": [
-        18,
-        38
-      ],
-      "channel": "world/region.mud.1245/reroll.0/dungeon/0",
-      "draw": 0,
-      "exclusionRadius": 8,
-      "id": "placement.dungeon.region.mud.1245.0",
-      "inSafeZone": false,
-      "locked": false,
-      "regionId": "region.mud.1245",
-      "rule": "dungeon_binding.v1",
-      "score": 410,
-      "scoreTerms": [
-        {
-          "contribution": 410,
-          "term": "settlement_far",
-          "value": 410,
-          "weightPermille": 1000
-        }
-      ],
-      "topCandidates": [
-        {
-          "cell": [
-            18,
-            38
-          ],
-          "score": 410
-        }
-      ]
-    },
     {
       "accessCell": [
         31,
@@ -212,12 +154,12 @@
   "placementsFormat": 1,
   "recipeName": "basic-direction",
   "rulePacks": {
-    "analysis": 1,
-    "export": 2,
-    "placement": 4,
-    "plan": 4,
+    "analysis": 3,
+    "export": 3,
+    "placement": 6,
+    "plan": 5,
     "territory": 4,
-    "validate": 2
+    "validate": 3
   },
   "unboundAnchors": [
     {
@@ -248,7 +190,17 @@
       "poiId": 2,
       "poiType": "poi.cave",
       "reason": "region_zero_budget",
-      "regionId": "region.mud.3101"
+      "regionId": "region.rock.3229"
+    },
+    {
+      "cell": [
+        18,
+        38
+      ],
+      "poiId": 3,
+      "poiType": "poi.cave",
+      "reason": "region_zero_budget",
+      "regionId": "region.rock.2386"
     }
   ]
 }

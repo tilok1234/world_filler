@@ -9352,8 +9352,8 @@
             0,
             0,
             0,
-            0,
-            0,
+            51,
+            53,
             0,
             0
           ],
@@ -9370,7 +9370,7 @@
             0,
             0,
             0,
-            0,
+            75,
             0,
             0,
             0
@@ -9388,7 +9388,7 @@
             0,
             0,
             2,
-            0,
+            74,
             0,
             0,
             0
@@ -9534,7 +9534,7 @@
             0,
             7,
             0,
-            0,
+            53,
             0
           ],
           [
@@ -9552,7 +9552,7 @@
             0,
             0,
             1,
-            0,
+            51,
             0
           ],
           [
@@ -9570,7 +9570,7 @@
             0,
             3,
             0,
-            0,
+            75,
             0
           ],
           [
@@ -9588,7 +9588,7 @@
             1,
             0,
             0,
-            0,
+            74,
             0
           ]
         ],
@@ -12835,7 +12835,7 @@
             0,
             0,
             0,
-            0,
+            51,
             14,
             0,
             0,
@@ -12853,7 +12853,7 @@
             0,
             0,
             0,
-            0,
+            75,
             0,
             0,
             0,
@@ -12871,7 +12871,7 @@
             0,
             0,
             0,
-            0,
+            74,
             0,
             0,
             0,
@@ -12958,11 +12958,65 @@
             0,
             0,
             0,
+            69,
             0,
             0,
             0,
             0,
             0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            70,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            73,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            73,
+            0,
+            0,
+            0,
+            76,
             0,
             0,
             0,
@@ -12992,29 +13046,11 @@
           [
             0,
             0,
+            73,
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
+            70,
             0,
             0,
             0,
@@ -13028,47 +13064,11 @@
           [
             0,
             0,
+            73,
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
+            69,
             0,
             0,
             0,
@@ -55819,7 +55819,8 @@
   "cropTypes": [
     "crop.wheat",
     "crop.pumpkin",
-    "crop.corn"
+    "crop.corn",
+    "crop.grapes"
   ],
   "decalTypes": [
     "decal.leaves",
@@ -55863,16 +55864,18 @@
   },
   "fenceTypes": [
     "fence.pen",
-    "fence.iron"
+    "fence.iron",
+    "fence.wood",
+    "fence.hedge"
   ],
   "formatVersion": 8,
   "generator": {
-    "generationIdentitySha256": "e1ee2052a25f7392d28ace0df5986b55445297c99f4d124b766fa62e572f3a45",
-    "generatorBehaviorVersion": 47,
+    "generationIdentitySha256": "ef632cc3b7cd30feb4c632a130e8f01b355b012e96f529dd0198c4d1ed8996d8",
+    "generatorBehaviorVersion": 72,
     "name": "worldforge",
-    "recipeCompilerVersion": 28,
+    "recipeCompilerVersion": 35,
     "recipeSha256": "0b52b6b8d5fab1eef7aa28632d8de2c155e755acec12f4979293e6cff845d36d",
-    "resolvedConfigSha256": "affb3a57011e0480a7d0aefb671430f8aabb237b4e05717f3a3d9acb6069247c",
+    "resolvedConfigSha256": "d0d3443b841f04eff928c613819ff0c1b87a08828813a07730ec373c4809d7f3",
     "seed": 1,
     "version": "0.1.0"
   },
@@ -55887,7 +55890,8 @@
   },
   "landmarks": [],
   "pierTypes": [
-    "pier.pier"
+    "pier.pier",
+    "pier.jetty"
   ],
   "pois": [
     {
@@ -56097,7 +56101,23 @@
     "prop.corrupted_tree",
     "prop.beehive",
     "prop.cactus",
-    "prop.flower_bed"
+    "prop.flower_bed",
+    "prop.lamp",
+    "prop.barrels",
+    "prop.bench",
+    "prop.noticeboard",
+    "prop.table_chairs",
+    "prop.anvil",
+    "prop.workbench",
+    "prop.laundry_line",
+    "prop.baskets",
+    "prop.fishingboat",
+    "prop.bollard",
+    "prop.coop",
+    "prop.topiary",
+    "prop.planter_urn",
+    "prop.sundial",
+    "prop.cookfire"
   ],
   "regions": [
     {
@@ -56835,6 +56855,17 @@
     "structure.crystal_spire",
     "structure.lighthouse",
     "structure.hunter_lodge",
-    "structure.hermit_hut"
+    "structure.hermit_hut",
+    "structure.windmill",
+    "structure.watermill",
+    "structure.sawmill",
+    "structure.quarry",
+    "structure.store",
+    "structure.warehouse",
+    "structure.guardhouse",
+    "structure.fisher_hut",
+    "structure.tent",
+    "structure.dock",
+    "structure.city_gate"
   ]
 }

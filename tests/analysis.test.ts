@@ -18,13 +18,13 @@ describe("spatial analysis", () => {
   const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
 
   it("is deterministic: two runs produce identical summaries and field hashes", () => {
-    const first = analyzeWorld(new WorldModel(pack.artifact));
-    const second = analyzeWorld(new WorldModel(pack.artifact));
+    const first = analyzeWorld(new WorldModel(pack.artifact, pack.adapterElev));
+    const second = analyzeWorld(new WorldModel(pack.artifact, pack.adapterElev));
     assert.equal(canonicalJson(first.summary), canonicalJson(second.summary));
   });
 
   it("passes spot asserts on a real world", () => {
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const bundle = analyzeWorld(model);
     const { width } = model.dimensions;
     const [sx, sy] = bundle.summary.spawnCell;
@@ -97,7 +97,7 @@ describe("spatial analysis", () => {
   });
 
   it("cache summary round-trips losslessly", () => {
-    const bundle = analyzeWorld(new WorldModel(pack.artifact));
+    const bundle = analyzeWorld(new WorldModel(pack.artifact, pack.adapterElev));
     const dir = mkdtempSync(join(tmpdir(), "wf-analysis-"));
     try {
       writeAnalysisSummary(dir, bundle.summary);
@@ -110,7 +110,7 @@ describe("spatial analysis", () => {
   });
 
   it("renders every analysis layer as a valid PNG", () => {
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const bundle = analyzeWorld(model);
     const maps = renderAnalysis(model, bundle);
     assert.equal(maps.length, 11);
@@ -189,7 +189,7 @@ describe("walkability-aware segmentation (sl-0026)", () => {
 
   it("on a real fixture, void-material cells are regioned exactly when walkable", () => {
     const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const { labels } = segmentRegions(model);
     const voidMaterials = new Set(["water.deep", "water.shallow", "terrain.rock"]);
     const { width, height } = model.dimensions;

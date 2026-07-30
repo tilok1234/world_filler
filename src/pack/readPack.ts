@@ -65,6 +65,13 @@ export interface LoadedPack {
   readonly artifact: RawArtifact;
   readonly walkability: WalkabilityFile;
   readonly report: ValidationReport;
+  /**
+   * The TileForge adapter's resolved elevation grid
+   * (resolved/tileforge-map-data.json, hash-verified with the files
+   * table) — the behavior-72 moss-walks ruling keys on it. Null for
+   * pre-b72 packs that do not ship the file.
+   */
+  readonly adapterElev: readonly number[] | null;
 }
 
 function readJson(dir: string, name: string): unknown {
@@ -170,11 +177,26 @@ export function readGamePack(dir: string): LoadedPack {
     throw new PackError("pack: walkability.json and manifest.walkability disagree on floodCount or spawnCell");
   }
 
+  let adapterElev: readonly number[] | null = null;
+  if (files["resolved/tileforge-map-data.json"] !== undefined) {
+    const mapData = readJson(dir, "resolved/tileforge-map-data.json") as { elev?: unknown };
+    const elev = mapData.elev;
+    if (
+      !Array.isArray(elev) ||
+      elev.length !== dims.width * dims.height ||
+      !elev.every((value) => Number.isInteger(value))
+    ) {
+      throw new PackError("pack: resolved/tileforge-map-data.json elev grid is missing or malformed");
+    }
+    adapterElev = elev as number[];
+  }
+
   return {
     dir,
     manifest: manifest as PackManifest,
     artifact: artifact as unknown as RawArtifact,
     walkability: walkability as WalkabilityFile,
     report: report as ValidationReport,
+    adapterElev,
   };
 }

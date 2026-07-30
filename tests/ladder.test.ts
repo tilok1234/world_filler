@@ -209,3 +209,74 @@ describe("walkability ladder", () => {
     assert.equal(blocked.nudgeToWalkable(4, 4, derivation.bits), null);
   });
 });
+
+describe("behavior-72 pack semantics (adoption sl-0039)", () => {
+  const flatElev = (): number[] => new Array(64).fill(0);
+
+  it("walks bare moss carpet on level-0 rock, and only there", () => {
+    const artifact = makeArtifact();
+    setMaterial(artifact, 2, 2, "terrain.rock");
+    setLayer(artifact, "moss", 2, 2, 1);
+    setMaterial(artifact, 5, 5, "terrain.rock");
+    setLayer(artifact, "moss", 5, 5, 1);
+
+    // Level-0 apron: walks. Same cell without the adapter grid: solid
+    // (pre-b72 packs reproduce their pre-ruling grids).
+    const elev = flatElev();
+    assert.equal(new WorldModel(artifact, elev).classifyCell(2, 2), "moss_rock_walk");
+    assert.equal(new WorldModel(artifact).classifyCell(2, 2), "material_block_rock");
+
+    // Level >= 1 (behind a cliff face): moss stays solid.
+    const terraced = flatElev();
+    terraced[5 * 8 + 5] = 1;
+    const terracedModel = new WorldModel(artifact, terraced);
+    assert.equal(terracedModel.classifyCell(5, 5), "material_block_rock");
+    assert.equal(terracedModel.classifyCell(2, 2), "moss_rock_walk");
+
+    // ANY prop keeps moss solid — even species that never block
+    // (upstream requires a bare carpet, not merely an unblocked one).
+    setLayer(artifact, "prop", 2, 2, 2); // prop.flowers, non-blocking
+    assert.equal(new WorldModel(artifact, elev).classifyCell(2, 2), "material_block_rock");
+
+    // Mossless rock never walks regardless of level.
+    setMaterial(artifact, 6, 1, "terrain.rock");
+    assert.equal(new WorldModel(artifact, elev).classifyCell(6, 1), "material_block_rock");
+  });
+
+  it("stamps record-backed footprints solid outside their pass cells (WYSIWYG art outline)", () => {
+    const artifact = makeArtifact();
+    // A house footprint 2x1 with only its left cell painted into the
+    // structure layer: the painted cell blocks by ladder, the unpainted
+    // right cell rendered ground before b72 — the stamp now seals it.
+    artifact.settlements.push({
+      id: 0,
+      kind: "outpost",
+      purpose: "waypoint",
+      anchor: [3, 3],
+      radius: 2,
+      structures: [{ type: "structure.house", cell: [3, 3], footprint: [2, 1] }],
+    });
+    setLayer(artifact, "structure", 3, 3, 2); // structure.house painted
+    const model = new WorldModel(artifact);
+    assert.equal(model.classifyCell(3, 3), "structure_block");
+    assert.equal(model.classifyCell(4, 3), "structure_stamp_block");
+    assert.equal(model.walkableAt(4, 3), false);
+
+    // Pass cells stay open: a cave mouth's declared openings are never
+    // stamped, painted or not.
+    const cave = makeArtifact();
+    cave.settlements.push({
+      id: 0,
+      kind: "outpost",
+      purpose: "waypoint",
+      anchor: [1, 6],
+      radius: 2,
+      structures: [{ type: "structure.cave_mouth", cell: [1, 6], footprint: [2, 2] }],
+    });
+    const caveModel = new WorldModel(cave);
+    assert.equal(caveModel.classifyCell(1, 6), "default_walk"); // pass cell 0
+    assert.equal(caveModel.classifyCell(2, 6), "default_walk"); // pass cell 1
+    assert.equal(caveModel.classifyCell(1, 7), "structure_stamp_block"); // cell 2
+    assert.equal(caveModel.classifyCell(2, 7), "structure_stamp_block"); // cell 3
+  });
+});

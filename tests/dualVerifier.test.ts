@@ -67,7 +67,7 @@ function runGodotVerifier(worldDir: string, contentDir: string): { status: numbe
 
 function exportPack(worldDir: string, worldName: string, destination: string): void {
   const pack = readGamePack(worldDir);
-  const model = new WorldModel(pack.artifact);
+  const model = new WorldModel(pack.artifact, pack.adapterElev);
   const recipe = normalizeRecipe(JSON.parse(readFileSync(RECIPE, "utf8")));
   const bundle = analyzeWorld(model);
   const plan = compilePlan(model, bundle, recipe);

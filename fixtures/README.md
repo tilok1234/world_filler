@@ -16,40 +16,51 @@ committed pack. If a regenerated pack changes those counts, upstream behavior
 moved — review the change and re-record deliberately; never absorb it
 silently.
 
-## Documented coverage gap
+## Documented coverage gaps
 
-`crossing_route_walk` (recorded bridge/ford crossing cells) does not occur in
-any committed tiny world — their water is crossed by street fords instead.
-The rung is covered by:
-
-- synthetic unit tests in `tests/ladder.test.ts` (fixture-independent), and
-- the local canonical world check below (8 recorded crossing cells).
+- `crossing_route_walk` (recorded bridge/ford crossing cells) does not
+  occur in any committed tiny world — their water is crossed by street
+  fords instead. Covered by synthetic unit tests in
+  `tests/ladder.test.ts` and by the local packs below (canonical 8
+  cells, dusk overworld 3).
+- `structure_stamp_block` (the WYSIWYG art-outline stamp sealing a
+  footprint cell the ladder would walk) fires in no shipped world so
+  far — every stamped cell also carries a painted structure tile, which
+  the ladder blocks first. Covered by synthetic unit tests in
+  `tests/ladder.test.ts`; it exists to mirror upstream pack semantics
+  exactly.
 
 ## Local full-scale check (optional, not required by CI)
 
 The canonical 256² world `small-cold-coastal` (~31 MB as a pack) is not
-committed. With a WorldForge checkout available, regenerate and verify it
-locally:
+committed. Since the behavior-72 adoption (sl-0039) it is IMPORTED from
+the WorldForge release, verified against the release digests:
 
 ```sh
-# in the WorldForge checkout (or a scratch copy):
-npm install && npm run build
-node --max-old-space-size=8192 dist/src/cli.js export-game-pack \
-  fixtures/recipes/small-cold-coastal.json --out <somewhere>/small-cold-coastal-pack
-
-# in this repository:
+gh release download "small-cold-coastal-pack-dusk@b65" --repo tilok1234/WorldForge --pattern "*.zip"
+# verify the zip sha256 against the release notes' zipSha256, then unzip:
 mkdir -p outputs/local-packs
-cp -r <somewhere>/small-cold-coastal-pack outputs/local-packs/small-cold-coastal
+cp -r <unzipped>/small-cold-coastal-pack-dusk outputs/local-packs/small-cold-coastal
 npm test          # the parity suite picks up outputs/local-packs/* automatically
 ```
 
-Verified at F0 (WorldForge commit `bb7832f`, behavior 47): 65,536 cells
-bit-identical, flood 33893 from spawn (240, 125), all 15 ladder rungs
-exercised including 8 recorded route-crossing cells.
+Verified 2026-07-30 (release `small-cold-coastal-pack-dusk@b65`,
+sourceCommit `4497729`): 65,536 cells bit-identical, flood 34641 from
+spawn (240, 125), 626 moss-carpet cells walking (matching the upstream
+moss ruling's recorded canonical count) and 8 recorded route-crossing
+cells. The dusk overworld (`wildshot-overworld-pack-dusk@b72`) imports
+the same way. Fallback if an import ever fails parity: regenerate from
+the release's sourceCommit in a scratch copy (below) and record why.
 
 ## Regenerating the committed fixtures
 
 Only as an explicit, logged decision (upstream behavior bump adoption):
-re-run `export-game-pack` for each recipe above, replace `packs/<name>`,
-update `provenance/<name>.json` (new commit/identity), re-record
-`expected-coverage.json`, and note the adoption in the commit message.
+extract the target commit read-only (`git -C <WorldForge> archive
+<commit> | tar -x -C <scratch>`), `npm install && npm run build` there,
+re-run `export-game-pack fixtures/recipes/<name>.json --out <dir>
+--allow-dirty` for each recipe above (the flag bypasses the publish
+gate in the git-less scratch and skips the release upload), replace
+`packs/<name>`, update `provenance/<name>.json` (new commit/identity),
+re-record `expected-coverage.json`, and note the adoption in the commit
+message. Current fixtures: WorldForge behavior 72, commit `bbc10cdb`
+(adopted 2026-07-30, sl-0039).

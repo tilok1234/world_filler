@@ -41,7 +41,7 @@ describe("content pack verifier — adversarial battery", () => {
     base = mkdtempSync(join(tmpdir(), "wf-verify-"));
     packDir = join(base, "pack");
     const pack = readGamePack(DUST);
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const recipe = normalizeRecipe(JSON.parse(readFileSync(RECIPE, "utf8")));
     const bundle = analyzeWorld(model);
     const plan = compilePlan(model, bundle, recipe);
@@ -276,7 +276,10 @@ describe("pack format compatibility", () => {
   it("still accepts the frozen format-1 fixture pack and refuses encounter rules inside format 1", () => {
     const format1 = join(repoRoot(), "fixtures", "golden", "content-pack-fen-hollow-format1");
     const summary = verifyContentPack(FEN, format1);
-    assert.equal(summary.placements, 2, "the frozen format-1 pack verifies unchanged");
+    // 1 placement since the b72 adoption re-extraction (sl-0039): the
+    // behavior-14 fen golden binds no dungeon, so format 1 keeps the
+    // boss alone.
+    assert.equal(summary.placements, 1, "the frozen format-1 pack verifies unchanged");
 
     // An encounter rule smuggled into a format-1 pack is an unknown enum
     // value there — format 2 exists precisely so readers can tell.

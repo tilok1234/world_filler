@@ -1,12 +1,12 @@
 {
-  "generatedDate": "2026-07-28",
+  "generatedDate": "2026-07-30",
   "identity": {
     "artifactFormat": 8,
-    "baseArtifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
-    "behaviorVersion": 47,
-    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "baseArtifactSha256": "7cc245b5c70900da026c47e78c38e5fc037a7a101a54abd11584a24b162a07fc",
+    "behaviorVersion": 72,
+    "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da",
     "packFormat": 1,
-    "recipeCompilerVersion": 28,
+    "recipeCompilerVersion": 35,
     "recipeSha256": "757716e48411c95a4088b6598e6ec569218f91f7633572935bb1ee5f75dcc0a1",
     "seed": 20033,
     "tileforgePackageId": "dusk-ae1eecb-seed103991"
@@ -14,12 +14,12 @@
   "pack": "fen-hollow",
   "provenanceFormat": 1,
   "source": {
-    "command": "node dist/src/cli.js export-game-pack fixtures/recipes/fen-hollow.json --out <dir>",
-    "commit": "bb7832f99c874b4fd913b0fcd394d3536c3220e7",
+    "command": "node dist/src/cli.js export-game-pack fixtures/recipes/fen-hollow.json --out <dir> --allow-dirty",
+    "commit": "bbc10cdb093bab2bff34188eac05cd5853989fe7",
     "recipe": "fixtures/recipes/fen-hollow.json",
     "repository": "tilok1234/WorldForge",
     "toolchain": {
-      "node": "24.18.0"
+      "node": "24.15.0"
     }
   }
 }

@@ -76,7 +76,7 @@ describe("DirectorRecipe normalization", () => {
 
 describe("regional content plan", () => {
   const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
-  const model = new WorldModel(pack.artifact);
+  const model = new WorldModel(pack.artifact, pack.adapterElev);
   const bundle = analyzeWorld(model);
   const recipe = normalizeRecipe(MINIMAL);
 

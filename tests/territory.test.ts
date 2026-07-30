@@ -22,7 +22,7 @@ function territoriesFor(packName: string, recipeRaw: unknown): {
   placements: ReturnType<typeof solvePlacements>;
 } {
   const pack = readGamePack(join(repoRoot(), "fixtures", "packs", packName));
-  const model = new WorldModel(pack.artifact);
+  const model = new WorldModel(pack.artifact, pack.adapterElev);
   const bundle = analyzeWorld(model);
   const recipe = normalizeRecipe(recipeRaw);
   const plan = compilePlan(model, bundle, recipe);

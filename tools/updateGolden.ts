@@ -70,7 +70,7 @@ console.log(`recorded ${join(goldenDir, "kernel.json")}`);
 // files (the manifest's files table pins the payload hashes twice over).
 const fenDir = join(repoRoot(), "fixtures", "packs", "fen-hollow");
 const pack = readGamePack(fenDir);
-const model = new WorldModel(pack.artifact);
+const model = new WorldModel(pack.artifact, pack.adapterElev);
 const recipe = normalizeRecipe(
   JSON.parse(readFileSync(join(repoRoot(), "fixtures", "recipes", "basic-direction.json"), "utf8")),
 );

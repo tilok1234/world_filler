@@ -16,7 +16,7 @@ const MINIMAL = { recipeFormat: 1, name: "basic-direction", directorSeed: 103991
 
 function solveFor(packName: string, recipeRaw: unknown): { doc: PlacementsDoc; model: WorldModel; bundle: ReturnType<typeof analyzeWorld> } {
   const pack = readGamePack(join(repoRoot(), "fixtures", "packs", packName));
-  const model = new WorldModel(pack.artifact);
+  const model = new WorldModel(pack.artifact, pack.adapterElev);
   const bundle = analyzeWorld(model);
   const recipe = normalizeRecipe(recipeRaw);
   const plan = compilePlan(model, bundle, recipe);
@@ -33,7 +33,7 @@ describe("placement solver", () => {
   it("places every fixture budget or explains the failure", () => {
     for (const packName of ["fen-hollow", "dust-hollow", "tiny-temperate"]) {
       const pack = readGamePack(join(repoRoot(), "fixtures", "packs", packName));
-      const model = new WorldModel(pack.artifact);
+      const model = new WorldModel(pack.artifact, pack.adapterElev);
       const bundle = analyzeWorld(model);
       const recipe = normalizeRecipe({ ...MINIMAL, name: "fixture-sweep" });
       const plan = compilePlan(model, bundle, recipe);
@@ -318,7 +318,7 @@ describe("placement solver", () => {
 
   it("rejects rerolls referencing unknown regions", () => {
     const pack = readGamePack(join(repoRoot(), "fixtures", "packs", "fen-hollow"));
-    const model = new WorldModel(pack.artifact);
+    const model = new WorldModel(pack.artifact, pack.adapterElev);
     const bundle = analyzeWorld(model);
     const recipe = normalizeRecipe({ ...MINIMAL, rerolls: [{ regionId: "region.grass.9999", iteration: 1 }] });
     const plan = compilePlan(model, bundle, recipe);

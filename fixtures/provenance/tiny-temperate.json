@@ -1,12 +1,12 @@
 {
-  "generatedDate": "2026-07-28",
+  "generatedDate": "2026-07-30",
   "identity": {
     "artifactFormat": 8,
-    "baseArtifactSha256": "04bef76976dd5b4af72acf821150d482c4c5c3b7c395d36cc54109e81160340e",
-    "behaviorVersion": 47,
-    "generationIdentitySha256": "e1ee2052a25f7392d28ace0df5986b55445297c99f4d124b766fa62e572f3a45",
+    "baseArtifactSha256": "f7f26f7dc4aaf0f4cf8fe3f2870aa85a1d8c92031352a53c97ef9c4df2e122a6",
+    "behaviorVersion": 72,
+    "generationIdentitySha256": "ef632cc3b7cd30feb4c632a130e8f01b355b012e96f529dd0198c4d1ed8996d8",
     "packFormat": 1,
-    "recipeCompilerVersion": 28,
+    "recipeCompilerVersion": 35,
     "recipeSha256": "0b52b6b8d5fab1eef7aa28632d8de2c155e755acec12f4979293e6cff845d36d",
     "seed": 1,
     "tileforgePackageId": "dusk-ae1eecb-seed103991"
@@ -14,12 +14,12 @@
   "pack": "tiny-temperate",
   "provenanceFormat": 1,
   "source": {
-    "command": "node dist/src/cli.js export-game-pack fixtures/recipes/tiny-temperate.json --out <dir>",
-    "commit": "bb7832f99c874b4fd913b0fcd394d3536c3220e7",
+    "command": "node dist/src/cli.js export-game-pack fixtures/recipes/tiny-temperate.json --out <dir> --allow-dirty",
+    "commit": "bbc10cdb093bab2bff34188eac05cd5853989fe7",
     "recipe": "fixtures/recipes/tiny-temperate.json",
     "repository": "tilok1234/WorldForge",
     "toolchain": {
-      "node": "24.18.0"
+      "node": "24.15.0"
     }
   }
 }

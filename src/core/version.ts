@@ -31,7 +31,13 @@ export const DIRECTOR_VERSION = "0.1.0";
 // form regions of their own material and appear in adjacency; region
 // ids and neighbor sets move on worlds with walkable water ground, and
 // invalidated locks are diagnosed per the designed migration.
-export const DIRECTOR_BEHAVIOR_VERSION = 13;
+// 14: behavior-72 walkability adoption (ratified sl-0039): ladder tables
+// transcribed @ bbc10cdb — 16 new blocking props, dock/city_gate pass
+// cells, the moss-on-rock walk rung (keyed on the pack's adapter elev
+// grid), and the WYSIWYG art-outline stamp. Fixtures re-pinned to
+// behavior-72 packs; the canonical world is the imported
+// small-cold-coastal-pack-dusk@b65 release.
+export const DIRECTOR_BEHAVIOR_VERSION = 14;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 3,

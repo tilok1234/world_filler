@@ -218,7 +218,7 @@ export function verifyContentPack(worldPackDir: string, contentPackDir: string):
   if (base.artifactSha256 !== worldPack.manifest.baseArtifactSha256) {
     throw new VerifyError("verify: manifest.base.artifactSha256 does not match the world pack's baseArtifactSha256");
   }
-  const model = new WorldModel(worldPack.artifact);
+  const model = new WorldModel(worldPack.artifact, worldPack.adapterElev);
   if (base.artifactFormat !== model.raw.formatVersion || base.width !== model.dimensions.width || base.height !== model.dimensions.height) {
     throw new VerifyError("verify: manifest.base format/dimensions disagree with the world pack");
   }

@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + refusing viewer decoder + sl-0026 walkability-aware segmentation)
+# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + sl-0026 walkability-aware segmentation + b72 ADOPTED)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -27,10 +27,15 @@ review resolved, every visual verdict thread closed approved at behavior
 `freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
 its dual-verifier test battery onto this line is a recorded ask; the
 old area-share banding verdict is SUPERSEDED by rounds 1–4).
-**180 tests green** (`npm test`; count includes the ported archived-line
-battery, sl-0012, the 2026-07-30 publish/format-3 additions, and the
-sl-0026 segmentation regressions — the dual-verifier Godot lane runs
-REAL on this machine).
+**184 tests green** (`npm test`; count includes the ported archived-line
+battery, sl-0012, the 2026-07-30 publish/format-3 additions, the
+sl-0026 segmentation regressions, the b72 rung units, and the two
+local-pack parity lanes — the dual-verifier Godot lane runs REAL on
+this machine).
+**Behavior-72 walkability is ADOPTED (designer-ratified, closing
+sl-0039; §1h)** — fixtures re-pinned at WorldForge `bbc10cdb`, canonical
+world = the imported `small-cold-coastal-pack-dusk@b65` release, the
+dusk overworld `@b72` sits parity-green in `outputs/local-packs/`.
 **Doc 18 items landed 2026-07-30 (§1f): export is now a publishing act**
 (gate + manifest sourceCommit + GitHub-release transport, pack format
 3), and the viewer adopted the refusing run decoder (designer ruling,
@@ -400,6 +405,41 @@ semantics changed, placement bytes identical.
   designer choice), then dusk imports to outputs/local-packs and content
   over dusk unblocks.
 
+## 1h. b72 adoption EXECUTED (2026-07-30, designer-ratified on the sl-0039 report)
+
+- **Ladder tables transcribed @ `bbc10cdb`** (src/world/model.ts,
+  behavior **14**): 16 new blocking props; dock (b60) + city_gate (b62)
+  pass cells; `trailAt` is any nonzero path band (behavior 57 — the
+  b47 transcription pinned value 1; b72's country-road band-2 lanes
+  over swamp caught it, 28 cells); new appended rungs `moss_rock_walk`
+  (moss carpet on adapter-level-0 rock walks — keyed on the pack's
+  `resolved/tileforge-map-data.json` elev grid, now read by
+  readGamePack and threaded into WorldModel) and
+  `structure_stamp_block` (WYSIWYG art-outline stamp: record-backed
+  footprints minus pass cells seal cells the ladder would walk).
+  Pre-b72 packs and synthetic worlds carry no adapter elev — the moss
+  rung then never fires, reproducing their pre-ruling grids.
+- **Parity: bit-identical on all five b72-era packs** — the three
+  regenerated fixtures, the imported b65 canonical (flood 34641, 626
+  moss cells = the upstream ruling's recorded count), and dusk@b72
+  (flood 45202). The b65 canonical import proved SOUND — no regen was
+  needed.
+- **Fixtures regenerated at `bbc10cdb`** (scratch archive build,
+  `--allow-dirty` dev export): new identities in
+  fixtures/provenance/, expected-coverage re-recorded (moss exercised
+  4/5/18 across dust/fen/tiny; documented gaps now
+  crossing_route_walk + structure_stamp_block — the stamp rung fires in
+  no shipped world, painted tiles block first; synthetic units cover
+  both). Golden re-recorded via updateGolden (kernel byte-identical);
+  the frozen format-1 compat pack was re-extracted from the behavior-14
+  golden over the new fen world (1 placement — fen still binds no
+  dungeon at b72; same manifest key shape, packFormat 1).
+- **outputs/local-packs/** now holds `small-cold-coastal` (b65) and
+  `wildshot-overworld-pack-dusk` (b72), both release-digest-verified
+  and parity-asserted by the suite every run. Content over the dusk
+  overworld is UNBLOCKED (a recipe for it wants a
+  `base.generationIdentitySha256` pin + a design pass — not started).
+
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
 F8 shipped (§1b) and the first arc is closed, so the next milestone is
@@ -452,10 +492,13 @@ user's planning session scopes and schedules them.
   there, then `node dist/src/cli.js export-game-pack
   fixtures/recipes/<name>.json --out <scratch>` and copy the pack over.
   Committed fixtures: fen-hollow, dust-hollow, tiny-temperate (64²,
-  WorldForge commit `bb7832f`, behavior 47 — provenance sidecars in
-  fixtures/provenance/). The canonical 256² `small-cold-coastal` pack is
-  NOT committed (31 MB): regenerate per `fixtures/README.md` into
-  `outputs/local-packs/` (parity tests auto-pick it up).
+  WorldForge commit `bbc10cdb`, behavior 72 since the sl-0039 adoption —
+  provenance sidecars in fixtures/provenance/). The canonical 256²
+  `small-cold-coastal` pack is NOT committed (31 MB): IMPORT the
+  released `small-cold-coastal-pack-dusk@b65` per `fixtures/README.md`
+  into `outputs/local-packs/` (parity tests auto-pick it up; regen from
+  the release's sourceCommit only if an import fails parity, and record
+  why).
 - Official Godot 4.6.2 Linux zip downloads and runs headless in this
   container (godotengine GitHub releases) — used for the GDScript
   consumption proof and the freeze-review refusal battery.
@@ -484,12 +527,13 @@ user's planning session scopes and schedules them.
 
 ## 6. Versions
 
-director behavior **13** · rule packs: analysis 3, plan 5, placement 6,
+director behavior **14** · rule packs: analysis 3, plan 5, placement 6,
 territory 4, validate 3, export 3 · recipe format 1 · plan/report
 formats 1, placements format 2 · content pack format 3 current
 (format 2 + optional manifest sourceCommit from gated exports),
 formats 1–2 **frozen** (1 FINAL), readers accept {1, 2, 3} · supported
-upstream: artifact format 8, game pack 1, walkability 1.
+upstream: artifact format 8, game pack 1, walkability 1 (ladder tables
+transcribed @ behavior 72, commit `bbc10cdb` — sl-0039 adoption).
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
 vocabularies; sequential bumps; stamp everything).
 

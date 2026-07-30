@@ -3,40 +3,40 @@
     "name": "worldfiller",
     "version": "0.1.0"
   },
-  "analysisVersion": 1,
+  "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
-    "artifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
-    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "artifactSha256": "7cc245b5c70900da026c47e78c38e5fc037a7a101a54abd11584a24b162a07fc",
+    "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da",
     "height": 64,
     "width": 64
   },
   "counts": {
     "placementFailures": 0,
-    "placements": 2,
-    "territories": 13,
-    "territoryFailures": 0,
-    "unboundAnchors": 3
+    "placements": 1,
+    "territories": 6,
+    "territoryFailures": 4,
+    "unboundAnchors": 4
   },
-  "directorBehaviorVersion": 9,
-  "directorRecipeSha256": "8cab96a38e44e0084515391c5e5466e1adf3623a4e1931a9c7bacf97c651e51b",
+  "directorBehaviorVersion": 14,
+  "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "12a99dec43310d2e7750249b6cc98e476220bf08fe944a991ba7988c640c9d98",
-    "placements.json": "afabfb3ba574298ec057894f649d4068ed09ee763e077aab2c637a6fc749f1fb",
-    "report.json": "6d977323e5c61197658fb32ec86d01d7272c3781e6a83b91ac7bb4babc35cf1f",
-    "territories.json": "3e5f43312682abdf747152c5f671f96d7db129979b83880effd79e1afe3f28c8"
+    "content-plan.json": "9e05b0082eeb5ae51f20c2a25c2fff7ca58c5f38ee342349500ff79ea5dde4fc",
+    "placements.json": "cd55dc52f4de08a537015ff511a9b025a9a3b4e7a672137aa0a9e3c57dbbe185",
+    "report.json": "cbbdba58322fd04610243caceafd65a06141b9bb959d3e8d9942a1e565596040",
+    "territories.json": "9e315aa9588a5176783087ae20acad69d042bee2853dd002734cde071fcb2a7a"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 1,
   "recipeName": "basic-direction",
   "rulePacks": {
-    "analysis": 1,
-    "export": 2,
-    "placement": 4,
-    "plan": 4,
+    "analysis": 3,
+    "export": 3,
+    "placement": 6,
+    "plan": 5,
     "territory": 4,
-    "validate": 2
+    "validate": 3
   },
   "world": "fen-hollow"
 }

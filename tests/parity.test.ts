@@ -43,7 +43,7 @@ describe("walkability parity", () => {
     const name = basename(dir);
     it(`matches the reference grid bit-for-bit: ${name}`, () => {
       const pack = readGamePack(dir);
-      const model = new WorldModel(pack.artifact);
+      const model = new WorldModel(pack.artifact, pack.adapterElev);
       const parity = checkParity(pack, model);
       assert.equal(parity.mismatchCount, 0, `grid mismatches: ${JSON.stringify(parity.mismatchSamples)}`);
       assert.deepEqual(parity.derivedSpawnCell, [parity.referenceSpawnCell[0], parity.referenceSpawnCell[1]]);
@@ -83,7 +83,7 @@ describe("walkability parity", () => {
     const name = basename(dir);
     it(`local pack parity (regenerated, not committed): ${name}`, () => {
       const pack = readGamePack(dir);
-      const model = new WorldModel(pack.artifact);
+      const model = new WorldModel(pack.artifact, pack.adapterElev);
       const parity = checkParity(pack, model);
       assert.equal(parity.mismatchCount, 0);
       assert.equal(parity.derivedFloodCount, parity.referenceFloodCount);

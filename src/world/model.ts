@@ -17,8 +17,12 @@ export const SUPPORTED_ARTIFACT_FORMAT = 8;
 
 /*
  * Walkability-ladder contract data, transcribed from the upstream consumer
- * contract (WorldForge behavior 47, commit bb7832f, public loader tables;
- * append-only upstream). Data tables, not code — see AGENTS.md, isolation
+ * contract (WorldForge public loader tables @ behavior 72, commit
+ * bbc10cdb — adopted 2026-07-30, ratified sl-0039; previously behavior
+ * 47 @ bb7832f; append-only upstream). Pack-grid semantics on top of the
+ * loader ladder are transcribed from the same commit's export
+ * (buildWalkability): the 2026-07-28 moss-walks ruling and the WYSIWYG
+ * art-outline stamp. Data tables, not code — see AGENTS.md, isolation
  * contract. Updating them is an explicit, logged decision.
  */
 
@@ -36,6 +40,12 @@ const STRUCTURE_PASS_CELLS: Readonly<Record<string, readonly number[]>> = {
   "structure.ruin_temple": [3, 4],
   "structure.portal": [1, 4],
   "structure.world_tree": [13],
+  // Upstream behavior 60: the harbor dock's deck walks; only the
+  // top-right post (cell 2) blocks.
+  "structure.dock": [0, 1, 3, 4, 5],
+  // Upstream behavior 62: the city gatehouse's arch — the middle column
+  // walks, the flanking towers block.
+  "structure.city_gate": [1, 4],
 };
 
 const BLOCKING_PROPS: ReadonlySet<string> = new Set([
@@ -53,6 +63,12 @@ const BLOCKING_PROPS: ReadonlySet<string> = new Set([
   "prop.archery_target", "prop.chopping_block", "prop.hay_bales",
   "prop.trough", "prop.wreck", "prop.giant_shroom", "prop.corrupted_tree",
   "prop.beehive", "prop.cactus", "prop.flower_bed",
+  // Behavior-72 additions (loader table @ bbc10cdb, adoption sl-0039):
+  // village furniture and dressing that reads as solid.
+  "prop.lamp", "prop.barrels", "prop.bench", "prop.noticeboard",
+  "prop.table_chairs", "prop.anvil", "prop.workbench", "prop.laundry_line",
+  "prop.baskets", "prop.fishingboat", "prop.bollard", "prop.coop",
+  "prop.topiary", "prop.planter_urn", "prop.sundial", "prop.cookfire",
 ]);
 
 const CORRIDOR_MATERIALS: ReadonlySet<string> = new Set(["terrain.packed_road", "terrain.cobble"]);
@@ -73,18 +89,24 @@ export type LadderRung =
   | "material_block_rock"
   | "material_block_swamp"
   | "shallow_wade"
-  | "default_walk";
+  | "default_walk"
+  // Behavior-72 pack semantics (adoption sl-0039), appended per the
+  // append-only vocabulary rule:
+  | "moss_rock_walk"
+  | "structure_stamp_block";
 
 export const ALL_LADDER_RUNGS: readonly LadderRung[] = [
   "structure_pass", "structure_block", "prop_block", "fence_block",
   "trail_walk", "pier_walk", "crossing_route_walk", "crossing_street_ford_walk",
   "river_stream_block", "river_major_block", "material_block_deep_water",
   "material_block_rock", "material_block_swamp", "shallow_wade", "default_walk",
+  "moss_rock_walk", "structure_stamp_block",
 ];
 
 const WALKING_RUNGS: ReadonlySet<LadderRung> = new Set([
   "structure_pass", "trail_walk", "pier_walk", "crossing_route_walk",
   "crossing_street_ford_walk", "shallow_wade", "default_walk",
+  "moss_rock_walk",
 ]);
 
 export interface WalkabilityDerivation {
@@ -108,8 +130,18 @@ export class WorldModel {
   private readonly routeCrossingCells: Set<number>;
   private readonly streetFordCells: Set<number>;
   private readonly structureRects: Map<number, { readonly ox: number; readonly oy: number; readonly w: number }>;
+  /** WYSIWYG art-outline stamp: record-backed footprints minus pass cells. */
+  private readonly stampMask: Uint8Array;
+  /**
+   * The TileForge adapter's resolved elevation grid (the pack's
+   * resolved/tileforge-map-data.json elev field) — the cliff quantization
+   * the moss-walks ruling keys on. Null when the caller has no pack
+   * (synthetic worlds, pre-b72 artifacts): the moss rung then never
+   * fires, which reproduces the pre-ruling grids.
+   */
+  private readonly adapterElev: readonly number[] | null;
 
-  constructor(raw: unknown) {
+  constructor(raw: unknown, adapterElev?: readonly number[] | null) {
     this.raw = validateArtifact(raw);
     this.destinations = this.raw.destinations;
     this.routes = this.raw.routes;
@@ -139,26 +171,45 @@ export class WorldModel {
       }
     }
 
+    const cellTotal = width * height;
+    if (adapterElev !== undefined && adapterElev !== null && adapterElev.length !== cellTotal) {
+      throw new ArtifactError(
+        `adapter elev grid is ${adapterElev.length} cells, expected ${cellTotal}`,
+      );
+    }
+    this.adapterElev = adapterElev ?? null;
+
     // Footprint index for pass-cell resolution: record-backed structures
     // only (settlement structures and structure-bearing POIs). Painted
     // structure cells carry no record and resolve to footprint index 0 —
-    // contract behavior, not an omission.
+    // contract behavior, not an omission. The same rects drive the
+    // WYSIWYG art-outline stamp (behavior 72): every footprint cell
+    // stamps solid at pack level EXCEPT the type's declared pass cells;
+    // landmarks are deliberately excluded (open-air compounds).
     this.structureRects = new Map();
-    const addRect = (ox: number, oy: number, w: number, h: number): void => {
+    this.stampMask = new Uint8Array(cellTotal);
+    const addRect = (type: string, ox: number, oy: number, w: number, h: number): void => {
+      const pass = STRUCTURE_PASS_CELLS[type];
       for (let sy = 0; sy < h; sy += 1) {
         for (let sx = 0; sx < w; sx += 1) {
-          this.structureRects.set((oy + sy) * width + ox + sx, { ox, oy, w });
+          const x = ox + sx;
+          const y = oy + sy;
+          this.structureRects.set(y * width + x, { ox, oy, w });
+          if (pass !== undefined && pass.includes(sy * w + sx)) continue;
+          if (x >= 0 && y >= 0 && x < width && y < height) {
+            this.stampMask[y * width + x] = 1;
+          }
         }
       }
     };
     for (const settlement of this.settlements) {
       for (const structure of settlement.structures) {
-        addRect(structure.cell[0], structure.cell[1], structure.footprint[0], structure.footprint[1]);
+        addRect(structure.type, structure.cell[0], structure.cell[1], structure.footprint[0], structure.footprint[1]);
       }
     }
     for (const poi of this.pois) {
       if (poi.structure !== undefined) {
-        addRect(poi.structure.x, poi.structure.y, poi.structure.w, poi.structure.h);
+        addRect(poi.structure.type, poi.structure.x, poi.structure.y, poi.structure.w, poi.structure.h);
       }
     }
 
@@ -251,8 +302,18 @@ export class WorldModel {
     return value === 0 ? null : (this.raw.pierTypes[value - 1] as string);
   }
 
+  /**
+   * True on any path-band cell: 1 wilderness trail, 2 in-settlement lane
+   * (upstream behavior 57 — the values pick the band art; both walk).
+   * The b47-era transcription pinned value 1 only; behavior-72 worlds
+   * route band-2 lanes across swamp, which parity caught (sl-0039).
+   */
   trailAt(x: number, y: number): boolean {
-    return this.layerValueAt("path", x, y) === 1;
+    return this.layerValueAt("path", x, y) !== 0;
+  }
+
+  mossAt(x: number, y: number): boolean {
+    return this.layerValueAt("moss", x, y) !== 0;
   }
 
   riverTierAt(x: number, y: number): number {
@@ -262,11 +323,22 @@ export class WorldModel {
   /**
    * The semantic walkability ladder, first hit wins: structures (pass cells
    * walk, others block) -> blocking props -> fences -> trails and piers walk
-   * -> crossings walk -> rivers block -> blocked materials -> walkable.
-   * Returns the deciding rung so derivation, coverage, and diagnostics all
-   * share one classification path.
+   * -> crossings walk -> rivers block -> blocked materials (with the
+   * moss-on-rock carve-out) -> walkable; then the WYSIWYG art-outline
+   * stamp seals footprint cells the ladder would walk (behavior-72 pack
+   * semantics — mirrors upstream buildWalkability: ladder, moss OR-in,
+   * stamp AND-out). Returns the deciding rung so derivation, coverage,
+   * and diagnostics all share one classification path.
    */
   classifyCell(x: number, y: number): LadderRung {
+    const rung = this.ladderRungAt(x, y);
+    if (WALKING_RUNGS.has(rung) && this.stampMask[this.index(x, y)] === 1) {
+      return "structure_stamp_block";
+    }
+    return rung;
+  }
+
+  private ladderRungAt(x: number, y: number): LadderRung {
     const structure = this.structureAt(x, y);
     if (structure !== null) {
       const pass = STRUCTURE_PASS_CELLS[structure];
@@ -289,7 +361,23 @@ export class WorldModel {
     const material = this.materialAt(x, y);
     if (BLOCKED_MATERIALS.has(material)) {
       if (material === "water.deep") return "material_block_deep_water";
-      if (material === "terrain.rock") return "material_block_rock";
+      if (material === "terrain.rock") {
+        // Moss-walks ruling (upstream 2026-07-28, transcribed @ bbc10cdb):
+        // bare moss carpet on level-0 rock — the adapter's cliff
+        // quantization, the flat apron where a rock mass meets open land —
+        // walks. Structure/fence/river conditions are guaranteed by the
+        // rung order above; ANY prop (not just blocking species) keeps
+        // moss solid, so that one is re-checked here.
+        if (
+          this.adapterElev !== null &&
+          this.mossAt(x, y) &&
+          (this.adapterElev[this.index(x, y)] as number) === 0 &&
+          this.propAt(x, y) === null
+        ) {
+          return "moss_rock_walk";
+        }
+        return "material_block_rock";
+      }
       return "material_block_swamp";
     }
     return material === "water.shallow" ? "shallow_wade" : "default_walk";

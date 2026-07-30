@@ -19846,9 +19846,9 @@
             0,
             0,
             0,
-            0,
-            0,
-            0,
+            70,
+            69,
+            76,
             0,
             0,
             0,
@@ -19882,7 +19882,7 @@
             0,
             0,
             0,
-            0,
+            73,
             0,
             0,
             0,
@@ -19900,7 +19900,7 @@
             0,
             4,
             0,
-            0,
+            73,
             0,
             0,
             0,
@@ -30462,12 +30462,12 @@
             0,
             0,
             0,
-            0,
+            73,
             0
           ],
           [
-            0,
-            0,
+            51,
+            53,
             0,
             18,
             18,
@@ -30480,11 +30480,11 @@
             0,
             0,
             0,
-            0,
+            73,
             0
           ],
           [
-            0,
+            75,
             0,
             0,
             0,
@@ -30498,11 +30498,11 @@
             0,
             0,
             0,
-            0,
+            70,
             20
           ],
           [
-            0,
+            74,
             0,
             0,
             0,
@@ -44287,7 +44287,7 @@
             0,
             0,
             0,
-            0,
+            74,
             0,
             0
           ],
@@ -44346,11 +44346,11 @@
             0
           ],
           [
+            73,
             0,
             0,
             0,
-            0,
-            0,
+            70,
             0,
             0,
             0,
@@ -44364,11 +44364,11 @@
             0
           ],
           [
+            73,
             0,
             0,
             0,
-            0,
-            0,
+            69,
             0,
             0,
             0,
@@ -47780,7 +47780,7 @@
             19
           ],
           [
-            0,
+            75,
             0,
             0,
             18,
@@ -54878,8 +54878,8 @@
             0,
             0,
             0,
-            0,
-            0
+            74,
+            75
           ],
           [
             4,
@@ -54915,7 +54915,7 @@
             0,
             0,
             0,
-            0
+            51
           ],
           [
             0,
@@ -55819,7 +55819,8 @@
   "cropTypes": [
     "crop.wheat",
     "crop.pumpkin",
-    "crop.corn"
+    "crop.corn",
+    "crop.grapes"
   ],
   "decalTypes": [
     "decal.leaves",
@@ -55903,16 +55904,18 @@
   },
   "fenceTypes": [
     "fence.pen",
-    "fence.iron"
+    "fence.iron",
+    "fence.wood",
+    "fence.hedge"
   ],
   "formatVersion": 8,
   "generator": {
-    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
-    "generatorBehaviorVersion": 47,
+    "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da",
+    "generatorBehaviorVersion": 72,
     "name": "worldforge",
-    "recipeCompilerVersion": 28,
+    "recipeCompilerVersion": 35,
     "recipeSha256": "757716e48411c95a4088b6598e6ec569218f91f7633572935bb1ee5f75dcc0a1",
-    "resolvedConfigSha256": "760154a900c9fce73bcbf60987d53371402005c13d2aa02076db18340cba4a1a",
+    "resolvedConfigSha256": "bfffb39e0d1a5cbac6fdac917dbe4f838f75f9c035c8ff7c9c9b1010a86e3e9c",
     "seed": 20033,
     "version": "0.1.0"
   },
@@ -55976,7 +55979,8 @@
     }
   ],
   "pierTypes": [
-    "pier.pier"
+    "pier.pier",
+    "pier.jetty"
   ],
   "pois": [
     {
@@ -56186,7 +56190,23 @@
     "prop.corrupted_tree",
     "prop.beehive",
     "prop.cactus",
-    "prop.flower_bed"
+    "prop.flower_bed",
+    "prop.lamp",
+    "prop.barrels",
+    "prop.bench",
+    "prop.noticeboard",
+    "prop.table_chairs",
+    "prop.anvil",
+    "prop.workbench",
+    "prop.laundry_line",
+    "prop.baskets",
+    "prop.fishingboat",
+    "prop.bollard",
+    "prop.coop",
+    "prop.topiary",
+    "prop.planter_urn",
+    "prop.sundial",
+    "prop.cookfire"
   ],
   "regions": [
     {
@@ -57784,6 +57804,17 @@
     "structure.crystal_spire",
     "structure.lighthouse",
     "structure.hunter_lodge",
-    "structure.hermit_hut"
+    "structure.hermit_hut",
+    "structure.windmill",
+    "structure.watermill",
+    "structure.sawmill",
+    "structure.quarry",
+    "structure.store",
+    "structure.warehouse",
+    "structure.guardhouse",
+    "structure.fisher_hut",
+    "structure.tent",
+    "structure.dock",
+    "structure.city_gate"
   ]
 }

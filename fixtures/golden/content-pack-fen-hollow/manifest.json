@@ -6,8 +6,8 @@
   "analysisVersion": 3,
   "base": {
     "artifactFormat": 8,
-    "artifactSha256": "682b7396e273c38bb4a77ea1a46f3d9bb22662bb92a82b4dcde1448866bd422e",
-    "generationIdentitySha256": "595ea799e051f4d63c674b5e293048c05332f0f3d57345f4a64817be89a83e26",
+    "artifactSha256": "7cc245b5c70900da026c47e78c38e5fc037a7a101a54abd11584a24b162a07fc",
+    "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da",
     "height": 64,
     "width": 64
   },
@@ -18,14 +18,14 @@
     "territoryFailures": 4,
     "unboundAnchors": 4
   },
-  "directorBehaviorVersion": 13,
+  "directorBehaviorVersion": 14,
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "99b5c2f1c9069e2e5696d34ff3474a1f1fca577243e5366649a73dce10dc043e",
-    "placements.json": "f0ecfe68b43929e7107a2d9a842745c9b6043d3f509b4867441a941ea5e98f10",
-    "report.json": "a4f55c0e1e969f7c15e568b5fe8b161891312ad83bbaa74caef43fcfbc343a28",
-    "territories.json": "19ba097469fc6a8609eb26f5adaeb3b02a3dd2b53a993484b688b8ee5bfb658c"
+    "content-plan.json": "9e05b0082eeb5ae51f20c2a25c2fff7ca58c5f38ee342349500ff79ea5dde4fc",
+    "placements.json": "8ceae91bfedf113b71c20bad27658905ba727b353ef1a53c38591b1321b19077",
+    "report.json": "cbbdba58322fd04610243caceafd65a06141b9bb959d3e8d9942a1e565596040",
+    "territories.json": "9e315aa9588a5176783087ae20acad69d042bee2853dd002734cde071fcb2a7a"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 3,
