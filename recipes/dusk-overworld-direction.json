@@ -33,11 +33,104 @@
   },
   "encounterRule": {},
   "zones": {
-    "count": 4
+    "count": 4,
+    "giverSlotsPerZone": 3,
+    "gatherSpotsPerZone": 3
   },
   "safety": {
     "cityRadiusPermille": 800,
     "townRadiusPermille": 600,
     "outpostRadiusPermille": 500
+  },
+  "locks": {
+    "placements": [
+      {
+        "anchorPoiId": null,
+        "arenaOrigin": [
+          48,
+          131
+        ],
+        "arenaSide": 6,
+        "cell": [
+          50,
+          133
+        ],
+        "exclusionRadius": 16,
+        "id": "placement.world_boss.region.dry_grass.29992.0",
+        "regionId": "region.dry_grass.29992",
+        "rule": "world_boss.v1"
+      },
+      {
+        "anchorPoiId": null,
+        "arenaOrigin": [
+          196,
+          122
+        ],
+        "arenaSide": 6,
+        "cell": [
+          198,
+          124
+        ],
+        "exclusionRadius": 16,
+        "id": "placement.world_boss.region.mud.31157.0",
+        "regionId": "region.mud.31157",
+        "rule": "world_boss.v1"
+      },
+      {
+        "anchorPoiId": null,
+        "arenaOrigin": [
+          116,
+          17
+        ],
+        "arenaSide": 6,
+        "cell": [
+          118,
+          19
+        ],
+        "exclusionRadius": 16,
+        "id": "placement.world_boss.region.snow.4982.0",
+        "regionId": "region.snow.4982",
+        "rule": "world_boss.v1"
+      },
+      {
+        "anchorPoiId": 28,
+        "arenaOrigin": null,
+        "arenaSide": null,
+        "cell": [
+          193,
+          239
+        ],
+        "exclusionRadius": 8,
+        "id": "placement.dungeon.region.grass.54237.0",
+        "regionId": "region.grass.54237",
+        "rule": "dungeon_binding.v1"
+      },
+      {
+        "anchorPoiId": 89,
+        "arenaOrigin": null,
+        "arenaSide": null,
+        "cell": [
+          17,
+          131
+        ],
+        "exclusionRadius": 8,
+        "id": "placement.dungeon.region.dry_grass.28429.0",
+        "regionId": "region.dry_grass.28429",
+        "rule": "dungeon_binding.v1"
+      },
+      {
+        "anchorPoiId": 4,
+        "arenaOrigin": null,
+        "arenaSide": null,
+        "cell": [
+          153,
+          19
+        ],
+        "exclusionRadius": 8,
+        "id": "placement.dungeon.region.gravel.3995.0",
+        "regionId": "region.gravel.3995",
+        "rule": "dungeon_binding.v1"
+      }
+    ]
   }
 }

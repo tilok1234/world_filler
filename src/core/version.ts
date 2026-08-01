@@ -91,7 +91,21 @@ export const DIRECTOR_VERSION = "0.1.0";
 // zone's own max field distances — the wildest spot that zone offers)
 // and boss fallback never leaves the zone. Requires zones.count >= 2
 // (named refusal); worldBossPerZone 0 byte-identical to behavior 20.
-export const DIRECTOR_BEHAVIOR_VERSION = 21;
+// 22: slice anchor layers (dusk round 10, sl-0086): opt-in
+// zones.giverSlotsPerZone (quest-giver anchor slots at settlements,
+// POIs, and the capital's system NPCs, each with a purposefulness
+// reason tag) and zones.gatherSpotsPerZone (fishing + foraging spots,
+// nearest-to-routes with a spacing floor) ride the plan as optional
+// keys — anchors only, quests stay hand-authored game-side. Both 0 =
+// byte-identical plans modulo the recipe-identity field.
+// 23: zone-local dungeon floors (dusk round 11, the wetlands slice
+// ruling): dungeonRule.zoneLocalFloors = 1 measures the settlement
+// floor against each ZONE's own max field distance (the round-8 boss
+// rule extended to dungeon anchors; requires zones.count >= 2, named
+// refusal). Green Country's world boss is generation-excluded by
+// ruling sl-0087 — it arrives via the designer's hand-place lane.
+// zoneLocalFloors 0 byte-identical to behavior 22.
+export const DIRECTOR_BEHAVIOR_VERSION = 23;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
@@ -101,10 +115,12 @@ export const RULE_PACK_VERSIONS = {
   // 8: zonal danger assignment (behavior 19, dusk round 6).
   // 9: sanctuary scaling feeds banding (behavior 20, dusk round 7).
   // 10: per-zone world-boss allocation (behavior 21, dusk round 8).
-  plan: 10,
+  // 11: slice anchor layers — giver slots + gather spots (behavior 22).
+  plan: 11,
   // 7: sanctuary scaling feeds candidate exclusion (behavior 20).
   // 8: zone-local boss floors + zone-bound fallback (behavior 21).
-  placement: 8,
+  // 9: zone-local dungeon floors (behavior 23, dusk round 11).
+  placement: 9,
   // 5: sanctuary scaling feeds hostile-ground growth (behavior 20).
   territory: 5,
   // 4: sanctuary scaling feeds G1/G3 ground checks (behavior 20).

@@ -1,5 +1,6 @@
 import type { WorldModel } from "../world/model.js";
 import { clusterZones, type MacroZone, type ZoneClustering } from "./zones.js";
+import { gatherSpots, giverSlots, type GatherSpot, type GiverSlot } from "./slots.js";
 import type { AnalysisBundle } from "../analysis/analyze.js";
 import { UNREACHABLE } from "../analysis/fields.js";
 import type { DirectorRecipe } from "../recipe/schema.js";
@@ -59,6 +60,10 @@ export interface RegionalPlan {
   readonly regions: readonly RegionPlan[];
   /** Macro-zones — present only when the recipe's zones.count >= 2. */
   readonly zones?: readonly MacroZone[];
+  /** Quest-giver anchor slots — present only when zones are on and giverSlotsPerZone > 0. */
+  readonly giverSlots?: readonly GiverSlot[];
+  /** Fishing/foraging spots — present only when zones are on and gatherSpotsPerZone > 0. */
+  readonly gatherSpots?: readonly GatherSpot[];
   readonly worldBudget: {
     readonly worldBosses: { readonly target: number; readonly allocated: number };
     readonly territories: number;
@@ -686,6 +691,12 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     },
     unassignedDungeonAnchors,
     ...(zones === null ? {} : { zones: zones.zones }),
+    ...(zones !== null && recipe.zones.giverSlotsPerZone > 0
+      ? { giverSlots: giverSlots(model, bundle, zones, homeZone, recipe.zones.giverSlotsPerZone) }
+      : {}),
+    ...(zones !== null && recipe.zones.gatherSpotsPerZone > 0
+      ? { gatherSpots: gatherSpots(model, bundle, zones, recipe.zones.gatherSpotsPerZone) }
+      : {}),
     checks: { progressionWarnings, worldWaivers },
   };
 }

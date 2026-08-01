@@ -85,7 +85,8 @@ export interface DirectorRecipe {
      * The solver measures the remoteness floors zone-locally (permille
      * of the ZONE's own max field distances — the wildest spot that
      * zone offers) and boss fallback stays inside the zone. Requires
-     * zones.count >= 2.
+     * zones.count >= 2. The home zone is generation-excluded by ruling
+     * sl-0087 — its boss arrives via the designer's hand-place lane.
      */
     readonly worldBossPerZone: number;
     readonly minWorldBossBand: number;
@@ -111,6 +112,8 @@ export interface DirectorRecipe {
     readonly settlementFarPermille: number;
     /** Scale-free floor: anchors closer to settlements than this permille of the world max are not bound (0 = off). */
     readonly minSettlementDistancePermille: number;
+    /** Round 11: 1 = the floor measures each ZONE's own max field distance (round-8 boss rule extended). */
+    readonly zoneLocalFloors: number;
   };
   /**
    * Macro-zones (dusk round 5): the designer-facing geography layer.
@@ -124,6 +127,19 @@ export interface DirectorRecipe {
    */
   readonly zones: {
     readonly count: number;
+    /**
+     * Round 10 (sl-0086 slice alignment): light anchor layers for the
+     * game-side reference pass, emitted into the plan when > 0 (zones
+     * required). giverSlotsPerZone adds 2-3 quest-giver anchor slots
+     * per zone (settlements first, then structure POIs, plus the
+     * capital's system-NPC slots) with purposefulness reason tags.
+     * gatherSpotsPerZone adds up to N fishing (water-adjacent) and N
+     * foraging (flora-prop) spots per zone, nearest-to-routes first
+     * with a spacing floor. Anchors only — quests stay hand-authored
+     * game-side.
+     */
+    readonly giverSlotsPerZone: number;
+    readonly gatherSpotsPerZone: number;
   };
   /**
    * Sanctuary scaling (dusk round 7): per-kind permille of each
@@ -274,11 +290,17 @@ const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   exclusionRadius: { min: 1, max: 128, fallback: 8 },
   settlementFarPermille: { min: 0, max: 1000, fallback: 1000 },
   minSettlementDistancePermille: { min: 0, max: 1000, fallback: 0 },
+  // Round 11: 1 = the settlement floor measures against each ZONE's own
+  // max field distance (the round-8 boss rule extended to dungeons).
+  // Requires zones.count >= 2.
+  zoneLocalFloors: { min: 0, max: 1, fallback: 0 },
 };
 
 const ZONE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   // 0 = no zone layer; K >= 2 clusters the map into K macro-zones.
   count: { min: 0, max: 8, fallback: 0 },
+  giverSlotsPerZone: { min: 0, max: 4, fallback: 0 },
+  gatherSpotsPerZone: { min: 0, max: 8, fallback: 0 },
 };
 
 const SAFETY_FIELDS: Readonly<Record<string, FieldSpec>> = {
@@ -453,6 +475,9 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
 
   const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
   const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
+  if ((dungeonRule["zoneLocalFloors"] as number) === 1 && (zones["count"] as number) < 2) {
+    throw new RecipeError("recipe: $.dungeonRule.zoneLocalFloors requires $.zones.count >= 2");
+  }
   const encounterRule = sectionOf(raw, "encounterRule", ENCOUNTER_RULE_FIELDS);
 
   const territoryRule = sectionOf(raw, "territoryRule", TERRITORY_RULE_FIELDS, ["respawnPressure"]);
@@ -691,8 +716,13 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       exclusionRadius: dungeonRule["exclusionRadius"] as number,
       settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
       minSettlementDistancePermille: dungeonRule["minSettlementDistancePermille"] as number,
+      zoneLocalFloors: dungeonRule["zoneLocalFloors"] as number,
     },
-    zones: { count: zones["count"] as number },
+    zones: {
+      count: zones["count"] as number,
+      giverSlotsPerZone: zones["giverSlotsPerZone"] as number,
+      gatherSpotsPerZone: zones["gatherSpotsPerZone"] as number,
+    },
     safety: {
       cityRadiusPermille: safety["cityRadiusPermille"] as number,
       townRadiusPermille: safety["townRadiusPermille"] as number,

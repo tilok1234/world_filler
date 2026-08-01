@@ -8,7 +8,7 @@ import { normalizeRecipe, recipeSha256, RecipeError } from "../src/recipe/schema
 import { compilePlan, PlanError } from "../src/plan/plan.js";
 import { canonicalJson } from "../src/core/canonicalJson.js";
 import { repoRoot } from "../src/core/guard.js";
-import { makeArtifact, setMaterial } from "./helpers/syntheticWorld.js";
+import { makeArtifact, setLayer, setMaterial } from "./helpers/syntheticWorld.js";
 
 const MINIMAL = { recipeFormat: 1, name: "basic-direction", directorSeed: 103991 };
 
@@ -430,5 +430,77 @@ describe("per-zone world bosses (dusk round 8, behavior 21)", () => {
       2,
       "every far zone either allocates or waives by name",
     );
+  });
+});
+
+describe("slice anchor layers (dusk round 10, behavior 22)", () => {
+  const settledStrips = () => {
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 23; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    // A pond in the east strip for fishing; flora props for foraging.
+    setMaterial(artifact, 27, 5, "water.shallow");
+    artifact.propTypes.push("prop.bush");
+    const bushValue = artifact.propTypes.length;
+    for (const [x, y] of [[2, 2], [15, 20], [28, 28]] as const) {
+      setLayer(artifact, "prop", x, y, bushValue);
+    }
+    artifact.settlements.push({
+      id: 0,
+      kind: "city",
+      purpose: "capital",
+      anchor: [3, 3],
+      radius: 4,
+      structures: [{ type: "structure.house", cell: [2, 3], footprint: [2, 1] }],
+    });
+    artifact.settlements.push({
+      id: 1,
+      kind: "outpost",
+      purpose: "waypoint",
+      anchor: [28, 20],
+      radius: 3,
+      structures: [{ type: "structure.house", cell: [27, 20], footprint: [2, 1] }],
+    });
+    return artifact;
+  };
+
+  it("emits giver slots and gather spots per zone, deterministically, only when asked", () => {
+    const model = new WorldModel(settledStrips());
+    const bundle = analyzeWorld(model);
+    const off = compilePlan(model, bundle, normalizeRecipe({ ...MINIMAL, name: "slice-off", zones: { count: 2 } }));
+    assert.equal(off.giverSlots, undefined);
+    assert.equal(off.gatherSpots, undefined);
+
+    const recipe = normalizeRecipe({
+      ...MINIMAL,
+      name: "slice-on",
+      zones: { count: 2, giverSlotsPerZone: 2, gatherSpotsPerZone: 2 },
+    });
+    const plan = compilePlan(model, bundle, recipe);
+    assert.ok(plan.giverSlots !== undefined && plan.gatherSpots !== undefined);
+
+    // Capital system slots exist once, in the home zone, all roles tagged.
+    const system = plan.giverSlots.filter((slot) => slot.kind === "system");
+    assert.equal(system.length, 5);
+    assert.ok(system.every((slot) => slot.reason === "capital_system_npc" && slot.role !== null));
+
+    // Zone slots: settlements claim before POIs, hub reason first.
+    const zoneSlots = plan.giverSlots.filter((slot) => slot.kind !== "system");
+    assert.ok(zoneSlots.length >= 2, `some zone slots exist: ${zoneSlots.length}`);
+    const hubs = zoneSlots.filter((slot) => slot.reason === "zone_hub");
+    assert.ok(hubs.length >= 1, "each settled zone leads with its hub");
+
+    // Gather spots: fishing touches water, foraging stands on flora.
+    for (const spot of plan.gatherSpots) {
+      const [x, y] = spot.cell;
+      if (spot.kind === "foraging") {
+        assert.equal(model.propAt(x, y), "prop.bush", `${spot.id} stands on flora`);
+      }
+    }
+    assert.ok(plan.gatherSpots.some((spot) => spot.kind === "fishing"), "the pond yields a fishing spot");
+
+    const again = compilePlan(model, bundle, recipe);
+    assert.equal(canonicalJson(again), canonicalJson(plan));
   });
 });

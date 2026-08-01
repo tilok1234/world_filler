@@ -271,7 +271,15 @@ function placeDungeons(
   takenIds: ReadonlySet<string>,
 ): void {
   const { recipe, bundle } = state;
-  const settlementMax = Math.max(1, bundle.summary.fieldStats["distanceFromSettlements"]?.max ?? 1);
+  // Round 11 (sl-0086/the wetlands ruling): with zoneLocalFloors on,
+  // the floor measures the ZONE's own max settlement distance — the
+  // round-8 boss rule extended to dungeon anchors.
+  const dungeonZone =
+    recipe.dungeonRule.zoneLocalFloors === 1 ? state.zoneBossScope?.zoneOfRegion.get(regionId) : undefined;
+  const settlementMax =
+    dungeonZone !== undefined && state.zoneBossScope !== null
+      ? Math.max(1, state.zoneBossScope.settlementMax[dungeonZone] as number)
+      : Math.max(1, bundle.summary.fieldStats["distanceFromSettlements"]?.max ?? 1);
 
   interface DungeonCandidate {
     readonly anchor: AnchorPoi;
@@ -427,7 +435,8 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
   const rule = recipe.worldBossRule;
   const label = state.labelById.get(regionId) as number;
   const side = rule.minClearance;
-  const bossZone = state.zoneBossScope?.zoneOfRegion.get(regionId);
+  const perZoneBosses = recipe.budgets.worldBossPerZone > 0;
+  const bossZone = perZoneBosses ? state.zoneBossScope?.zoneOfRegion.get(regionId) : undefined;
   const settlementMax =
     state.zoneBossScope !== null && bossZone !== undefined
       ? Math.max(1, state.zoneBossScope.settlementMax[bossZone] as number)
@@ -714,7 +723,7 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   // Per-zone boss scope (round 8): zone lookup + each zone's own max
   // settlement/road field distances, from one deterministic cell pass.
   let zoneBossScope: SolverState["zoneBossScope"] = null;
-  if (recipe.budgets.worldBossPerZone > 0 && plan.zones !== undefined) {
+  if ((recipe.budgets.worldBossPerZone > 0 || recipe.dungeonRule.zoneLocalFloors === 1) && plan.zones !== undefined) {
     const zoneOfRegion = new Map<string, number>();
     plan.zones.forEach((zone, index) => {
       for (const regionId of zone.memberRegionIds) zoneOfRegion.set(regionId, index);
@@ -974,7 +983,8 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
         candidate.dangerBand >= recipe.budgets.minWorldBossBand &&
         candidate.budgets.worldBosses === 0 &&
         // Per-zone mode: a zone's boss never falls back out of its zone.
-        (state.zoneBossScope === null ||
+        (recipe.budgets.worldBossPerZone === 0 ||
+          state.zoneBossScope === null ||
           state.zoneBossScope.zoneOfRegion.get(candidate.id) === state.zoneBossScope.zoneOfRegion.get(region.id)),
       )
       .sort((a, b) =>
