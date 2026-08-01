@@ -147,6 +147,19 @@
         "id": "placement.world_boss.region.mud.57087.0",
         "regionId": "region.mud.57087",
         "rule": "world_boss.v1"
+      },
+      {
+        "anchorPoiId": 67,
+        "arenaOrigin": null,
+        "arenaSide": null,
+        "cell": [
+          193,
+          163
+        ],
+        "exclusionRadius": 8,
+        "id": "placement.dungeon.region.mud.37835.0",
+        "regionId": "region.mud.37835",
+        "rule": "dungeon_binding.v1"
       }
     ]
   }
