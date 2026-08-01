@@ -557,10 +557,13 @@ designer's approval; publishes a release when it happens).
   relief belts stay on recorded radius. Dusk at 800/600/500: band-0
   22.6k → 17.2k cells, encounters 62, territories 94.
 
-OPEN when resuming: designer verdicts on the round-7 danger +
-placements maps and territories; SNOW COUNTRY still has no boss (road
-floor — designer may want per-zone boss allocation or an eased floor);
-then lock/reroll/paint rounds; then the gated export (a release
+Round 7 verdict (designer, 2026-08-01): **"ye this works"** — the
+sanctuary reduction and the round-7 danger + placements state are
+APPROVED. OPEN when resuming: the SNOW COUNTRY boss question (the
+endgame chapter has no boss — road floor; per-zone allocation or an
+eased floor are the candidate fixes; the designer has not ruled);
+territories carry no explicit verdict but no objection either; then
+any lock rounds the designer wants; then the gated export (a release
 pinning b77). The game consumes that pack AS REFERENCE ONLY (docs/20
 step 1) — it is the test slice's authoring reference, not an import.
 
