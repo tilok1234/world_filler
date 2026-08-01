@@ -557,14 +557,38 @@ designer's approval; publishes a release when it happens).
   relief belts stay on recorded radius. Dusk at 800/600/500: band-0
   22.6k → 17.2k cells, encounters 62, territories 94.
 
-Round 7 verdict (designer, 2026-08-01): **"ye this works"** — the
-sanctuary reduction and the round-7 danger + placements state are
-APPROVED. OPEN when resuming: the SNOW COUNTRY boss question (the
-endgame chapter has no boss — road floor; per-zone allocation or an
-eased floor are the candidate fixes; the designer has not ruled);
-territories carry no explicit verdict but no objection either; then
-any lock rounds the designer wants; then the gated export (a release
-pinning b77). The game consumes that pack AS REFERENCE ONLY (docs/20
+Round 7 verdict (designer): **"ye this works"** — APPROVED. Rounds
+8–11 (all designer/planning-ruled, 2026-08-01):
+
+- **R8** (behavior 21): per-zone world bosses — worldBossPerZone gives
+  every non-home zone its own boss from its own regions, zone-local
+  remoteness floors, zone-bound fallback. Snow Country seated.
+- **R9** (recipe): bandCount 5 = FOUR flat levels, one per zone
+  (designer: "only 4 danger levels for the test"); pockets off (zones
+  are the endgame authorship). R9b render: town land BLUE, sanctuaries
+  lighter ("looks so much better" — APPROVED).
+- **R10** (behavior 22): slice anchor layers (sl-0086) —
+  zones.giverSlotsPerZone (16 slots on dusk: 5 capital system NPCs +
+  zone hubs/waystations/landmark POIs, reason-tagged) +
+  zones.gatherSpotsPerZone (24 spots: 3 fishing + 3 foraging per
+  zone). Plan-level optional keys, no pack-format change.
+- **R11** (behavior 23): dungeonRule.zoneLocalFloors (round-8 rule
+  extended to dungeons). WETLANDS FINDING (measured): its only
+  budget-bearing anchor (beast den 193,163) is ~8 cells from the
+  crossing outpost — binds only at ≤80‰ vs the approved 320‰; NO
+  remote dungeon anchor exists in the zone by geography.
+- **SLICE MARKS + LOCKS**: slice dungeons = grass.54237.0 (193,239) /
+  dry_grass.28429.0 (17,131) / gravel.3995.0 (153,19); + the 3 bosses
+  all recipe-LOCKED, held byte-stable, G6 PASS.
+- **LEVEL BRACKETS (sl-0087, designer Option B): slice cap 30 — Green
+  1–7, Dry Reach 8–15, Wetlands 16–22, Snow Country 23–30.**
+- **HAND-PLACE SLOTS (sl-0087 lane, generation-excluded): the GREEN
+  COUNTRY world boss (~lvl 8–10) and the WETLANDS slice dungeon** —
+  the designer authors both via locks/overrides; do NOT force-generate.
+
+OPEN when resuming: the two hand-place slots above (designer-driven);
+**EXPORT IS HELD** (designer chose "hold, more rounds first" — export
+only on a fresh explicit go; it publishes the b77-pinned release). The game consumes that pack AS REFERENCE ONLY (docs/20
 step 1) — it is the test slice's authoring reference, not an import.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
