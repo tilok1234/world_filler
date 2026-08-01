@@ -43,10 +43,17 @@ export const DIRECTOR_VERSION = "0.1.0";
 // blocking on worlds recorded at behavior >= 77; earlier-era worlds
 // reproduce their reference grids unchanged. Fixtures re-pinned to
 // behavior-77 packs; the b65 canonical import is untouched.
-export const DIRECTOR_BEHAVIOR_VERSION = 15;
+// 16: analysis 4 — organic region seams (dusk rehearsal round-2 verdict
+// "so very square"): oversized-patch subdivision moves from bounding-box
+// midline bisection to a two-seed distance watershed (diameter-endpoint
+// seeds, equidistance seam). Region geometry and ids move on every world
+// with oversized patches; invalidated locks are diagnosed per the
+// designed migration.
+export const DIRECTOR_BEHAVIOR_VERSION = 16;
 
 export const RULE_PACK_VERSIONS = {
-  analysis: 3,
+  // 4: watershed subdivision — organic seams (behavior 16).
+  analysis: 4,
   plan: 5,
   placement: 6,
   territory: 4,

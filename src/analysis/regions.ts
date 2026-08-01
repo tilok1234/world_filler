@@ -108,13 +108,20 @@ export function segmentRegions(model: WorldModel): Segmentation {
     patches.push({ biome, cellCount, anchorIndex: start, x0, y0, x1, y1 });
   }
 
-  // Subdivide oversized patches: bisect along the longer bounding-box
-  // axis at the midline and re-flood each side into connected
-  // components, repeating until every patch holds at most
-  // MAX_REGION_CELLS cells. Deterministic throughout (row-major scans,
-  // midline splits); every final patch re-anchors at its own smallest
-  // cell index, so ids stay content-derived. The first component of a
-  // split reuses the parent's label slot; the rest append.
+  // Subdivide oversized patches with a two-seed distance watershed
+  // (analysis 4 — the organic-seams verdict, dusk rehearsal round 2;
+  // previously a bounding-box midline bisection whose ruler-straight
+  // seams the designer rejected): seeds are the patch's approximate
+  // diameter endpoints (double BFS sweep from its anchor), every cell
+  // joins the basin that reaches it first, and the seam falls along the
+  // equidistance contour — following the patch's own shape instead of
+  // an axis. Re-flooding each basin into connected components repeats
+  // until every patch holds at most MAX_REGION_CELLS cells.
+  // Deterministic throughout (row-major scans, fixed neighbor order,
+  // smallest-index tie-breaks, single claim queue); every final patch
+  // re-anchors at its own smallest cell index, so ids stay
+  // content-derived. The first component of a split reuses the parent's
+  // label slot; the rest append.
   const oversized: number[] = [];
   for (let label = 0; label < patches.length; label += 1) {
     if ((patches[label] as (typeof patches)[number]).cellCount > MAX_REGION_CELLS) oversized.push(label);
@@ -130,13 +137,53 @@ export function segmentRegions(model: WorldModel): Segmentation {
         labels[index] = -2; // pending reassignment
       }
     }
-    const splitOnX = patch.x1 - patch.x0 >= patch.y1 - patch.y0;
-    const midline = splitOnX ? (patch.x0 + patch.x1) >> 1 : (patch.y0 + patch.y1) >> 1;
-    const sideOf = (index: number): number => {
+    const inPatch = (index: number): boolean => labels[index] === -2;
+    const bfsFarthest = (from: number): number => {
+      // A deepest patch cell from `from`: the last cell popped by a
+      // 4-connected level-order BFS. Fixed seed + fixed neighbor order
+      // make the pick fully deterministic.
+      const seen = new Set<number>([from]);
+      const queue: number[] = [from];
+      let last = from;
+      for (let head = 0; head < queue.length; head += 1) {
+        const index = queue[head] as number;
+        last = index;
+        const x = index % width;
+        const y = (index - x) / width;
+        for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const next = ny * width + nx;
+          if (!inPatch(next) || seen.has(next)) continue;
+          seen.add(next);
+          queue.push(next);
+        }
+      }
+      return last;
+    };
+    const seedA = bfsFarthest(patch.anchorIndex);
+    const seedB = bfsFarthest(seedA);
+    const seedLow = Math.min(seedA, seedB);
+    const seedHigh = Math.max(seedA, seedB);
+    const basin = new Map<number, number>([[seedLow, 0], [seedHigh, 1]]);
+    const claimQueue: number[] = [seedLow, seedHigh];
+    for (let head = 0; head < claimQueue.length; head += 1) {
+      const index = claimQueue[head] as number;
+      const side = basin.get(index) as number;
       const x = index % width;
       const y = (index - x) / width;
-      return (splitOnX ? x : y) <= midline ? 0 : 1;
-    };
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        const next = ny * width + nx;
+        if (!inPatch(next) || basin.has(next)) continue;
+        basin.set(next, side);
+        claimQueue.push(next);
+      }
+    }
+    const sideOf = (index: number): number => basin.get(index) ?? 0;
     let reusedParentSlot = false;
     for (const seed of cells) {
       if (labels[seed] !== -2) continue;

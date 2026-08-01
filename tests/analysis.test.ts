@@ -208,4 +208,67 @@ describe("walkability-aware segmentation (sl-0026)", () => {
     }
     assert.ok(walkableVoidCells > 0, "fixture exercises the rule (fords/wades/piers exist)");
   });
+
+  it("subdivides oversized patches with organic watershed seams (analysis 4)", () => {
+    // 64x64 all-grass monolith: 4096 cells force recursive splits.
+    const artifact = makeArtifact(64);
+    const model = new WorldModel(artifact);
+    const { regions, labels } = segmentRegions(model);
+
+    assert.ok(regions.length >= 4, `4096 cells need >= 4 parts, got ${regions.length}`);
+    for (const region of regions) {
+      assert.ok(region.cellCount <= 1024, `${region.id} holds ${region.cellCount} > 1024 cells`);
+    }
+
+    // Every walkable cell labeled; every part 4-connected.
+    const cellsByLabel = new Map<number, number[]>();
+    for (let index = 0; index < 64 * 64; index += 1) {
+      const label = labels[index] as number;
+      assert.ok(label >= 0, `cell ${index} left unlabeled`);
+      const list = cellsByLabel.get(label);
+      if (list === undefined) cellsByLabel.set(label, [index]);
+      else list.push(index);
+    }
+    for (const [label, cells] of cellsByLabel) {
+      const members = new Set(cells);
+      const seen = new Set<number>([cells[0] as number]);
+      const queue = [cells[0] as number];
+      for (let head = 0; head < queue.length; head += 1) {
+        const index = queue[head] as number;
+        const x = index % 64;
+        for (const next of [index - 64, index + 64, index - 1, index + 1]) {
+          if (next < 0 || next >= 64 * 64) continue;
+          if ((next === index - 1 && x === 0) || (next === index + 1 && x === 63)) continue;
+          if (members.has(next) && !seen.has(next)) {
+            seen.add(next);
+            queue.push(next);
+          }
+        }
+      }
+      assert.equal(seen.size, cells.length, `region label ${label} is disconnected`);
+    }
+
+    // The seam is the watershed equidistance contour, not the old
+    // bounding-box midline: on a uniform square the first bisection cut
+    // every cell of one straight column/row; no watershed part may have
+    // a perfectly straight full-length border on BOTH of its seam sides.
+    // Cheap proxy: parts must not all be axis-aligned rectangles.
+    const rectangular = regions.filter((region) => {
+      const w = region.bounds.x1 - region.bounds.x0 + 1;
+      const h = region.bounds.y1 - region.bounds.y0 + 1;
+      return w * h === region.cellCount;
+    });
+    assert.ok(
+      rectangular.length < regions.length,
+      "every part is a perfect rectangle — seams are still midline cuts",
+    );
+
+    // Deterministic: a second run reproduces labels exactly.
+    const again = segmentRegions(new WorldModel(makeArtifact(64)));
+    assert.deepEqual(Array.from(again.labels), Array.from(labels));
+    assert.deepEqual(
+      again.regions.map((region) => region.id),
+      regions.map((region) => region.id),
+    );
+  });
 });
