@@ -51,9 +51,15 @@ export interface DirectorRecipe {
      * spawn distance evenly (the deepest band exists only in the single
      * farthest pocket); "quantile" gives each band an equal share of
      * reachable walkable ground, so deep bands exist in meaningful
-     * quantity wherever the topology puts them.
+     * quantity wherever the topology puts them; "zonal" (round 6 —
+     * requires zones.count >= 2) makes danger FIT the zones: zones rank
+     * by their ground's weighted-median travel distance, the wilderness
+     * bands split into contiguous per-zone windows (deeper zones get
+     * the wider windows when it doesn't divide evenly), and each zone
+     * runs its own internal quantile ramp inside its window — crossing
+     * a zone border is stepping into the next difficulty chapter.
      */
-    readonly assignment: "linear" | "quantile";
+    readonly assignment: "linear" | "quantile" | "zonal";
     /**
      * 0 = off. With K >= 2: the deepest band is reshaped into K compact
      * pockets around mutually far-apart seed regions; deep regions
@@ -357,11 +363,15 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     throw new RecipeError("recipe: base.generationIdentitySha256 must be a 64-hex sha256");
   }
 
+  const zones = sectionOf(raw, "zones", ZONE_FIELDS);
   const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides", "assignment"]);
   const dangerRecord = raw["danger"] === undefined ? {} : requireObject(raw["danger"], "$.danger");
   const assignmentRaw = dangerRecord["assignment"] === undefined ? "linear" : dangerRecord["assignment"];
-  if (assignmentRaw !== "linear" && assignmentRaw !== "quantile") {
-    throw new RecipeError(`recipe: $.danger.assignment must be linear or quantile, got ${String(assignmentRaw)}`);
+  if (assignmentRaw !== "linear" && assignmentRaw !== "quantile" && assignmentRaw !== "zonal") {
+    throw new RecipeError(`recipe: $.danger.assignment must be linear, quantile, or zonal, got ${String(assignmentRaw)}`);
+  }
+  if (assignmentRaw === "zonal" && (zones["count"] as number) < 2) {
+    throw new RecipeError("recipe: $.danger.assignment zonal requires $.zones.count >= 2");
   }
   if (danger["endgamePockets"] === 1) {
     throw new RecipeError("recipe: $.danger.endgamePockets must be 0 (off) or an integer in [2, 8]");
@@ -406,7 +416,6 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
   const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
   const encounterRule = sectionOf(raw, "encounterRule", ENCOUNTER_RULE_FIELDS);
-  const zones = sectionOf(raw, "zones", ZONE_FIELDS);
 
   const territoryRule = sectionOf(raw, "territoryRule", TERRITORY_RULE_FIELDS, ["respawnPressure"]);
   const territoryRecord = raw["territoryRule"] === undefined ? {} : requireObject(raw["territoryRule"], "$.territoryRule");

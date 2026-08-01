@@ -65,7 +65,7 @@ describe("DirectorRecipe normalization", () => {
     );
     assert.throws(
       () => normalizeRecipe({ ...MINIMAL, danger: { assignment: "noise" } }),
-      /assignment must be linear or quantile/,
+      /assignment must be linear, quantile, or zonal/,
     );
     assert.throws(
       () => normalizeRecipe({ ...MINIMAL, danger: { endgamePockets: 1 } }),
@@ -327,5 +327,62 @@ describe("macro-zones (dusk round 5, behavior 18)", () => {
       plan.checks.worldWaivers.some((waiver) => waiver.startsWith("zone_shortfall: 3 of 4")),
       `expected zone_shortfall waiver, got ${JSON.stringify(plan.checks.worldWaivers)}`,
     );
+  });
+});
+
+describe("zonal danger assignment (dusk round 6, behavior 19)", () => {
+  const stripWorld = () => {
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 23; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    return artifact;
+  };
+
+  it("refuses zonal without zones by name", () => {
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, danger: { assignment: "zonal" } }),
+      /zonal requires \$\.zones\.count >= 2/,
+    );
+  });
+
+  it("gives every zone a contiguous band window ordered by travel distance", () => {
+    const model = new WorldModel(stripWorld());
+    const plan = compilePlan(
+      model,
+      analyzeWorld(model),
+      normalizeRecipe({
+        ...MINIMAL,
+        name: "zonal-strips",
+        zones: { count: 2 },
+        danger: { assignment: "zonal", bandCount: 5 },
+      }),
+    );
+    assert.ok(plan.zones !== undefined);
+    const zoneByRegion = new Map<string, string>();
+    for (const zone of plan.zones) {
+      for (const regionId of zone.memberRegionIds) zoneByRegion.set(regionId, zone.id);
+    }
+    const bandsByZone = new Map<string, number[]>();
+    for (const region of plan.regions) {
+      if (region.dangerBand === null || region.dangerBand === 0) continue;
+      const zone = zoneByRegion.get(region.id) as string;
+      const list = bandsByZone.get(zone) ?? [];
+      list.push(region.dangerBand);
+      bandsByZone.set(zone, list);
+    }
+    // Two zones, four wilderness bands: windows [1,2] and [3,4]; the
+    // spawn-side zone (west grass core) must hold the LOW window.
+    const windows = [...bandsByZone.entries()].map(([zone, list]) => ({
+      zone,
+      lo: Math.min(...list),
+      hi: Math.max(...list),
+    }));
+    assert.equal(windows.length, 2);
+    windows.sort((a, b) => a.lo - b.lo);
+    assert.ok((windows[0] as { hi: number }).hi <= 2, "low zone stays in its window");
+    assert.ok((windows[1] as { lo: number }).lo >= 3, "deep zone stays in its window");
+    const spawnZone = zoneByRegion.get(plan.spawnRegionId);
+    assert.equal((windows[0] as { zone: string }).zone, spawnZone, "spawn zone carries the low chapter");
   });
 });

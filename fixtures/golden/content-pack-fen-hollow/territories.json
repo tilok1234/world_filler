@@ -1212,7 +1212,7 @@
     "totalCovered": 480,
     "totalHostileWalkable": 2364
   },
-  "directorBehaviorVersion": 18,
+  "directorBehaviorVersion": 19,
   "directorRecipeSha256": "c57668ea8593eac98481b9841a5437a76f0d29b77be5398b2df4a184b34f73f5",
   "directorSeed": 103991,
   "failures": [
@@ -1246,7 +1246,7 @@
     "analysis": 4,
     "export": 3,
     "placement": 6,
-    "plan": 7,
+    "plan": 8,
     "territory": 4,
     "validate": 3
   },

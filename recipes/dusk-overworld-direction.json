@@ -6,9 +6,9 @@
     "generationIdentitySha256": "bd4b931780b3e85dfba94974338cf7dd578ca047b5a78d2bb779d18a9f74e1ba"
   },
   "danger": {
-    "assignment": "quantile",
+    "assignment": "zonal",
     "endgamePockets": 3,
-    "bandCount": 7,
+    "bandCount": 9,
     "settlementReliefReachPermille": 3000,
     "settlementReliefDepthPermille": 250
   },

@@ -234,12 +234,25 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     else anchorCandidates[label] = (anchorCandidates[label] as number) + 1;
   }
 
+  // Macro-zones (round 5): reporting/creative geography over the fine
+  // regions — and, under "zonal" assignment (round 6), the frame danger
+  // itself follows. Computed before banding so both consumers share one
+  // clustering; emitted only when the recipe asks, so zone-less plans
+  // stay byte-identical to the pre-zone era.
+  const zones: ZoneClustering | null =
+    recipe.zones.count >= 2 ? clusterZones(bundle.regions, recipe.zones.count) : null;
+
   // Band assignment. "linear" splits the world's max spawn distance evenly,
   // so the deepest band exists only in the single farthest pocket;
   // "quantile" ranks wilderness regions by median spawn distance and gives
   // each band an equal share of reachable walkable ground, so every band
   // (including the deepest) covers meaningful territory wherever the
-  // topology puts it. Integer math throughout; ties break on region index.
+  // topology puts it. "zonal" (round 6) ranks each macro-zone by the
+  // weighted median of its wilderness ground, splits the wilderness
+  // bands into contiguous per-zone windows (deeper zones take the wider
+  // windows when it does not divide evenly), and runs an independent
+  // quantile ramp inside each window — danger fits the zones by
+  // construction. Integer math throughout; ties break on region index.
   const bands = new Array<number | null>(regionCount).fill(null);
   const overridden = new Array<boolean>(regionCount).fill(false);
   const wilderness: Array<{ index: number; median: number; weight: number }> = [];
@@ -259,24 +272,81 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
       continue;
     }
     const median = medianOfSorted(reachable);
-    if (danger.assignment === "quantile") {
+    if (danger.assignment === "quantile" || danger.assignment === "zonal") {
       wilderness.push({ index: i, median, weight: reachable.length });
       continue;
     }
     const band = 1 + Math.floor((median * (danger.bandCount - 1)) / (maxSpawnDistance + 1));
     bands[i] = Math.min(band, danger.bandCount - 1);
   }
-  if (wilderness.length > 0) {
-    wilderness.sort((a, b) => (a.median !== b.median ? a.median - b.median : a.index - b.index));
-    const totalWeight = wilderness.reduce((sum, entry) => sum + entry.weight, 0);
+  // Shared quantile machinery: rank entries by median and map each into
+  // [lo..hi] with an equal-ground midpoint quantile.
+  const quantileInto = (
+    entries: Array<{ index: number; median: number; weight: number }>,
+    lo: number,
+    hi: number,
+  ): void => {
+    if (entries.length === 0) return;
+    entries.sort((a, b) => (a.median !== b.median ? a.median - b.median : a.index - b.index));
+    const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+    const window = hi - lo + 1;
     let cumulative = 0;
-    for (const entry of wilderness) {
+    for (const entry of entries) {
       // Midpoint quantile in integer arithmetic: (cumulative + weight/2) / total.
-      const band = 1 + Math.floor(((2 * cumulative + entry.weight) * (danger.bandCount - 1)) / (2 * totalWeight));
-      bands[entry.index] = Math.min(band, danger.bandCount - 1);
+      const band = lo + Math.floor(((2 * cumulative + entry.weight) * window) / (2 * totalWeight));
+      bands[entry.index] = Math.min(band, hi);
       cumulative += entry.weight;
     }
-
+  };
+  if (danger.assignment === "zonal" && (zones === null || zones.zones.length === 0)) {
+    // No zones to fit (unlisted-biome worlds): honest global fallback.
+    quantileInto(wilderness, 1, danger.bandCount - 1);
+  } else if (danger.assignment === "zonal" && zones !== null) {
+    const zoneCount = zones.zones.length;
+    const byZone: Array<Array<{ index: number; median: number; weight: number }>> = Array.from(
+      { length: zoneCount },
+      () => [],
+    );
+    for (const entry of wilderness) {
+      const zone = zones.zoneOfRegion[entry.index] as number;
+      if (zone >= 0) (byZone[zone] as (typeof wilderness)).push(entry);
+      else bands[entry.index] = 1; // clustering assigns every region; defensive floor
+    }
+    // Rank zones by the weighted median of their wilderness ground.
+    const zoneMedian = (entries: ReadonlyArray<{ median: number; weight: number; index: number }>): number => {
+      if (entries.length === 0) return Number.MAX_SAFE_INTEGER;
+      const sorted = [...entries].sort((a, b) => (a.median !== b.median ? a.median - b.median : a.index - b.index));
+      const total = sorted.reduce((sum, entry) => sum + entry.weight, 0);
+      let cumulative = 0;
+      for (const entry of sorted) {
+        cumulative += entry.weight;
+        if (2 * cumulative >= total) return entry.median;
+      }
+      return (sorted[sorted.length - 1] as { median: number }).median;
+    };
+    // The spawn's zone is ALWAYS the first chapter — its near ground is
+    // safe-zone-eaten, so a wilderness median would mismeasure the home
+    // zone as far country. The rest rank by where their bulk lies.
+    const [spawnX, spawnY] = bundle.summary.spawnCell;
+    const spawnLabel = nearestRegionLabel(bundle.regionLabels, width, height, spawnX, spawnY);
+    const spawnZone = spawnLabel === -1 ? -1 : (zones.zoneOfRegion[spawnLabel] as number);
+    const ranked = byZone
+      .map((entries, zone) => ({ zone, median: zone === spawnZone ? -1 : zoneMedian(entries) }))
+      .sort((a, b) => (a.median !== b.median ? a.median - b.median : a.zone - b.zone));
+    // Contiguous windows over bands 1..bandCount-1; the remainder widens
+    // the DEEPEST zones.
+    const wildBands = danger.bandCount - 1;
+    const base = Math.floor(wildBands / zoneCount);
+    const remainder = wildBands % zoneCount;
+    let lo = 1;
+    ranked.forEach(({ zone }, rank) => {
+      const width = Math.max(1, base + (rank >= zoneCount - remainder ? 1 : 0));
+      const hi = Math.min(danger.bandCount - 1, lo + width - 1);
+      quantileInto(byZone[zone] as (typeof wilderness), lo, hi);
+      lo = Math.min(danger.bandCount - 1, lo + width);
+    });
+  } else {
+    quantileInto(wilderness, 1, danger.bandCount - 1);
   }
 
   // Endgame pockets: carve the deepest band into K compact islands
@@ -554,17 +624,10 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
   }
   progressionWarnings.sort((a, b) => (a.regionId < b.regionId ? -1 : 1));
 
-  // Macro-zones (round 5): reporting/creative geography over the fine
-  // regions; emitted only when the recipe asks, so zone-less plans stay
-  // byte-identical to the pre-zone era.
-  let zones: ZoneClustering | null = null;
-  if (recipe.zones.count >= 2) {
-    zones = clusterZones(bundle.regions, recipe.zones.count);
-    if (zones.shortfall > 0) {
-      worldWaivers.push(
-        `zone_shortfall: ${zones.zones.length} of ${recipe.zones.count} zones (family components available: ${zones.zones.length})`,
-      );
-    }
+  if (zones !== null && zones.shortfall > 0) {
+    worldWaivers.push(
+      `zone_shortfall: ${zones.zones.length} of ${recipe.zones.count} zones (family components available: ${zones.zones.length})`,
+    );
   }
 
   const sortedRegions = [...regionPlans].sort((a, b) => (a.id < b.id ? -1 : 1));

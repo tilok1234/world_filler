@@ -64,14 +64,25 @@ export const DIRECTOR_VERSION = "0.1.0";
 // the region graph seed cores; the rest join by graph distance). A
 // reporting/creative layer — solver units unchanged; zone-less plans
 // byte-identical modulo the recipe-identity field.
-export const DIRECTOR_BEHAVIOR_VERSION = 18;
+// 19: plan 8 — zonal danger assignment (dusk round 6, "this doesn't
+// fit with our new zones at all"): danger.assignment "zonal" makes the
+// spawn's zone the first chapter always (its near ground is safe-eaten,
+// so a wilderness median would mismeasure home as far country), ranks
+// the remaining zones by weighted-median travel distance, splits the
+// wilderness bands into contiguous per-zone windows (remainder widens
+// the deepest zones), and runs an independent quantile ramp inside each
+// window. Crossing a zone border = the next difficulty chapter.
+// Requires zones.count >= 2 (named refusal); linear/quantile
+// byte-identical.
+export const DIRECTOR_BEHAVIOR_VERSION = 19;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
   analysis: 4,
   // 6: settlement-relief danger blend (behavior 17, sl-0073).
   // 7: macro-zones layer (behavior 18, dusk round 5).
-  plan: 7,
+  // 8: zonal danger assignment (behavior 19, dusk round 6).
+  plan: 8,
   placement: 6,
   territory: 4,
   validate: 3,
