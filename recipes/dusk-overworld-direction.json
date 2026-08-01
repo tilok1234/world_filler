@@ -7,8 +7,8 @@
   },
   "danger": {
     "assignment": "zonal",
-    "endgamePockets": 3,
-    "bandCount": 9,
+    "endgamePockets": 0,
+    "bandCount": 5,
     "settlementReliefReachPermille": 3000,
     "settlementReliefDepthPermille": 250
   },
