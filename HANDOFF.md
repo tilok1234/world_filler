@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-08-01, F0–F9 closed + b77 ADOPTED per the sl-0041 || re-pin — the dusk rehearsal directs over b77)
+# World Filler — handoff (2026-08-01, F0–F9 closed + b77 ADOPTED + dusk rehearsal rounds 1–5 LIVE at behavior 18 — the dusk map is the game's TEST SLICE)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -27,9 +27,10 @@ review resolved, every visual verdict thread closed approved at behavior
 `freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
 its dual-verifier test battery onto this line is a recorded ask; the
 old area-share banding verdict is SUPERSEDED by rounds 1–4).
-**188 tests green** (`npm test`; count includes the ported archived-line
+**193 tests green** (`npm test`; count includes the ported archived-line
 battery, sl-0012, the 2026-07-30 publish/format-3 additions, the
-sl-0026 segmentation regressions, the b72 + b77 rung units, and the two
+sl-0026 segmentation regressions, the b72 + b77 rung units, the round
+2/4/5 units (watershed, settlement relief, macro-zones), and the two
 local-pack parity lanes — the dual-verifier Godot lane runs REAL on
 this machine).
 **Behavior-77 walkability is ADOPTED (2026-08-01, per the planning
@@ -504,6 +505,48 @@ semantics changed, placement bytes identical.
   lands as its own small follow-up adoption — the rehearsal is NOT
   serialized behind it.
 
+## 1j. Dusk rehearsal rounds 1–5 (2026-08-01, LIVE — sl-0041 + sl-0073; the dusk map IS the game's test slice, designer-confirmed in-round)
+
+Recipe: `recipes/dusk-overworld-direction.json` (the new committed home
+for real direction recipes), pinned to dusk@b77 identity `bd4b9317…`,
+seed 109182. Every round: 9/9 gates PASS; export NOT run (gated on the
+designer's approval; publishes a release when it happens).
+
+- **Round 1** (draft): quantile bands, 3 endgame pockets, floors
+  s320/r300/d320, worldBossCount 3 → 3/3 bosses, 10 dungeons, 57
+  encounters, 88 territories. Designer asked for a settlement overlay
+  (renders don't draw cities) and legend PDFs (produced in-session,
+  scratch only).
+- **Round 2** ("so very square"): watershed subdivision replaces
+  midline bisection (behavior 16, analysis 4 — organic seams, the
+  recorded b12 polish); recipe bandCount 5→7. Version-stamp split
+  (ANALYSIS_VERSION left at 3) caught and fixed in-session — the
+  constant now derives from RULE_PACK_VERSIONS (`404822c`).
+- **Round 3** ("doesn't follow the zones"): diagnosed with numbers — a
+  third of walkable ground is band 0 and 15/20 of its wilderness
+  borders jumped ≥3 bands; band 0 now renders pale neutral (town land,
+  not a ramp rung). The model question went to planning.
+- **Round 4** (sl-0073 ruling: safety radiates from EVERY settlement):
+  behavior 17, plan 6 — opt-in danger.settlementRelief{Reach,Depth}
+  Permille subtract tier-scaled (recorded-radius-scaled) linear-fade
+  belts from the spawn-distance field before bands rank; overlaps take
+  max never sum; both-0 fallback byte-identical (tested). Dusk at
+  3000/250.
+- **Round 5** (designer sketch: "4 zones depending on the geography"):
+  behavior 18, plan 7 — opt-in zones.count clusters fine regions into
+  K geography-following macro-zones (heaviest same-biome-family
+  components of the region graph seed cores; graph-BFS join; honest
+  zone_shortfall waiver). Dusk at 4: green country 30.9k / wetlands
+  10.1k / dry SW 9.7k / snow country 8.0k. **Designer: "something like
+  this will be easier to work out from"** — zones are the working
+  frame. New zones.png render; fine regions stay the solver unit.
+
+OPEN when resuming: round-4 danger verdict; placements/territories
+verdicts over the final geography; then lock/reroll/paint rounds; then
+the gated export (a release pinning b77). The game consumes that pack
+AS REFERENCE ONLY (docs/20 step 1) — it is the test slice's authoring
+reference, not an import.
+
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
 F8 shipped (§1b) and the first arc is closed, so the next milestone is
@@ -548,7 +591,7 @@ machine-local assistant memory is NOT required (this file is the
 tiebreaker over it, per line 3):
 
 1. Clone `tilok1234/world_filler`, branch `main`. Node >= 24.15.
-2. `npm install && npm test` — expect **186 green** on a clean clone
+2. `npm install && npm test` — expect **191 green** on a clean clone
    (the two local-pack parity lanes only run when `outputs/local-packs/`
    exists; the Godot lane self-skips without a binary; both are
    optional).
@@ -558,7 +601,7 @@ tiebreaker over it, per line 3):
    verify each zip's sha256 against its release notes, unzip into
    `outputs/local-packs/small-cold-coastal` and
    `outputs/local-packs/wildshot-overworld-pack-dusk` (fixtures/README
-   has the exact steps) — then `npm test` runs 188.
+   has the exact steps) — then `npm test` runs 193.
 4. `gh` auth (repo scope) is needed only for release downloads and for
    publish-gated `wf-fill export`; neither is needed to build, test, or
    direct content locally (`WORLD_FILLER_DEV_EXPORT=1` for dev export).
@@ -619,7 +662,7 @@ tiebreaker over it, per line 3):
 
 ## 6. Versions
 
-director behavior **15** · rule packs: analysis 3, plan 5, placement 6,
+director behavior **18** · rule packs: analysis 4, plan 7, placement 6,
 territory 4, validate 3, export 3 · recipe format 1 · plan/report
 formats 1, placements format 2 · content pack format 3 current
 (format 2 + optional manifest sourceCommit from gated exports),
@@ -633,7 +676,7 @@ vocabularies; sequential bumps; stamp everything).
 ## 7. Commands
 
     export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test            # build + 188 tests (186 on a clean clone — §3b)
+    npm test            # build + 193 tests (191 on a clean clone — §3b)
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
