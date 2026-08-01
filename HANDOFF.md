@@ -615,10 +615,18 @@ Round 7 verdict (designer): **"ye this works"** — APPROVED. Rounds
   FLAGGED for the game-side pass; border-margin knob is the fix if
   playtest shows grief.
 
-OPEN when resuming: **EXPORT IS HELD** (designer chose "hold, more
-rounds first" — export only on a fresh explicit go; it publishes the
-b77-pinned release and restates the Option-B level brackets in its
-sync entry). The review round is complete — nothing else is pending. The game consumes that pack AS REFERENCE ONLY (docs/20
+**EXPORTED (designer "go", 2026-08-01): release
+`wildshot-overworld-pack-dusk-content-c0bf28638648`**, sourceCommit
+`6be201e`, base identity `bd4b9317…` (dusk@b77), recipe identity
+`f100dccb…` — 127 placements / 92 territories / 41 recorded failures,
+9/9 gates, BOTH consumption verifiers green (TS + real headless Godot
+4.6.2: 127 placements, 9189 territory cells verified against the
+reference walkability). This is the game test slice's authoring
+REFERENCE (docs/20 step 1 — reference only, no importer); the sl-0090
+era rulings, Option-B brackets, slice marks, and review dispositions
+all ride the export sync entry. The rehearsal's wf side is COMPLETE;
+next is the game-side hand-authoring pass and the designer's feel
+verdict (docs/20 step 2). The game consumes that pack AS REFERENCE ONLY (docs/20
 step 1) — it is the test slice's authoring reference, not an import.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
