@@ -586,9 +586,21 @@ Round 7 verdict (designer): **"ye this works"** — APPROVED. Rounds
   COUNTRY world boss (~lvl 8–10) and the WETLANDS slice dungeon** —
   the designer authors both via locks/overrides; do NOT force-generate.
 
-OPEN when resuming: the two hand-place slots above (designer-driven);
-**EXPORT IS HELD** (designer chose "hold, more rounds first" — export
-only on a fresh explicit go; it publishes the b77-pinned release). The game consumes that pack AS REFERENCE ONLY (docs/20
+- **R12** (behavior 24): BOTH hand-place slots CLOSED.
+  budgets.homeZoneBosses (lock-steered: home-zone world_boss locks
+  pull the budgets to their regions) landed the designer's GREEN
+  COUNTRY boss at (249,244), region.mud.57087 — their pick of three
+  gate-validated candidates (the far-SE mud pocket). The WETLANDS
+  slice dungeon (beast den, 193,163, region.mud.37835) is held by
+  designer lock extracted from the 80‰ probe — lock validation checks
+  ground truth, not generation floors. **The slice content set is
+  COMPLETE: 4 bosses + 4 slice dungeons, one per zone, ALL EIGHT
+  recipe-locked, G6 PASS clean.**
+
+OPEN when resuming: **EXPORT IS HELD** (designer chose "hold, more
+rounds first" — export only on a fresh explicit go; it publishes the
+b77-pinned release and restates the Option-B level brackets in its
+sync entry). The game consumes that pack AS REFERENCE ONLY (docs/20
 step 1) — it is the test slice's authoring reference, not an import.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
