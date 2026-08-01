@@ -84,7 +84,14 @@ export const DIRECTOR_VERSION = "0.1.0";
 // relief belts stay on the recorded radius: content moves closer to
 // town; town ground does not get deadlier. All knobs 1000 =
 // byte-identical to behavior 19.
-export const DIRECTOR_BEHAVIOR_VERSION = 20;
+// 21: per-zone world bosses (dusk round 8, the snow-boss ruling "one
+// boss per far zone"): budgets.worldBossPerZone > 0 gives every
+// non-home zone that many boss budgets from its OWN eligible regions;
+// the solver measures remoteness floors zone-locally (permille of the
+// zone's own max field distances — the wildest spot that zone offers)
+// and boss fallback never leaves the zone. Requires zones.count >= 2
+// (named refusal); worldBossPerZone 0 byte-identical to behavior 20.
+export const DIRECTOR_BEHAVIOR_VERSION = 21;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
@@ -93,9 +100,11 @@ export const RULE_PACK_VERSIONS = {
   // 7: macro-zones layer (behavior 18, dusk round 5).
   // 8: zonal danger assignment (behavior 19, dusk round 6).
   // 9: sanctuary scaling feeds banding (behavior 20, dusk round 7).
-  plan: 9,
+  // 10: per-zone world-boss allocation (behavior 21, dusk round 8).
+  plan: 10,
   // 7: sanctuary scaling feeds candidate exclusion (behavior 20).
-  placement: 7,
+  // 8: zone-local boss floors + zone-bound fallback (behavior 21).
+  placement: 8,
   // 5: sanctuary scaling feeds hostile-ground growth (behavior 20).
   territory: 5,
   // 4: sanctuary scaling feeds G1/G3 ground checks (behavior 20).

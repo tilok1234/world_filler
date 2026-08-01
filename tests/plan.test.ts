@@ -386,3 +386,49 @@ describe("zonal danger assignment (dusk round 6, behavior 19)", () => {
     assert.equal((windows[0] as { zone: string }).zone, spawnZone, "spawn zone carries the low chapter");
   });
 });
+
+describe("per-zone world bosses (dusk round 8, behavior 21)", () => {
+  it("refuses worldBossPerZone without zones by name", () => {
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, budgets: { worldBossPerZone: 1 } }),
+      /worldBossPerZone requires \$\.zones\.count >= 2/,
+    );
+  });
+
+  it("allocates to every non-home zone from its own regions, with per-zone shortfall waivers", () => {
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 23; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    const model = new WorldModel(artifact);
+    const plan = compilePlan(
+      model,
+      analyzeWorld(model),
+      normalizeRecipe({
+        ...MINIMAL,
+        name: "zone-bosses",
+        zones: { count: 3 },
+        danger: { assignment: "zonal", bandCount: 7 },
+        budgets: { worldBossPerZone: 1, minWorldBossBand: 1, minRegionCells: 40 },
+      }),
+    );
+    assert.ok(plan.zones !== undefined);
+    assert.equal(plan.zones.length, 3); // west grass, mud, east grass
+    const zoneByRegion = new Map<string, string>();
+    for (const zone of plan.zones) {
+      for (const regionId of zone.memberRegionIds) zoneByRegion.set(regionId, zone.id);
+    }
+    const homeZone = zoneByRegion.get(plan.spawnRegionId) as string;
+    const bossZones = plan.regions
+      .filter((region) => region.budgets.worldBosses > 0)
+      .map((region) => zoneByRegion.get(region.id) as string);
+    assert.equal(plan.worldBudget.worldBosses.target, 2, "two far zones, one boss each");
+    assert.ok(!bossZones.includes(homeZone), "the home zone never hosts a world boss");
+    assert.equal(new Set(bossZones).size, bossZones.length, "one boss zone allocation each");
+    assert.equal(
+      plan.worldBudget.worldBosses.allocated + plan.checks.worldWaivers.filter((waiver) => waiver.startsWith("world_boss_shortfall_zone")).length,
+      2,
+      "every far zone either allocates or waives by name",
+    );
+  });
+});

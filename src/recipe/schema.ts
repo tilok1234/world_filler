@@ -78,6 +78,16 @@ export interface DirectorRecipe {
     readonly encounterCapPerRegion: number;
     readonly dungeonCapPerRegion: number;
     readonly worldBossCount: number;
+    /**
+     * Round 8 (the snow-boss ruling): > 0 gives EVERY zone except the
+     * spawn's home zone this many world-boss budgets — each far zone
+     * carries its own named challenge. worldBossCount is then unused.
+     * The solver measures the remoteness floors zone-locally (permille
+     * of the ZONE's own max field distances — the wildest spot that
+     * zone offers) and boss fallback stays inside the zone. Requires
+     * zones.count >= 2.
+     */
+    readonly worldBossPerZone: number;
     readonly minWorldBossBand: number;
   };
   readonly dungeonAnchors: {
@@ -307,6 +317,10 @@ const BUDGET_FIELDS: Readonly<Record<string, FieldSpec>> = {
   encounterCapPerRegion: { min: 0, max: 64, fallback: 6 },
   dungeonCapPerRegion: { min: 0, max: 64, fallback: 2 },
   worldBossCount: { min: 0, max: 64, fallback: 1 },
+  // Round 8: > 0 allocates this many bosses to EVERY non-home zone
+  // (worldBossCount is then unused) with zone-local remoteness floors
+  // and zone-bound fallback. Requires zones.count >= 2.
+  worldBossPerZone: { min: 0, max: 8, fallback: 0 },
   minWorldBossBand: { min: 0, max: 15, fallback: 2 },
 };
 
@@ -422,6 +436,9 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   }
 
   const budgets = sectionOf(raw, "budgets", BUDGET_FIELDS);
+  if ((budgets["worldBossPerZone"] as number) > 0 && (zones["count"] as number) < 2) {
+    throw new RecipeError("recipe: $.budgets.worldBossPerZone requires $.zones.count >= 2");
+  }
   if ((budgets["majorRegionCells"] as number) < (budgets["minRegionCells"] as number)) {
     throw new RecipeError("recipe: budgets.majorRegionCells must be >= budgets.minRegionCells");
   }
@@ -655,6 +672,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       encounterCapPerRegion: budgets["encounterCapPerRegion"] as number,
       dungeonCapPerRegion: budgets["dungeonCapPerRegion"] as number,
       worldBossCount: budgets["worldBossCount"] as number,
+      worldBossPerZone: budgets["worldBossPerZone"] as number,
       minWorldBossBand: budgets["minWorldBossBand"] as number,
     },
     dungeonAnchors: { poiTypes },

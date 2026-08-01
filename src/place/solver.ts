@@ -154,6 +154,18 @@ interface SolverState {
   readonly labelById: ReadonlyMap<string, number>;
   readonly inNoContent: (x: number, y: number) => boolean;
   readonly preferBonusAt: (x: number, y: number) => number;
+  /**
+   * Per-zone boss mode (round 8): region -> zone lookup plus each
+   * zone's own max settlement/road field distances. Boss remoteness
+   * floors then measure permille of the ZONE's maxima — the wildest
+   * spot that zone offers — and boss fallback stays inside the zone.
+   * Null when worldBossPerZone is off or the plan carries no zones.
+   */
+  readonly zoneBossScope: {
+    readonly zoneOfRegion: ReadonlyMap<string, number>;
+    readonly settlementMax: readonly number[];
+    readonly roadMax: readonly number[];
+  } | null;
 }
 
 function regionChannel(state: SolverState, regionId: string): Channel {
@@ -415,8 +427,15 @@ function placeBoss(state: SolverState, regionId: string, slot: number, peerField
   const rule = recipe.worldBossRule;
   const label = state.labelById.get(regionId) as number;
   const side = rule.minClearance;
-  const settlementMax = Math.max(1, bundle.summary.fieldStats["distanceFromSettlements"]?.max ?? 1);
-  const roadMax = Math.max(1, bundle.summary.fieldStats["distanceFromRoads"]?.max ?? 1);
+  const bossZone = state.zoneBossScope?.zoneOfRegion.get(regionId);
+  const settlementMax =
+    state.zoneBossScope !== null && bossZone !== undefined
+      ? Math.max(1, state.zoneBossScope.settlementMax[bossZone] as number)
+      : Math.max(1, bundle.summary.fieldStats["distanceFromSettlements"]?.max ?? 1);
+  const roadMax =
+    state.zoneBossScope !== null && bossZone !== undefined
+      ? Math.max(1, state.zoneBossScope.roadMax[bossZone] as number)
+      : Math.max(1, bundle.summary.fieldStats["distanceFromRoads"]?.max ?? 1);
 
   interface BossCandidate {
     readonly cellIndex: number;
@@ -692,6 +711,30 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
   const inRect = (rect: readonly [number, number, number, number], x: number, y: number): boolean =>
     x >= rect[0] && x <= rect[2] && y >= rect[1] && y <= rect[3];
 
+  // Per-zone boss scope (round 8): zone lookup + each zone's own max
+  // settlement/road field distances, from one deterministic cell pass.
+  let zoneBossScope: SolverState["zoneBossScope"] = null;
+  if (recipe.budgets.worldBossPerZone > 0 && plan.zones !== undefined) {
+    const zoneOfRegion = new Map<string, number>();
+    plan.zones.forEach((zone, index) => {
+      for (const regionId of zone.memberRegionIds) zoneOfRegion.set(regionId, index);
+    });
+    const zoneOfLabel = bundle.regions.map((region) => zoneOfRegion.get(region.id) ?? -1);
+    const settlementMax = new Array<number>(plan.zones.length).fill(0);
+    const roadMax = new Array<number>(plan.zones.length).fill(0);
+    for (let index = 0; index < width * height; index += 1) {
+      const label = bundle.regionLabels[index] as number;
+      if (label === -1) continue;
+      const zone = zoneOfLabel[label] as number;
+      if (zone === -1) continue;
+      const settlement = bundle.distanceFromSettlements[index] as number;
+      const road = bundle.distanceFromRoads[index] as number;
+      if (settlement !== UNREACHABLE && settlement > (settlementMax[zone] as number)) settlementMax[zone] = settlement;
+      if (road !== UNREACHABLE && road > (roadMax[zone] as number)) roadMax[zone] = road;
+    }
+    zoneBossScope = { zoneOfRegion, settlementMax, roadMax };
+  }
+
   const state: SolverState = {
     model,
     bundle,
@@ -714,6 +757,7 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
       }
       return best;
     },
+    zoneBossScope,
   };
 
   // Anchor POIs grouped per region (same nearest-region snap as the plan).
@@ -928,7 +972,10 @@ export function solvePlacements(model: WorldModel, bundle: AnalysisBundle, plan:
         candidate.regionClass !== "minor" &&
         candidate.dangerBand !== null &&
         candidate.dangerBand >= recipe.budgets.minWorldBossBand &&
-        candidate.budgets.worldBosses === 0,
+        candidate.budgets.worldBosses === 0 &&
+        // Per-zone mode: a zone's boss never falls back out of its zone.
+        (state.zoneBossScope === null ||
+          state.zoneBossScope.zoneOfRegion.get(candidate.id) === state.zoneBossScope.zoneOfRegion.get(region.id)),
       )
       .sort((a, b) =>
         a.hostileWalkableCells !== b.hostileWalkableCells

@@ -241,6 +241,12 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
   // stay byte-identical to the pre-zone era.
   const zones: ZoneClustering | null =
     recipe.zones.count >= 2 ? clusterZones(bundle.regions, recipe.zones.count) : null;
+  // The spawn's zone ("home") — chapter one for zonal banding, and the
+  // one zone per-zone boss allocation skips.
+  const [spawnCellX, spawnCellY] = bundle.summary.spawnCell;
+  const spawnRegionLabel = nearestRegionLabel(bundle.regionLabels, width, height, spawnCellX, spawnCellY);
+  const homeZone: number =
+    zones === null || spawnRegionLabel === -1 ? -1 : (zones.zoneOfRegion[spawnRegionLabel] as number);
 
   // Band assignment. "linear" splits the world's max spawn distance evenly,
   // so the deepest band exists only in the single farthest pocket;
@@ -327,11 +333,8 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     // The spawn's zone is ALWAYS the first chapter — its near ground is
     // safe-zone-eaten, so a wilderness median would mismeasure the home
     // zone as far country. The rest rank by where their bulk lies.
-    const [spawnX, spawnY] = bundle.summary.spawnCell;
-    const spawnLabel = nearestRegionLabel(bundle.regionLabels, width, height, spawnX, spawnY);
-    const spawnZone = spawnLabel === -1 ? -1 : (zones.zoneOfRegion[spawnLabel] as number);
     const ranked = byZone
-      .map((entries, zone) => ({ zone, median: zone === spawnZone ? -1 : zoneMedian(entries) }))
+      .map((entries, zone) => ({ zone, median: zone === homeZone ? -1 : zoneMedian(entries) }))
       .sort((a, b) => (a.median !== b.median ? a.median - b.median : a.zone - b.zone));
     // Contiguous windows over bands 1..bandCount-1; the remainder widens
     // the DEEPEST zones.
@@ -594,17 +597,44 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     if (regionA.cellCount !== regionB.cellCount) return regionB.cellCount - regionA.cellCount;
     return regionA.anchorIndex - regionB.anchorIndex;
   });
-  const allocatedBosses = Math.min(budgets.worldBossCount, bossEligible.length);
-  for (let n = 0; n < allocatedBosses; n += 1) {
-    const index = bossEligible[n] as number;
-    const plan = regionPlans[index] as RegionPlan;
-    regionPlans[index] = { ...plan, budgets: { ...plan.budgets, worldBosses: 1 } };
-  }
   const worldWaivers: string[] = [];
-  if (allocatedBosses < budgets.worldBossCount) {
-    worldWaivers.push(
-      `world_boss_shortfall: ${allocatedBosses} of ${budgets.worldBossCount} allocated (eligible regions: ${bossEligible.length})`,
-    );
+  let bossTarget = budgets.worldBossCount;
+  let allocatedBosses = 0;
+  if (budgets.worldBossPerZone > 0 && zones !== null) {
+    // Round 8: every non-home zone carries its own named challenges;
+    // each zone allocates from ITS OWN eligible regions, largest first
+    // (bossEligible is already globally sorted), with a per-zone waiver
+    // on shortfall. The home zone never hosts a world boss.
+    const farZones = zones.zones.map((_, zone) => zone).filter((zone) => zone !== homeZone);
+    bossTarget = budgets.worldBossPerZone * farZones.length;
+    for (const zone of farZones) {
+      const zoneEligible = bossEligible.filter((index) => (zones.zoneOfRegion[index] as number) === zone);
+      const take = Math.min(budgets.worldBossPerZone, zoneEligible.length);
+      for (let n = 0; n < take; n += 1) {
+        const index = zoneEligible[n] as number;
+        const plan = regionPlans[index] as RegionPlan;
+        regionPlans[index] = { ...plan, budgets: { ...plan.budgets, worldBosses: 1 } };
+      }
+      allocatedBosses += take;
+      if (take < budgets.worldBossPerZone) {
+        worldWaivers.push(
+          `world_boss_shortfall_zone: ${(zones.zones[zone] as MacroZone).id} ${take} of ` +
+            `${budgets.worldBossPerZone} allocated (eligible regions: ${zoneEligible.length})`,
+        );
+      }
+    }
+  } else {
+    allocatedBosses = Math.min(budgets.worldBossCount, bossEligible.length);
+    for (let n = 0; n < allocatedBosses; n += 1) {
+      const index = bossEligible[n] as number;
+      const plan = regionPlans[index] as RegionPlan;
+      regionPlans[index] = { ...plan, budgets: { ...plan.budgets, worldBosses: 1 } };
+    }
+    if (allocatedBosses < budgets.worldBossCount) {
+      worldWaivers.push(
+        `world_boss_shortfall: ${allocatedBosses} of ${budgets.worldBossCount} allocated (eligible regions: ${bossEligible.length})`,
+      );
+    }
   }
 
   // Progression traps: wilderness regions whose unavoidable route crosses
@@ -649,7 +679,7 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     spawnRegionId,
     regions: sortedRegions,
     worldBudget: {
-      worldBosses: { target: budgets.worldBossCount, allocated: allocatedBosses },
+      worldBosses: { target: bossTarget, allocated: allocatedBosses },
       territories: regionPlans.reduce((sum, region) => sum + region.budgets.territories, 0),
       encounterSites: regionPlans.reduce((sum, region) => sum + region.budgets.encounterSites, 0),
       dungeonBindings: regionPlans.reduce((sum, region) => sum + region.budgets.dungeonBindings, 0),

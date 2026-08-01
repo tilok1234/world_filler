@@ -13,12 +13,12 @@
     "settlementReliefDepthPermille": 250
   },
   "budgets": {
-    "worldBossCount": 3,
     "encountersPer1000Walkable": 3,
     "encounterCapPerRegion": 2,
     "territoriesPer1000Walkable": 4,
     "territoryCapPerRegion": 2,
-    "minRegionCells": 40
+    "minRegionCells": 40,
+    "worldBossPerZone": 1
   },
   "worldBossRule": {
     "minSettlementDistancePermille": 320,
