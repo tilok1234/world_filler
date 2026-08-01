@@ -6,18 +6,20 @@ import { renderTerrain, upscaleRgba } from "./heatmaps.js";
 
 /**
  * Danger-band render: each region tinted by its band over a dimmed
- * terrain base. Band 0 (civilized/safe ground) is a pale neutral so it
- * reads as "town land", NOT as a rung of the danger ramp — remote
- * settlements paint band 0 deep in hard country, and coloring them with
- * the ramp's coolest color made the map read as broken zones (dusk
- * rehearsal round-3 verdict). Wilderness bands ramp green -> yellow ->
- * red -> purple; unbanded regions (unreachable) stay dim. Inspection
- * evidence, not contract.
+ * terrain base. Band 0 (civilized/safe ground) is BLUE — town land as
+ * friendly cartography (dusk round-9 wish "cities or safe zones had a
+ * color") — with the sanctuary cells themselves a brighter light blue
+ * so city cores glow inside their settled country. Blue never touches
+ * the wilderness ramp (green -> yellow -> red -> purple), so it cannot
+ * be misread as a danger rung the way the round-3 gradient was.
+ * Unbanded regions (unreachable) stay dim. Inspection evidence, not
+ * contract.
  */
 
 type Rgb = readonly [number, number, number];
 
-const BAND0: Rgb = [178, 190, 202];
+const BAND0: Rgb = [95, 155, 235];
+const SANCTUARY: Rgb = [155, 200, 250];
 const RAMP: readonly Rgb[] = [
   [90, 180, 95],
   [225, 205, 80],
@@ -141,7 +143,7 @@ export function renderDanger(
     if (label === -1) continue;
     const band = bandByLabel.get(labelToId[label] as string);
     if (band === null || band === undefined) continue;
-    const color = bandColor(band, bandCount);
+    const color = band === 0 && bundle.safeZone[index] === 1 ? SANCTUARY : bandColor(band, bandCount);
     const offset = index * 4;
     rgba[offset] = color[0];
     rgba[offset + 1] = color[1];
