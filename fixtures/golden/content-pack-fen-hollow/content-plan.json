@@ -10,8 +10,8 @@
     "progressionWarnings": [],
     "worldWaivers": []
   },
-  "directorBehaviorVersion": 17,
-  "directorRecipeSha256": "31468e2902f4ffd9cceadeac9fec6e8e311662bf4c96db65e4201dc87b246c55",
+  "directorBehaviorVersion": 18,
+  "directorRecipeSha256": "c57668ea8593eac98481b9841a5437a76f0d29b77be5398b2df4a184b34f73f5",
   "directorSeed": 103991,
   "planFormat": 1,
   "recipeName": "basic-direction",
@@ -3534,7 +3534,7 @@
     "analysis": 4,
     "export": 3,
     "placement": 6,
-    "plan": 6,
+    "plan": 7,
     "territory": 4,
     "validate": 3
   },

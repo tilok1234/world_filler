@@ -31,5 +31,8 @@
     "spacing": 2,
     "minCells": 40
   },
-  "encounterRule": {}
+  "encounterRule": {},
+  "zones": {
+    "count": 4
+  }
 }

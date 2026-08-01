@@ -96,6 +96,19 @@ export interface DirectorRecipe {
     /** Scale-free floor: anchors closer to settlements than this permille of the world max are not bound (0 = off). */
     readonly minSettlementDistancePermille: number;
   };
+  /**
+   * Macro-zones (dusk round 5): the designer-facing geography layer.
+   * count = 0 (default) emits no zones; with K >= 2 the substantial
+   * regions cluster into K geography-following zones — cores are the K
+   * largest connected biome-FAMILY components of the region graph (the
+   * snow country seeds one zone no matter how many fine regions the
+   * cap split it into), every remaining region joins the nearest core
+   * by region-graph distance. Zones are reporting/creative vocabulary
+   * over the fine regions; the solver's units are unchanged.
+   */
+  readonly zones: {
+    readonly count: number;
+  };
   readonly encounterRule: {
     readonly exclusionRadius: number;
     /** Score weight for being NEAR travel routes — encounters are stumbled on, not hidden. */
@@ -233,6 +246,11 @@ const DUNGEON_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   minSettlementDistancePermille: { min: 0, max: 1000, fallback: 0 },
 };
 
+const ZONE_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  // 0 = no zone layer; K >= 2 clusters the map into K macro-zones.
+  count: { min: 0, max: 8, fallback: 0 },
+};
+
 const ENCOUNTER_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   // Radius 3 by default: big enough to keep set pieces clear of ambient
   // spawns, small enough not to starve territory ground on 64² worlds.
@@ -313,6 +331,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     [
       "recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors",
       "worldBossRule", "dungeonRule", "encounterRule", "territoryRule", "contentLibrary", "rerolls", "locks", "paint",
+      "zones",
     ],
     "$",
   );
@@ -387,6 +406,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   const worldBossRule = sectionOf(raw, "worldBossRule", WORLD_BOSS_RULE_FIELDS);
   const dungeonRule = sectionOf(raw, "dungeonRule", DUNGEON_RULE_FIELDS);
   const encounterRule = sectionOf(raw, "encounterRule", ENCOUNTER_RULE_FIELDS);
+  const zones = sectionOf(raw, "zones", ZONE_FIELDS);
 
   const territoryRule = sectionOf(raw, "territoryRule", TERRITORY_RULE_FIELDS, ["respawnPressure"]);
   const territoryRecord = raw["territoryRule"] === undefined ? {} : requireObject(raw["territoryRule"], "$.territoryRule");
@@ -624,6 +644,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       settlementFarPermille: dungeonRule["settlementFarPermille"] as number,
       minSettlementDistancePermille: dungeonRule["minSettlementDistancePermille"] as number,
     },
+    zones: { count: zones["count"] as number },
     encounterRule: {
       exclusionRadius: encounterRule["exclusionRadius"] as number,
       roadNearPermille: encounterRule["roadNearPermille"] as number,

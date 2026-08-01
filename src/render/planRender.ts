@@ -25,6 +25,80 @@ const RAMP: readonly Rgb[] = [
   [155, 60, 190],
 ];
 
+/** Fixed zone palette: distinct hues, index-stable (append-only). */
+const ZONE_COLORS: readonly Rgb[] = [
+  [96, 165, 120],  // green country
+  [200, 160, 90],  // dry country
+  [150, 170, 220], // cold country
+  [140, 110, 170], // wetlands
+  [210, 120, 110],
+  [110, 190, 190],
+  [190, 190, 110],
+  [170, 130, 130],
+];
+
+/**
+ * Macro-zone render: each zone filled with its palette color over the
+ * dim terrain base, zone borders darkened. Cells inherit the zone of
+ * their region; void cells stay dim terrain.
+ */
+export function renderZones(
+  model: WorldModel,
+  bundle: AnalysisBundle,
+  plan: RegionalPlan,
+  scale: number = 1,
+): Uint8Array {
+  const { width, height } = model.dimensions;
+  const zones = plan.zones ?? [];
+  const zoneOfRegionId = new Map<string, number>();
+  zones.forEach((zone, index) => {
+    for (const regionId of zone.memberRegionIds) zoneOfRegionId.set(regionId, index);
+  });
+  const regionIdByLabel = new Map<number, string>();
+  bundle.regions.forEach((region, index) => regionIdByLabel.set(index, region.id));
+
+  const zoneAt = new Int32Array(width * height).fill(-1);
+  for (let i = 0; i < width * height; i += 1) {
+    const label = bundle.regionLabels[i] as number;
+    if (label === -1) continue;
+    const regionId = regionIdByLabel.get(label);
+    if (regionId === undefined) continue;
+    const zone = zoneOfRegionId.get(regionId);
+    if (zone !== undefined) zoneAt[i] = zone;
+  }
+
+  const terrain = renderTerrain(model);
+  const rgba = new Uint8Array(terrain.length);
+  for (let i = 0; i < terrain.length; i += 4) {
+    rgba[i] = Math.floor(((terrain[i] as number) * 11) / 20);
+    rgba[i + 1] = Math.floor(((terrain[i + 1] as number) * 11) / 20);
+    rgba[i + 2] = Math.floor(((terrain[i + 2] as number) * 11) / 20);
+    rgba[i + 3] = 255;
+  }
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = y * width + x;
+      const zone = zoneAt[index] as number;
+      if (zone === -1) continue;
+      const color = ZONE_COLORS[zone % ZONE_COLORS.length] as Rgb;
+      let edge = false;
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        const other = zoneAt[ny * width + nx] as number;
+        if (other !== -1 && other !== zone) edge = true;
+      }
+      const dim = edge ? 4 : 10;
+      const offset = index * 4;
+      rgba[offset] = Math.floor(((color[0] as number) * dim) / 10);
+      rgba[offset + 1] = Math.floor(((color[1] as number) * dim) / 10);
+      rgba[offset + 2] = Math.floor(((color[2] as number) * dim) / 10);
+    }
+  }
+  return encodePng(width * scale, height * scale, upscaleRgba(rgba, width, height, scale));
+}
+
 export function bandColor(band: number, bandCount: number): Rgb {
   if (band === 0) return BAND0;
   const steps = Math.max(1, bandCount - 2);

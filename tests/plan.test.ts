@@ -283,3 +283,49 @@ describe("settlement-relief danger blend (sl-0073, behavior 17)", () => {
     assert.equal(canonicalJson(on), canonicalJson(planFor(8000, 1000)));
   });
 });
+
+describe("macro-zones (dusk round 5, behavior 18)", () => {
+  const stripWorld = () => {
+    // Mud strip wider than either grass strip so the wet component
+    // outweighs both green ones: cores = heaviest per the contract.
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 23; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    return artifact;
+  };
+  const planWithZones = (count: number) => {
+    const model = new WorldModel(stripWorld());
+    return compilePlan(model, analyzeWorld(model), normalizeRecipe({ ...MINIMAL, name: "zoned-strips", zones: { count } }));
+  };
+
+  it("emits no zones key when off, K geography-following zones when on, deterministically", () => {
+    assert.equal(planWithZones(0).zones, undefined);
+
+    const plan = planWithZones(2);
+    assert.ok(plan.zones !== undefined);
+    assert.equal(plan.zones.length, 2);
+    // Cores: the west grass strip (green, tie-break on smallest anchor)
+    // and the mud strip (wet). The east grass strip is graph-adjacent
+    // only to the mud strip, so it joins the wet zone.
+    const families = plan.zones.map((zone) => zone.family).sort();
+    assert.deepEqual(families, ["green", "wet"]);
+    const allMembers = plan.zones.flatMap((zone) => [...zone.memberRegionIds]);
+    assert.equal(new Set(allMembers).size, allMembers.length, "no region in two zones");
+    const planRegionIds = plan.regions.map((region) => region.id).sort();
+    assert.deepEqual([...allMembers].sort(), planRegionIds, "every region belongs to a zone");
+
+    const again = planWithZones(2);
+    assert.deepEqual(JSON.parse(canonicalJson(again)).zones, JSON.parse(canonicalJson(plan)).zones);
+  });
+
+  it("waives honestly when the geography offers fewer family components than requested", () => {
+    const plan = planWithZones(4);
+    assert.ok(plan.zones !== undefined);
+    assert.equal(plan.zones.length, 3); // west grass, mud, east grass
+    assert.ok(
+      plan.checks.worldWaivers.some((waiver) => waiver.startsWith("zone_shortfall: 3 of 4")),
+      `expected zone_shortfall waiver, got ${JSON.stringify(plan.checks.worldWaivers)}`,
+    );
+  });
+});

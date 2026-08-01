@@ -5,7 +5,7 @@ import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
 import { checkParity } from "./parity.js";
 import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary } from "./analysis/analyze.js";
 import { renderAnalysis } from "./render/heatmaps.js";
-import { renderDanger } from "./render/planRender.js";
+import { renderDanger, renderZones } from "./render/planRender.js";
 import { renderPlacements } from "./render/placeRender.js";
 import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
 import { compilePlan } from "./plan/plan.js";
@@ -195,6 +195,9 @@ function runPlan(dir: string, recipePath: string, outArg: string | undefined): n
   mkdirSync(join(outDir, "renders"), { recursive: true });
   writeFileSync(join(outDir, "content-plan.json"), canonicalJson(plan));
   writeFileSync(join(outDir, "renders", "danger.png"), renderDanger(model, bundle, plan, recipe.danger.bandCount));
+  if (plan.zones !== undefined) {
+    writeFileSync(join(outDir, "renders", "zones.png"), renderZones(model, bundle, plan));
+  }
 
   console.log(`plan: ${recipe.name} (${recipeSha256(recipe).slice(0, 12)}…) over ${basename(dir)}`);
   console.log(`spawn region: ${plan.spawnRegionId}`);

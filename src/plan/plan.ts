@@ -1,4 +1,5 @@
 import type { WorldModel } from "../world/model.js";
+import { clusterZones, type MacroZone, type ZoneClustering } from "./zones.js";
 import type { AnalysisBundle } from "../analysis/analyze.js";
 import { UNREACHABLE } from "../analysis/fields.js";
 import type { DirectorRecipe } from "../recipe/schema.js";
@@ -56,6 +57,8 @@ export interface RegionalPlan {
   };
   readonly spawnRegionId: string;
   readonly regions: readonly RegionPlan[];
+  /** Macro-zones — present only when the recipe's zones.count >= 2. */
+  readonly zones?: readonly MacroZone[];
   readonly worldBudget: {
     readonly worldBosses: { readonly target: number; readonly allocated: number };
     readonly territories: number;
@@ -551,6 +554,19 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
   }
   progressionWarnings.sort((a, b) => (a.regionId < b.regionId ? -1 : 1));
 
+  // Macro-zones (round 5): reporting/creative geography over the fine
+  // regions; emitted only when the recipe asks, so zone-less plans stay
+  // byte-identical to the pre-zone era.
+  let zones: ZoneClustering | null = null;
+  if (recipe.zones.count >= 2) {
+    zones = clusterZones(bundle.regions, recipe.zones.count);
+    if (zones.shortfall > 0) {
+      worldWaivers.push(
+        `zone_shortfall: ${zones.zones.length} of ${recipe.zones.count} zones (family components available: ${zones.zones.length})`,
+      );
+    }
+  }
+
   const sortedRegions = [...regionPlans].sort((a, b) => (a.id < b.id ? -1 : 1));
 
   return {
@@ -576,6 +592,7 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
       dungeonBindings: regionPlans.reduce((sum, region) => sum + region.budgets.dungeonBindings, 0),
     },
     unassignedDungeonAnchors,
+    ...(zones === null ? {} : { zones: zones.zones }),
     checks: { progressionWarnings, worldWaivers },
   };
 }

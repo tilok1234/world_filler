@@ -57,13 +57,21 @@ export const DIRECTOR_VERSION = "0.1.0";
 // pure spawn-distance danger, byte-identical to behavior 16. The
 // normalized recipe gains the two fields, so recipe identity hashes
 // move (golden re-recorded).
-export const DIRECTOR_BEHAVIOR_VERSION = 17;
+// 18: plan 7 — macro-zones (dusk round 5, the designer's sketch: "a
+// small map like this should be like 4 zones depending on the
+// geography"): opt-in zones.count clusters the fine regions into K
+// geography-following zones (heaviest same-biome-family components of
+// the region graph seed cores; the rest join by graph distance). A
+// reporting/creative layer — solver units unchanged; zone-less plans
+// byte-identical modulo the recipe-identity field.
+export const DIRECTOR_BEHAVIOR_VERSION = 18;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
   analysis: 4,
   // 6: settlement-relief danger blend (behavior 17, sl-0073).
-  plan: 6,
+  // 7: macro-zones layer (behavior 18, dusk round 5).
+  plan: 7,
   placement: 6,
   territory: 4,
   validate: 3,
