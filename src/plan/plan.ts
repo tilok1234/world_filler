@@ -99,10 +99,90 @@ function nearestRegionLabel(
   return -1;
 }
 
+/**
+ * Settlement-relief grid (sl-0073, dusk round 4): per cell, the single
+ * strongest relief any settlement grants — belt reach scales with the
+ * settlement's recorded radius (capital wide, outpost thin), relief
+ * fades linearly from the walls to the belt edge, overlaps take max
+ * (never sum), so belts cannot chain into corridors and far country is
+ * untouched. Sources are walkable cells within Chebyshev 2 of the
+ * settlement's structure footprints (the guards' reach starts at the
+ * buildings), with the nudged anchor as fallback. Deterministic: fixed
+ * settlement order, level-order BFS, max() is order-independent.
+ */
+function settlementReliefGrid(
+  model: WorldModel,
+  bits: Readonly<Uint8Array>,
+  reachPermille: number,
+  depthPermille: number,
+): Int32Array {
+  const { width, height } = model.dimensions;
+  const relief = new Int32Array(width * height);
+  for (const settlement of model.settlements) {
+    const reach = Math.floor((settlement.radius * reachPermille) / 1000);
+    if (reach <= 0) continue;
+    const sources: number[] = [];
+    const seen = new Uint8Array(width * height);
+    for (const structure of settlement.structures) {
+      const [sx, sy] = structure.cell;
+      const [fw, fh] = structure.footprint;
+      for (let y = sy - 2; y < sy + fh + 2; y += 1) {
+        for (let x = sx - 2; x < sx + fw + 2; x += 1) {
+          if (x < 0 || y < 0 || x >= width || y >= height) continue;
+          const index = y * width + x;
+          if (bits[index] === 1 && seen[index] === 0) {
+            seen[index] = 1;
+            sources.push(index);
+          }
+        }
+      }
+    }
+    if (sources.length === 0) {
+      const nudged = model.nudgeToWalkable(settlement.anchor[0], settlement.anchor[1], bits);
+      if (nudged === null) continue;
+      const index = nudged[1] * width + nudged[0];
+      seen[index] = 1;
+      sources.push(index);
+    }
+    sources.sort((a, b) => a - b);
+    const queue: number[] = [...sources];
+    const depth = new Int32Array(width * height);
+    for (let head = 0; head < queue.length; head += 1) {
+      const index = queue[head] as number;
+      const d = depth[index] as number;
+      const granted = Math.floor(((reach - d) * depthPermille) / 1000);
+      if (granted > (relief[index] as number)) relief[index] = granted;
+      if (d + 1 >= reach) continue;
+      const x = index % width;
+      const y = (index - x) / width;
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        const next = ny * width + nx;
+        if (bits[next] !== 1 || seen[next] === 1) continue;
+        seen[next] = 1;
+        depth[next] = d + 1;
+        queue.push(next);
+      }
+    }
+  }
+  return relief;
+}
+
 export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: DirectorRecipe): RegionalPlan {
   const { width, height } = model.dimensions;
   const regionCount = bundle.regions.length;
   const { danger, budgets } = recipe;
+
+  // Settlement-relief blend (sl-0073): subtract each settlement's belt
+  // from the spawn-distance field BEFORE bands are ranked, so both
+  // assignment modes see the blended danger geography. Off (null) when
+  // either knob is 0 — the pure spawn-distance fallback.
+  const relief =
+    danger.settlementReliefReachPermille > 0 && danger.settlementReliefDepthPermille > 0
+      ? settlementReliefGrid(model, bundle.bits, danger.settlementReliefReachPermille, danger.settlementReliefDepthPermille)
+      : null;
 
   // Per-region walkability, reachability, safety, and spawn-distance stats.
   const walkableCells = new Array<number>(regionCount).fill(0);
@@ -120,7 +200,8 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     const distance = bundle.distanceFromSpawn[index] as number;
     if (distance !== UNREACHABLE) {
       reachableCells[label] = (reachableCells[label] as number) + 1;
-      (distances[label] as number[]).push(distance);
+      const relieved = relief === null ? distance : Math.max(0, distance - (relief[index] as number));
+      (distances[label] as number[]).push(relieved);
     }
   }
 

@@ -32,6 +32,21 @@ export interface DirectorRecipe {
     readonly maxBandJump: number;
     readonly safeZoneShareForBand0Permille: number;
     /**
+     * Settlement-relief blend (sl-0073, dusk round 4): safety radiates
+     * from EVERY settlement. Each settlement carves a relief belt into
+     * the spawn-distance danger field before bands are ranked — belt
+     * reach = its recorded radius x reachPermille/1000 path steps (the
+     * capital's calm reaches far, an outpost's is a thin waystation
+     * pocket), relief fading linearly from full at the walls to zero at
+     * the belt edge, scaled by depthPermille. Overlapping belts take
+     * the single strongest relief (never summed), so belts cannot
+     * chain into safe corridors and deep country far from every
+     * settlement is untouched. Both 0 (the default) = pure
+     * spawn-distance danger, the pre-round-4 model.
+     */
+    readonly settlementReliefReachPermille: number;
+    readonly settlementReliefDepthPermille: number;
+    /**
      * How wilderness bands are assigned: "linear" splits the world's max
      * spawn distance evenly (the deepest band exists only in the single
      * farthest pocket); "quantile" gives each band an equal share of
@@ -193,6 +208,11 @@ const DANGER_FIELDS: Readonly<Record<string, FieldSpec>> = {
   maxBandJump: { min: 1, max: 8, fallback: 2 },
   safeZoneShareForBand0Permille: { min: 0, max: 1000, fallback: 300 },
   endgamePockets: { min: 0, max: 8, fallback: 0 },
+  // 0/0 = off (pure spawn-distance danger). Reach multiplies each
+  // settlement's recorded radius into a belt of path steps; depth scales
+  // the linear fade.
+  settlementReliefReachPermille: { min: 0, max: 8000, fallback: 0 },
+  settlementReliefDepthPermille: { min: 0, max: 1000, fallback: 0 },
 };
 
 const WORLD_BOSS_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
@@ -570,6 +590,8 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       bandCount: danger["bandCount"] as number,
       maxBandJump: danger["maxBandJump"] as number,
       safeZoneShareForBand0Permille: danger["safeZoneShareForBand0Permille"] as number,
+      settlementReliefReachPermille: danger["settlementReliefReachPermille"] as number,
+      settlementReliefDepthPermille: danger["settlementReliefDepthPermille"] as number,
       assignment: assignmentRaw,
       endgamePockets: danger["endgamePockets"] as number,
       overrides,

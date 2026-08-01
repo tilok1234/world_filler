@@ -49,12 +49,21 @@ export const DIRECTOR_VERSION = "0.1.0";
 // seeds, equidistance seam). Region geometry and ids move on every world
 // with oversized patches; invalidated locks are diagnosed per the
 // designed migration.
-export const DIRECTOR_BEHAVIOR_VERSION = 16;
+// 17: plan 6 — settlement-relief danger blend (sl-0073, dusk round 4):
+// safety radiates from every settlement. Opt-in recipe knobs
+// danger.settlementRelief{Reach,Depth}Permille subtract tier-scaled
+// (recorded-radius-scaled) linear-fade belts from the spawn-distance
+// field before bands rank; overlaps take max, never sum. Both 0 =
+// pure spawn-distance danger, byte-identical to behavior 16. The
+// normalized recipe gains the two fields, so recipe identity hashes
+// move (golden re-recorded).
+export const DIRECTOR_BEHAVIOR_VERSION = 17;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
   analysis: 4,
-  plan: 5,
+  // 6: settlement-relief danger blend (behavior 17, sl-0073).
+  plan: 6,
   placement: 6,
   territory: 4,
   validate: 3,

@@ -227,3 +227,59 @@ describe("regional content plan", () => {
     assert.deepEqual(right.budgets, { territories: 0, encounterSites: 0, dungeonBindings: 0, worldBosses: 0 });
   });
 });
+
+describe("settlement-relief danger blend (sl-0073, behavior 17)", () => {
+  // 32x32, three vertical biome strips; spawn (0,0) in the west strip,
+  // one radius-5 outpost deep in the east strip. Without relief the east
+  // strip is the farthest wilderness; with relief its effective median
+  // drops well below the middle strip's.
+  const makeStripWorld = () => {
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 21; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    artifact.settlements.push({
+      id: 0,
+      kind: "outpost",
+      purpose: "waypoint",
+      anchor: [30, 30],
+      radius: 5,
+      structures: [{ type: "structure.house", cell: [29, 30], footprint: [2, 1] }],
+    });
+    return artifact;
+  };
+  const planFor = (reach: number, depth: number, explicitOff = false) => {
+    const model = new WorldModel(makeStripWorld());
+    const bundle = analyzeWorld(model);
+    const danger =
+      explicitOff || reach > 0
+        ? { danger: { settlementReliefReachPermille: reach, settlementReliefDepthPermille: depth } }
+        : {};
+    return compilePlan(model, bundle, normalizeRecipe({ ...MINIMAL, name: "relief-strips", ...danger }));
+  };
+  const bandOf = (plan: ReturnType<typeof compilePlan>, biome: string, xMin: number): number => {
+    const region = plan.regions.find(
+      (candidate) => candidate.biome === biome && (candidate as { id: string }).id !== undefined && candidate.dangerBand !== null,
+    );
+    assert.ok(region !== undefined, `no banded ${biome} region`);
+    return region.dangerBand as number;
+  };
+
+  it("omitted knobs and explicit zeros produce byte-identical plans (the fallback contract)", () => {
+    assert.equal(canonicalJson(planFor(0, 0)), canonicalJson(planFor(0, 0, true)));
+  });
+
+  it("relief pulls the settled far strip below the unsettled middle wilds, deterministically", () => {
+    const off = planFor(0, 0);
+    const on = planFor(8000, 1000);
+    const eastOff = off.regions.find((region) => region.id.startsWith("region.grass.") && region.medianSpawnDistance !== null && region.medianSpawnDistance > 30);
+    const eastOn = on.regions.find((region) => region.id === eastOff?.id);
+    assert.ok(eastOff !== undefined && eastOn !== undefined, "east grass region exists in both runs");
+    assert.ok(eastOff.dangerBand !== null && eastOn.dangerBand !== null);
+    assert.ok(
+      (eastOn.dangerBand as number) < (eastOff.dangerBand as number),
+      `relief must lower the settled strip: off ${eastOff.dangerBand} -> on ${eastOn.dangerBand}`,
+    );
+    assert.equal(canonicalJson(on), canonicalJson(planFor(8000, 1000)));
+  });
+});

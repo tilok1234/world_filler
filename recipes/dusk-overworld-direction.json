@@ -8,7 +8,9 @@
   "danger": {
     "assignment": "quantile",
     "endgamePockets": 3,
-    "bandCount": 7
+    "bandCount": 7,
+    "settlementReliefReachPermille": 3000,
+    "settlementReliefDepthPermille": 250
   },
   "budgets": {
     "worldBossCount": 3,

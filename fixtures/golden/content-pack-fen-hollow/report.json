@@ -4,8 +4,8 @@
     "artifactFormat": 8,
     "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da"
   },
-  "directorBehaviorVersion": 16,
-  "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
+  "directorBehaviorVersion": 17,
+  "directorRecipeSha256": "31468e2902f4ffd9cceadeac9fec6e8e311662bf4c96db65e4201dc87b246c55",
   "gates": [
     {
       "details": [],
@@ -69,7 +69,7 @@
     "analysis": 4,
     "export": 3,
     "placement": 6,
-    "plan": 5,
+    "plan": 6,
     "territory": 4,
     "validate": 3
   },
