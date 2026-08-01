@@ -115,6 +115,20 @@ export interface DirectorRecipe {
   readonly zones: {
     readonly count: number;
   };
+  /**
+   * Sanctuary scaling (dusk round 7): per-kind permille of each
+   * settlement's recorded safe radius, floored at its built-up radius
+   * (farthest structure + 2) so buildings never stand outside
+   * sanctuary. 1000 (default) = the recorded radius, byte-identical to
+   * the pre-knob mask. Danger relief belts stay on the recorded
+   * radius — shrinking sanctuary moves content closer to town without
+   * making town ground deadly.
+   */
+  readonly safety: {
+    readonly cityRadiusPermille: number;
+    readonly townRadiusPermille: number;
+    readonly outpostRadiusPermille: number;
+  };
   readonly encounterRule: {
     readonly exclusionRadius: number;
     /** Score weight for being NEAR travel routes — encounters are stumbled on, not hidden. */
@@ -257,6 +271,12 @@ const ZONE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   count: { min: 0, max: 8, fallback: 0 },
 };
 
+const SAFETY_FIELDS: Readonly<Record<string, FieldSpec>> = {
+  cityRadiusPermille: { min: 0, max: 1000, fallback: 1000 },
+  townRadiusPermille: { min: 0, max: 1000, fallback: 1000 },
+  outpostRadiusPermille: { min: 0, max: 1000, fallback: 1000 },
+};
+
 const ENCOUNTER_RULE_FIELDS: Readonly<Record<string, FieldSpec>> = {
   // Radius 3 by default: big enough to keep set pieces clear of ambient
   // spawns, small enough not to starve territory ground on 64² worlds.
@@ -337,7 +357,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
     [
       "recipeFormat", "name", "directorSeed", "base", "danger", "budgets", "dungeonAnchors",
       "worldBossRule", "dungeonRule", "encounterRule", "territoryRule", "contentLibrary", "rerolls", "locks", "paint",
-      "zones",
+      "zones", "safety",
     ],
     "$",
   );
@@ -364,6 +384,7 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
   }
 
   const zones = sectionOf(raw, "zones", ZONE_FIELDS);
+  const safety = sectionOf(raw, "safety", SAFETY_FIELDS);
   const danger = sectionOf(raw, "danger", DANGER_FIELDS, ["overrides", "assignment"]);
   const dangerRecord = raw["danger"] === undefined ? {} : requireObject(raw["danger"], "$.danger");
   const assignmentRaw = dangerRecord["assignment"] === undefined ? "linear" : dangerRecord["assignment"];
@@ -654,6 +675,11 @@ export function normalizeRecipe(input: unknown): DirectorRecipe {
       minSettlementDistancePermille: dungeonRule["minSettlementDistancePermille"] as number,
     },
     zones: { count: zones["count"] as number },
+    safety: {
+      cityRadiusPermille: safety["cityRadiusPermille"] as number,
+      townRadiusPermille: safety["townRadiusPermille"] as number,
+      outpostRadiusPermille: safety["outpostRadiusPermille"] as number,
+    },
     encounterRule: {
       exclusionRadius: encounterRule["exclusionRadius"] as number,
       roadNearPermille: encounterRule["roadNearPermille"] as number,

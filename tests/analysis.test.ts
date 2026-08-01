@@ -12,6 +12,7 @@ import { repoRoot } from "../src/core/guard.js";
 import { encodePng } from "../src/render/png.js";
 import { renderAnalysis } from "../src/render/heatmaps.js";
 import { segmentRegions } from "../src/analysis/regions.js";
+import { effectiveSafeZoneMask, safeZoneMask } from "../src/analysis/safety.js";
 import { makeArtifact, setLayer, setMaterial } from "./helpers/syntheticWorld.js";
 
 describe("spatial analysis", () => {
@@ -270,5 +271,55 @@ describe("walkability-aware segmentation (sl-0026)", () => {
       again.regions.map((region) => region.id),
       regions.map((region) => region.id),
     );
+  });
+});
+
+describe("sanctuary scaling (dusk round 7, behavior 20)", () => {
+  const settledWorld = () => {
+    const artifact = makeArtifact(32);
+    artifact.settlements.push({
+      id: 0,
+      kind: "town",
+      purpose: "waypoint",
+      anchor: [16, 16],
+      radius: 10,
+      structures: [{ type: "structure.house", cell: [15, 15], footprint: [2, 1] }],
+    });
+    return artifact;
+  };
+
+  it("all knobs at 1000 reproduce the recorded mask byte-for-byte", () => {
+    const model = new WorldModel(settledWorld());
+    const scaled = effectiveSafeZoneMask(model, {
+      cityRadiusPermille: 1000,
+      townRadiusPermille: 1000,
+      outpostRadiusPermille: 1000,
+    });
+    assert.deepEqual(Array.from(scaled), Array.from(safeZoneMask(model)));
+  });
+
+  it("scales the kind's radius down but never below the built-up floor", () => {
+    const model = new WorldModel(settledWorld());
+    const full = safeZoneMask(model);
+    const half = effectiveSafeZoneMask(model, {
+      cityRadiusPermille: 1000,
+      townRadiusPermille: 500,
+      outpostRadiusPermille: 1000,
+    });
+    const count = (mask: Uint8Array): number => mask.reduce((sum, bit) => sum + bit, 0);
+    assert.ok(count(half) < count(full), "half-radius sanctuary is smaller");
+    // Structures stay inside sanctuary (the floor).
+    assert.equal(half[15 * 32 + 15], 1);
+    assert.equal(half[15 * 32 + 16], 1);
+    // radius-10 rim cell is out; radius-5 disc cell is still in.
+    assert.equal(half[16 * 32 + 25], 0, "old rim released");
+    assert.equal(half[16 * 32 + 20], 1, "scaled disc holds");
+    // A different kind's knob does not touch this settlement.
+    const cityOnly = effectiveSafeZoneMask(model, {
+      cityRadiusPermille: 500,
+      townRadiusPermille: 1000,
+      outpostRadiusPermille: 1000,
+    });
+    assert.deepEqual(Array.from(cityOnly), Array.from(full));
   });
 });

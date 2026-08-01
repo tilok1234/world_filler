@@ -74,7 +74,17 @@ export const DIRECTOR_VERSION = "0.1.0";
 // window. Crossing a zone border = the next difficulty chapter.
 // Requires zones.count >= 2 (named refusal); linear/quantile
 // byte-identical.
-export const DIRECTOR_BEHAVIOR_VERSION = 19;
+// 20: sanctuary scaling (dusk round 7, "reduce the safe zones on towns
+// where we can"): opt-in safety.{city,town,outpost}RadiusPermille
+// scales each settlement's safe radius, floored at its built-up radius
+// (farthest structure + 2) so buildings never leave sanctuary. The
+// effective mask feeds EVERY recipe-bearing phase and gate of a run
+// (plan bands, placement exclusion, territory growth, G1/G3) — the
+// recipe-less analyze verb keeps the world's recorded safety. Danger
+// relief belts stay on the recorded radius: content moves closer to
+// town; town ground does not get deadlier. All knobs 1000 =
+// byte-identical to behavior 19.
+export const DIRECTOR_BEHAVIOR_VERSION = 20;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
@@ -82,10 +92,14 @@ export const RULE_PACK_VERSIONS = {
   // 6: settlement-relief danger blend (behavior 17, sl-0073).
   // 7: macro-zones layer (behavior 18, dusk round 5).
   // 8: zonal danger assignment (behavior 19, dusk round 6).
-  plan: 8,
-  placement: 6,
-  territory: 4,
-  validate: 3,
+  // 9: sanctuary scaling feeds banding (behavior 20, dusk round 7).
+  plan: 9,
+  // 7: sanctuary scaling feeds candidate exclusion (behavior 20).
+  placement: 7,
+  // 5: sanctuary scaling feeds hostile-ground growth (behavior 20).
+  territory: 5,
+  // 4: sanctuary scaling feeds G1/G3 ground checks (behavior 20).
+  validate: 4,
   // 3: publish gate + releases (planning doc 18 §4, ratified 2026-07-30) —
   // export is a publishing act: it refuses dirty/unpushed source, embeds
   // the gated sourceCommit in the manifest (pack format 3), and uploads

@@ -34,5 +34,10 @@
   "encounterRule": {},
   "zones": {
     "count": 4
+  },
+  "safety": {
+    "cityRadiusPermille": 800,
+    "townRadiusPermille": 600,
+    "outpostRadiusPermille": 500
   }
 }

@@ -3,11 +3,12 @@ import { basename, dirname, join } from "node:path";
 import { readGamePack } from "./pack/readPack.js";
 import { WorldModel, ALL_LADDER_RUNGS } from "./world/model.js";
 import { checkParity } from "./parity.js";
-import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary } from "./analysis/analyze.js";
+import { analyzeWorld, analysisCacheDir, readAnalysisSummary, writeAnalysisSummary, type AnalysisBundle } from "./analysis/analyze.js";
+import { effectiveSafeZoneMask } from "./analysis/safety.js";
 import { renderAnalysis } from "./render/heatmaps.js";
 import { renderDanger, renderZones } from "./render/planRender.js";
 import { renderPlacements } from "./render/placeRender.js";
-import { normalizeRecipe, recipeSha256 } from "./recipe/schema.js";
+import { normalizeRecipe, recipeSha256, type DirectorRecipe } from "./recipe/schema.js";
 import { compilePlan } from "./plan/plan.js";
 import { solvePlacements, type PlacementsDoc, type Placement } from "./place/solver.js";
 import { growTerritories } from "./territory/territory.js";
@@ -68,6 +69,16 @@ function loadModel(dir: string): { pack: ReturnType<typeof readGamePack>; model:
   const pack = readGamePack(dir);
   const model = new WorldModel(pack.artifact, pack.adapterElev);
   return { pack, model };
+}
+
+/**
+ * The analysis bundle every recipe-bearing verb consumes: world-level
+ * analysis with the recipe's sanctuary scaling applied (round 7). All
+ * phases and gates of one run see the same effective mask; the
+ * recipe-less analyze verb keeps the world's recorded safety.
+ */
+function recipeBundle(model: WorldModel, recipe: DirectorRecipe): AnalysisBundle {
+  return { ...analyzeWorld(model), safeZone: effectiveSafeZoneMask(model, recipe.safety) };
 }
 
 function runInspect(dir: string): number {
@@ -186,7 +197,7 @@ function runPlan(dir: string, recipePath: string, outArg: string | undefined): n
     return 1;
   }
 
-  const bundle = analyzeWorld(model);
+  const bundle = recipeBundle(model, recipe);
   const plan = compilePlan(model, bundle, recipe);
 
   const outDir = assertOutputRoot(
@@ -243,7 +254,7 @@ function runPlace(dir: string, recipePath: string, outArg: string | undefined): 
     console.error(`place: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256}`);
     return 1;
   }
-  const bundle = analyzeWorld(model);
+  const bundle = recipeBundle(model, recipe);
   const plan = compilePlan(model, bundle, recipe);
   const doc = solvePlacements(model, bundle, plan, recipe);
 
@@ -327,7 +338,7 @@ function runTerritories(dir: string, recipePath: string, outArg: string | undefi
     console.error(`territories: refusing — recipe pins base ${pin}, pack is ${model.generator.generationIdentitySha256}`);
     return 1;
   }
-  const bundle = analyzeWorld(model);
+  const bundle = recipeBundle(model, recipe);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
   const doc = growTerritories(model, bundle, plan, placements, recipe);
@@ -363,7 +374,7 @@ function runValidate(dir: string, recipePath: string, outArg: string | undefined
     return 1;
   }
   const recipe = normalizeRecipe(JSON.parse(readFileSync(recipePath, "utf8")));
-  const bundle = analyzeWorld(model);
+  const bundle = recipeBundle(model, recipe);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
   const territories = growTerritories(model, bundle, plan, placements, recipe);
@@ -493,7 +504,7 @@ function runExport(dir: string, recipePath: string, outArg: string | undefined, 
     );
     return 1;
   }
-  const bundle = analyzeWorld(model);
+  const bundle = recipeBundle(model, recipe);
   const plan = compilePlan(model, bundle, recipe);
   const placements = solvePlacements(model, bundle, plan, recipe);
   const territories = growTerritories(model, bundle, plan, placements, recipe);

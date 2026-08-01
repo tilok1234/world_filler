@@ -4,8 +4,8 @@
     "artifactFormat": 8,
     "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da"
   },
-  "directorBehaviorVersion": 19,
-  "directorRecipeSha256": "c57668ea8593eac98481b9841a5437a76f0d29b77be5398b2df4a184b34f73f5",
+  "directorBehaviorVersion": 20,
+  "directorRecipeSha256": "c8cfff55fefb0479b8478e145f30319094cab80d02b511bbda6a9e2e3911be2e",
   "gates": [
     {
       "details": [],
@@ -68,10 +68,10 @@
   "rulePacks": {
     "analysis": 4,
     "export": 3,
-    "placement": 6,
-    "plan": 8,
-    "territory": 4,
-    "validate": 3
+    "placement": 7,
+    "plan": 9,
+    "territory": 5,
+    "validate": 4
   },
   "strict": false
 }
