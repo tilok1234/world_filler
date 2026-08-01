@@ -546,6 +546,7 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
   // Budgets and waivers.
   const regionPlans: RegionPlan[] = [];
   const bossEligible: number[] = [];
+  const bossEligibleHome: number[] = [];
   for (let i = 0; i < regionCount; i += 1) {
     const region = bundle.regions[i] as (typeof bundle.regions)[number];
     const waivers: string[] = [];
@@ -576,6 +577,9 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     if (eligible && (anchorCandidates[i] as number) === 0) waivers.push("no_dungeon_anchors");
 
     if (eligible && band !== null && band >= budgets.minWorldBossBand) bossEligible.push(i);
+    if (eligible && band !== null && band >= 1 && zones !== null && (zones.zoneOfRegion[i] as number) === homeZone) {
+      bossEligibleHome.push(i);
+    }
 
     regionPlans.push({
       id: region.id,
@@ -603,6 +607,12 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
     return regionA.anchorIndex - regionB.anchorIndex;
   });
   const worldWaivers: string[] = [];
+  bossEligibleHome.sort((a, b) => {
+    const regionA = bundle.regions[a] as (typeof bundle.regions)[number];
+    const regionB = bundle.regions[b] as (typeof bundle.regions)[number];
+    if (regionA.cellCount !== regionB.cellCount) return regionB.cellCount - regionA.cellCount;
+    return regionA.anchorIndex - regionB.anchorIndex;
+  });
   let bossTarget = budgets.worldBossCount;
   let allocatedBosses = 0;
   if (budgets.worldBossPerZone > 0 && zones !== null) {
@@ -625,6 +635,48 @@ export function compilePlan(model: WorldModel, bundle: AnalysisBundle, recipe: D
         worldWaivers.push(
           `world_boss_shortfall_zone: ${(zones.zones[zone] as MacroZone).id} ${take} of ` +
             `${budgets.worldBossPerZone} allocated (eligible regions: ${zoneEligible.length})`,
+        );
+      }
+    }
+    // Round 12: home-zone boss budgets, lock-steered — a home-zone
+    // world_boss lock names the region the designer hand-picked, so
+    // that region takes a budget first; remaining budgets go to the
+    // largest eligible home regions. Home eligibility is band >= 1
+    // (any wilderness — the starter chapter is gentle by construction),
+    // non-minor for generation picks; a lock-steered region skips the
+    // class gate (designer authority pins the exact cell anyway).
+    if (budgets.homeZoneBosses > 0 && homeZone !== -1) {
+      bossTarget += budgets.homeZoneBosses;
+      const indexByRegionId = new Map(bundle.regions.map((region, index) => [region.id, index]));
+      const bandOf = (index: number): number | null => bands[index] ?? null;
+      const inHome = (index: number): boolean => (zones.zoneOfRegion[index] as number) === homeZone;
+      const allocated = new Set<number>();
+      let homeTaken = 0;
+      for (const lock of recipe.locks.placements) {
+        if (homeTaken >= budgets.homeZoneBosses || lock.rule !== "world_boss.v1") continue;
+        const index = indexByRegionId.get(lock.regionId);
+        if (index === undefined || !inHome(index) || allocated.has(index)) continue;
+        const band = bandOf(index);
+        if (band === null || band < 1) continue;
+        const plan = regionPlans[index] as RegionPlan;
+        regionPlans[index] = { ...plan, budgets: { ...plan.budgets, worldBosses: 1 } };
+        allocated.add(index);
+        homeTaken += 1;
+      }
+      const homeEligible = bossEligibleHome
+        .filter((index) => !allocated.has(index))
+        .slice(0, Math.max(0, budgets.homeZoneBosses - homeTaken));
+      for (const index of homeEligible) {
+        const plan = regionPlans[index] as RegionPlan;
+        regionPlans[index] = { ...plan, budgets: { ...plan.budgets, worldBosses: 1 } };
+        allocated.add(index);
+        homeTaken += 1;
+      }
+      allocatedBosses += homeTaken;
+      if (homeTaken < budgets.homeZoneBosses) {
+        worldWaivers.push(
+          `home_zone_boss_shortfall: ${homeTaken} of ${budgets.homeZoneBosses} allocated ` +
+            `(home zone: ${(zones.zones[homeZone] as MacroZone).id})`,
         );
       }
     }

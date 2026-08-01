@@ -105,7 +105,15 @@ export const DIRECTOR_VERSION = "0.1.0";
 // refusal). Green Country's world boss is generation-excluded by
 // ruling sl-0087 — it arrives via the designer's hand-place lane.
 // zoneLocalFloors 0 byte-identical to behavior 22.
-export const DIRECTOR_BEHAVIOR_VERSION = 23;
+// 24: home-zone bosses, lock-steered (dusk round 12, the designer's
+// "we need a boss in the green zone"): budgets.homeZoneBosses > 0
+// allocates boss budgets to the HOME zone at band >= 1 eligibility;
+// home-zone world_boss LOCKS steer the budgets to their named regions
+// first — the sl-0087 hand-place lane made mechanical (the designer
+// picks the cell, the lock pins it, the budget follows the lock).
+// Requires zones.count >= 2 (named refusal); 0 byte-identical to
+// behavior 23.
+export const DIRECTOR_BEHAVIOR_VERSION = 24;
 
 export const RULE_PACK_VERSIONS = {
   // 4: watershed subdivision — organic seams (behavior 16).
@@ -116,7 +124,8 @@ export const RULE_PACK_VERSIONS = {
   // 9: sanctuary scaling feeds banding (behavior 20, dusk round 7).
   // 10: per-zone world-boss allocation (behavior 21, dusk round 8).
   // 11: slice anchor layers — giver slots + gather spots (behavior 22).
-  plan: 11,
+  // 12: lock-steered home-zone boss budgets (behavior 24).
+  plan: 12,
   // 7: sanctuary scaling feeds candidate exclusion (behavior 20).
   // 8: zone-local boss floors + zone-bound fallback (behavior 21).
   // 9: zone-local dungeon floors (behavior 23, dusk round 11).

@@ -504,3 +504,59 @@ describe("slice anchor layers (dusk round 10, behavior 22)", () => {
     assert.equal(canonicalJson(again), canonicalJson(plan));
   });
 });
+
+describe("lock-steered home-zone bosses (dusk round 12, behavior 24)", () => {
+  it("refuses homeZoneBosses without zones and steers the budget to the locked home region", () => {
+    assert.throws(
+      () => normalizeRecipe({ ...MINIMAL, budgets: { homeZoneBosses: 1 } }),
+      /homeZoneBosses requires \$\.zones\.count >= 2/,
+    );
+
+    const artifact = makeArtifact(32);
+    for (let y = 0; y < 32; y += 1) {
+      for (let x = 11; x < 23; x += 1) setMaterial(artifact, x, y, "terrain.mud");
+    }
+    const model = new WorldModel(artifact);
+    const bundle = analyzeWorld(model);
+    // The home zone (west grass, contains spawn) has one region; lock a
+    // boss there and the budget must follow the lock.
+    const probe = compilePlan(model, bundle, normalizeRecipe({
+      ...MINIMAL, name: "probe", zones: { count: 2 }, danger: { assignment: "zonal", bandCount: 5 },
+    }));
+    const homeZoneId = (() => {
+      for (const zone of probe.zones ?? []) {
+        if (zone.memberRegionIds.includes(probe.spawnRegionId)) return zone.id;
+      }
+      throw new Error("no home zone");
+    })();
+    const homeRegion = probe.regions.find(
+      (region) => region.dangerBand !== null && region.dangerBand >= 1 &&
+        (probe.zones ?? []).some((zone) => zone.id === homeZoneId && zone.memberRegionIds.includes(region.id)),
+    );
+    assert.ok(homeRegion !== undefined, "home zone has a wilderness region");
+
+    const locked = compilePlan(model, bundle, normalizeRecipe({
+      ...MINIMAL,
+      name: "steered",
+      zones: { count: 2 },
+      danger: { assignment: "zonal", bandCount: 5 },
+      budgets: { worldBossPerZone: 1, homeZoneBosses: 1, minWorldBossBand: 1 },
+      locks: { placements: [{
+        id: `placement.world_boss.${homeRegion.id}.0`,
+        rule: "world_boss.v1",
+        regionId: homeRegion.id,
+        cell: [5, 5],
+        arenaOrigin: [3, 3],
+        arenaSide: 6,
+        exclusionRadius: 16,
+        anchorPoiId: null,
+      }] },
+    }));
+    const steered = locked.regions.find((region) => region.id === homeRegion.id);
+    assert.ok(steered !== undefined && steered.budgets.worldBosses === 1, "budget follows the lock");
+    assert.ok(
+      !locked.checks.worldWaivers.some((waiver) => waiver.startsWith("home_zone_boss_shortfall")),
+      "no shortfall when the lock steers",
+    );
+  });
+});

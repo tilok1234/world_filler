@@ -18,7 +18,8 @@
     "territoriesPer1000Walkable": 4,
     "territoryCapPerRegion": 2,
     "minRegionCells": 40,
-    "worldBossPerZone": 1
+    "worldBossPerZone": 1,
+    "homeZoneBosses": 1
   },
   "worldBossRule": {
     "minSettlementDistancePermille": 320,
@@ -130,6 +131,22 @@
         "id": "placement.dungeon.region.gravel.3995.0",
         "regionId": "region.gravel.3995",
         "rule": "dungeon_binding.v1"
+      },
+      {
+        "anchorPoiId": null,
+        "arenaOrigin": [
+          247,
+          242
+        ],
+        "arenaSide": 6,
+        "cell": [
+          249,
+          244
+        ],
+        "exclusionRadius": 16,
+        "id": "placement.world_boss.region.mud.57087.0",
+        "regionId": "region.mud.57087",
+        "rule": "world_boss.v1"
       }
     ]
   }
