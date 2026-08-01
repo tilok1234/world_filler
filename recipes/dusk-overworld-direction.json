@@ -1,0 +1,19 @@
+{
+  "recipeFormat": 1,
+  "name": "dusk-overworld-direction",
+  "directorSeed": 109182,
+  "base": { "generationIdentitySha256": "bd4b931780b3e85dfba94974338cf7dd578ca047b5a78d2bb779d18a9f74e1ba" },
+  "danger": { "assignment": "quantile", "endgamePockets": 3 },
+  "budgets": {
+    "worldBossCount": 3,
+    "encountersPer1000Walkable": 3,
+    "encounterCapPerRegion": 2,
+    "territoriesPer1000Walkable": 4,
+    "territoryCapPerRegion": 2,
+    "minRegionCells": 40
+  },
+  "worldBossRule": { "minSettlementDistancePermille": 320, "minRoadDistancePermille": 300 },
+  "dungeonRule": { "minSettlementDistancePermille": 320 },
+  "territoryRule": { "spacing": 2, "minCells": 40 },
+  "encounterRule": {}
+}
