@@ -6,14 +6,18 @@ import { renderTerrain, upscaleRgba } from "./heatmaps.js";
 
 /**
  * Danger-band render: each region tinted by its band over a dimmed
- * terrain base. Band 0 (safe heartland) is blue; wilderness bands ramp
- * green -> yellow -> red -> purple; unbanded regions (unreachable) stay
- * dim. Inspection evidence, not contract.
+ * terrain base. Band 0 (civilized/safe ground) is a pale neutral so it
+ * reads as "town land", NOT as a rung of the danger ramp — remote
+ * settlements paint band 0 deep in hard country, and coloring them with
+ * the ramp's coolest color made the map read as broken zones (dusk
+ * rehearsal round-3 verdict). Wilderness bands ramp green -> yellow ->
+ * red -> purple; unbanded regions (unreachable) stay dim. Inspection
+ * evidence, not contract.
  */
 
 type Rgb = readonly [number, number, number];
 
-const BAND0: Rgb = [90, 150, 230];
+const BAND0: Rgb = [178, 190, 202];
 const RAMP: readonly Rgb[] = [
   [90, 180, 95],
   [225, 205, 80],
