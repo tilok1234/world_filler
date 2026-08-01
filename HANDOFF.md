@@ -597,10 +597,28 @@ Round 7 verdict (designer): **"ye this works"** — APPROVED. Rounds
   COMPLETE: 4 bosses + 4 slice dungeons, one per zone, ALL EIGHT
   recipe-locked, G6 PASS clean.**
 
+- **R13** (recipe): encounters 3→5 per 1000 — designer verdict "a lot
+  of the zone ends up empty"; 62→112 sites, formerly-zero mid-size
+  regions now carry one each, clusters and locks untouched.
+- **Final review dispositions (designer: "sounds good", 2026-08-01):**
+  (a) the four X's are ACCEPTED BY NAME — dungeon floors correctly
+  killing settlement-close/band-0 anchors at region.grass.22653
+  (125,88), region.grass.24654 (78,96), region.gravel.49586 (178,193),
+  region.snow.11178 (170,43); the lock lane overrides floors per-site
+  if any is ever wanted. (b) SNOW EAST is not empty: a ruined city of
+  11 unbound city_ruin anchors at (150–163, 19–29) with the slice
+  dungeon among them — designer plays it as-is (unmarked discovery);
+  moving/adding the snow boss into the ruins stays a one-lock option.
+  (c) SIX border camps point the dangerous way (high-level content ≤3
+  cells from Green ground): wet (180,143) (181,182) (183,186), cold
+  (102,62) (68,7) (78,27) — ACCEPTED for the reference export,
+  FLAGGED for the game-side pass; border-margin knob is the fix if
+  playtest shows grief.
+
 OPEN when resuming: **EXPORT IS HELD** (designer chose "hold, more
 rounds first" — export only on a fresh explicit go; it publishes the
 b77-pinned release and restates the Option-B level brackets in its
-sync entry). The game consumes that pack AS REFERENCE ONLY (docs/20
+sync entry). The review round is complete — nothing else is pending. The game consumes that pack AS REFERENCE ONLY (docs/20
 step 1) — it is the test slice's authoring reference, not an import.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
