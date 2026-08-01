@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalJson } from "../core/canonicalJson.js";
 import { sha256Hex } from "../core/sha256.js";
+import { RULE_PACK_VERSIONS } from "../core/version.js";
 import type { WorldModel } from "../world/model.js";
 import {
   cellsAdjacentTo,
@@ -27,7 +28,12 @@ import { safeZoneMask } from "./safety.js";
 // on void materials (fords, wadeable shallows, piers, future walkable
 // rock) forms regions and enters adjacency; unwalkable void keeps
 // separating.
-export const ANALYSIS_VERSION = 3;
+// 4: watershed subdivision — organic seams (behavior 16).
+// Derived from the rule-pack table so the summary stamp, the cache key,
+// and the report can never disagree again (the behavior-16 bump briefly
+// left this constant at 3 while the rule pack said 4 — caught and fixed
+// in the same rehearsal, before any export).
+export const ANALYSIS_VERSION: number = RULE_PACK_VERSIONS.analysis;
 
 const CORRIDOR_MATERIALS: ReadonlySet<string> = new Set(["terrain.packed_road", "terrain.cobble"]);
 const WATER_MATERIALS: ReadonlySet<string> = new Set(["water.deep", "water.shallow"]);

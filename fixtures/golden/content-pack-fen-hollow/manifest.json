@@ -3,7 +3,7 @@
     "name": "worldfiller",
     "version": "0.1.0"
   },
-  "analysisVersion": 3,
+  "analysisVersion": 4,
   "base": {
     "artifactFormat": 8,
     "artifactSha256": "7cc245b5c70900da026c47e78c38e5fc037a7a101a54abd11584a24b162a07fc",
@@ -22,10 +22,10 @@
   "directorRecipeSha256": "31468e2902f4ffd9cceadeac9fec6e8e311662bf4c96db65e4201dc87b246c55",
   "directorSeed": 103991,
   "files": {
-    "content-plan.json": "93bb87c63350e63b3476c49d0ffe7fda0f02af1d85bb2fb5e11ead190d671da5",
-    "placements.json": "7f6174c63afa38b04d33a127294eb28723c664e8cf4d303e78de56974574e36b",
-    "report.json": "d809f000f0fdcf0ff65f2782e0f00eac83cc5c20ae8547cca0bfd01c3f1e54d5",
-    "territories.json": "d85559fe346c4ece2596c806b87bf99007e3997256020d0d466cf4327cae9f1d"
+    "content-plan.json": "d8343b5cb815dfd61854aeb664d8609a901494acd15f3385d635200f4bbd4653",
+    "placements.json": "96c8073f96d330fa3f98718839bef87f453685fed342a02924ca1fb26e5dbf1d",
+    "report.json": "38401f2dbd33c7e56d1d917fba819a1970686fc16297a9cb69020e56e4e08eea",
+    "territories.json": "351f107aba1be4e98a58fb3c52982d9bd872e8d7ebbbef623a3922c6f5dbc4da"
   },
   "pack": "worldfiller-content-pack",
   "packFormat": 3,
