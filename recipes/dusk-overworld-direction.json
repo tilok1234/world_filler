@@ -13,7 +13,7 @@
     "settlementReliefDepthPermille": 250
   },
   "budgets": {
-    "encountersPer1000Walkable": 3,
+    "encountersPer1000Walkable": 5,
     "encounterCapPerRegion": 2,
     "territoriesPer1000Walkable": 4,
     "territoryCapPerRegion": 2,
