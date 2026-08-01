@@ -55841,9 +55841,9 @@
   ],
   "dependencies": {
     "tileforge": {
-      "manifestSha256": "bb10a0aafe6b8fb14be1d3a41bce325202d57a6b277306ae5e6ef9c57f3b2b11",
-      "packageId": "dusk-ae1eecb-seed103991",
-      "packageSha256": "395c16929e3a678668b82f10f952c55c5315f3938450891db2ac3ae1dd4dc1eb"
+      "manifestSha256": "c8b11de523115d4615d8c523770f87cf42cf3975bb9c682f0c484037437e467c",
+      "packageId": "dusk-9b8b2a2-seed103991",
+      "packageSha256": "e09ea40e51f054f9fad6dad4cc96edd99a903ee2bff86f2a3e20e26cf57d84d6"
     }
   },
   "destinations": [
@@ -55870,12 +55870,12 @@
   ],
   "formatVersion": 8,
   "generator": {
-    "generationIdentitySha256": "ef632cc3b7cd30feb4c632a130e8f01b355b012e96f529dd0198c4d1ed8996d8",
-    "generatorBehaviorVersion": 72,
+    "generationIdentitySha256": "e6bdf7f287d16db78a9c7c032acc7a6ee321e2ba0ac27ef3620083bb757364fc",
+    "generatorBehaviorVersion": 77,
     "name": "worldforge",
     "recipeCompilerVersion": 35,
     "recipeSha256": "0b52b6b8d5fab1eef7aa28632d8de2c155e755acec12f4979293e6cff845d36d",
-    "resolvedConfigSha256": "d0d3443b841f04eff928c613819ff0c1b87a08828813a07730ec373c4809d7f3",
+    "resolvedConfigSha256": "22f4de7d4b4779bafca872ce9b266052cc4105248cfa521f90e3a852dde3f5ba",
     "seed": 1,
     "version": "0.1.0"
   },

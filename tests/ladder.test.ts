@@ -280,3 +280,60 @@ describe("behavior-72 pack semantics (adoption sl-0039)", () => {
     assert.equal(caveModel.classifyCell(2, 7), "structure_stamp_block"); // cell 3
   });
 });
+
+describe("behavior-77 prop walkability classes (sl-0041 base re-pin)", () => {
+  // Palette for the carpet-debris species plus a solid control; the
+  // synthetic default palette carries only oak and flowers.
+  const withDebris = (behavior: number) => {
+    const artifact = makeArtifact();
+    (artifact.generator as { generatorBehaviorVersion: number }).generatorBehaviorVersion = behavior;
+    artifact.propTypes.push(
+      "prop.stump", "prop.fallen_log", "prop.bone_pile", "prop.loot_pile", "prop.boulder",
+    );
+    return artifact; // prop values: 3 stump, 4 fallen_log, 5 bone_pile, 6 loot_pile, 7 boulder
+  };
+
+  it("walks all four carpet-debris species at behavior 77, blocks them before", () => {
+    for (const [value, x] of [[3, 1], [4, 2], [5, 3], [6, 4]] as const) {
+      const modern = withDebris(77);
+      setLayer(modern, "prop", x, 1, value);
+      assert.equal(new WorldModel(modern).classifyCell(x, 1), "default_walk");
+
+      const legacy = withDebris(72);
+      setLayer(legacy, "prop", x, 1, value);
+      assert.equal(new WorldModel(legacy).classifyCell(x, 1), "prop_block");
+    }
+  });
+
+  it("carpet never blocks but never forces walking: the rest of the ladder decides", () => {
+    const artifact = withDebris(77);
+    setLayer(artifact, "prop", 2, 2, 3); // stump over deep water
+    setMaterial(artifact, 2, 2, "water.deep");
+    setLayer(artifact, "prop", 4, 2, 4); // fallen_log over a stream
+    setLayer(artifact, "river", 4, 2, 1);
+    setLayer(artifact, "prop", 6, 2, 3); // stump on a trail
+    setLayer(artifact, "path", 6, 2, 1);
+    const model = new WorldModel(artifact);
+    assert.equal(model.classifyCell(2, 2), "material_block_deep_water");
+    assert.equal(model.classifyCell(4, 2), "river_stream_block");
+    assert.equal(model.classifyCell(6, 2), "trail_walk");
+  });
+
+  it("solid species and canopy trunks still block at behavior 77", () => {
+    const artifact = withDebris(77);
+    setLayer(artifact, "prop", 1, 5, 7); // boulder — solid
+    setLayer(artifact, "prop", 3, 5, 1); // oak trunk — canopy blocks its cell
+    const model = new WorldModel(artifact);
+    assert.equal(model.classifyCell(1, 5), "prop_block");
+    assert.equal(model.classifyCell(3, 5), "prop_block");
+  });
+
+  it("carpet debris on level-0 moss rock keeps moss solid (any-prop rule survives 77)", () => {
+    const artifact = withDebris(77);
+    setMaterial(artifact, 2, 2, "terrain.rock");
+    setLayer(artifact, "moss", 2, 2, 1);
+    setLayer(artifact, "prop", 2, 2, 3); // stump — carpet, but not bare
+    const elev = new Array(64).fill(0);
+    assert.equal(new WorldModel(artifact, elev).classifyCell(2, 2), "material_block_rock");
+  });
+});

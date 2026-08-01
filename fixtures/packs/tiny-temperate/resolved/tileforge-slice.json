@@ -1,6 +1,6 @@
 {
   "baseArtifactFormat": 8,
-  "baseGenerationIdentitySha256": "ef632cc3b7cd30feb4c632a130e8f01b355b012e96f529dd0198c4d1ed8996d8",
+  "baseGenerationIdentitySha256": "e6bdf7f287d16db78a9c7c032acc7a6ee321e2ba0ac27ef3620083bb757364fc",
   "decals": {
     "1": "cracks",
     "10": "waterfall",
@@ -143,7 +143,12 @@
   "roadTypes": {
     "1": "road",
     "2": "dirtpath",
-    "3": "ruinedroad"
+    "3": "ruinedroad",
+    "4": "street",
+    "5": "gravelway",
+    "6": "flagway",
+    "7": "corduroy",
+    "8": "threshold"
   },
   "routes": [],
   "structures": {
@@ -200,7 +205,7 @@
     "8": "tavern",
     "9": "smithy"
   },
-  "tileforgeAdapterVersion": 7,
+  "tileforgeAdapterVersion": 9,
   "wallTypes": {
     "1": "wall",
     "2": "palisade",

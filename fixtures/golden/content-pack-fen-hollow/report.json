@@ -4,7 +4,7 @@
     "artifactFormat": 8,
     "generationIdentitySha256": "4f91a38ee9a520b641e1b170e850dfc58c777bfb9ca93508cccf6591088172da"
   },
-  "directorBehaviorVersion": 14,
+  "directorBehaviorVersion": 15,
   "directorRecipeSha256": "8e8b346f8168e63afa5d4238c95c027a975ef4af49b74b191fd1d79140648f78",
   "gates": [
     {

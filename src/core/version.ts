@@ -37,7 +37,13 @@ export const DIRECTOR_VERSION = "0.1.0";
 // grid), and the WYSIWYG art-outline stamp. Fixtures re-pinned to
 // behavior-72 packs; the canonical world is the imported
 // small-cold-coastal-pack-dusk@b65 release.
-export const DIRECTOR_BEHAVIOR_VERSION = 14;
+// 15: behavior-77 prop walkability classes (sl-0041 || base re-pin
+// ruling; upstream ruling sl-0063, transcribed @ 1a20bd2): the four
+// carpet-debris species (stump, fallen_log, bone_pile, loot_pile) stop
+// blocking on worlds recorded at behavior >= 77; earlier-era worlds
+// reproduce their reference grids unchanged. Fixtures re-pinned to
+// behavior-77 packs; the b65 canonical import is untouched.
+export const DIRECTOR_BEHAVIOR_VERSION = 15;
 
 export const RULE_PACK_VERSIONS = {
   analysis: 3,

@@ -17,12 +17,13 @@ export const SUPPORTED_ARTIFACT_FORMAT = 8;
 
 /*
  * Walkability-ladder contract data, transcribed from the upstream consumer
- * contract (WorldForge public loader tables @ behavior 72, commit
- * bbc10cdb — adopted 2026-07-30, ratified sl-0039; previously behavior
- * 47 @ bb7832f; append-only upstream). Pack-grid semantics on top of the
- * loader ladder are transcribed from the same commit's export
- * (buildWalkability): the 2026-07-28 moss-walks ruling and the WYSIWYG
- * art-outline stamp. Data tables, not code — see AGENTS.md, isolation
+ * contract (WorldForge public loader tables @ behavior 77, commit
+ * 1a20bd2 — adopted 2026-08-01 per the sl-0041 || base re-pin ruling;
+ * previously behavior 72 @ bbc10cdb and behavior 47 @ bb7832f;
+ * append-only upstream). Pack-grid semantics on top of the loader ladder
+ * are transcribed from the same commit's export (buildWalkability): the
+ * 2026-07-28 moss-walks ruling and the WYSIWYG art-outline stamp (both
+ * unchanged 72 -> 77). Data tables, not code — see AGENTS.md, isolation
  * contract. Updating them is an explicit, logged decision.
  */
 
@@ -70,6 +71,29 @@ const BLOCKING_PROPS: ReadonlySet<string> = new Set([
   "prop.baskets", "prop.fishingboat", "prop.bollard", "prop.coop",
   "prop.topiary", "prop.planter_urn", "prop.sundial", "prop.cookfire",
 ]);
+
+/**
+ * Behavior-77 prop walkability classes (upstream PROP_WALKABILITY,
+ * transcribed @ 1a20bd2, upstream ruling sl-0063): the four
+ * ground-hugging pile/debris silhouettes became CARPET — they render but
+ * never block — deliberately diverging from the package's walkable:false
+ * flags. Worlds recorded at behavior >= 77 drop them from the blocking
+ * set; earlier worlds (the b65 canonical, frozen past-era packs) keep
+ * them solid, reproducing their reference grids bit-for-bit. The rest of
+ * the classification is already this ladder: SOLID species are the
+ * remaining BLOCKING_PROPS entries, and CANOPY (oak, birch, pine,
+ * willow, dead_tree, fruit_tree, giant_shroom, pillar, lamp) blocks only
+ * the trunk cell it occupies — the crown lives on a render-only overlay
+ * and never appears in the artifact prop grid, contract not code. The
+ * moss rung is untouched: ANY prop, carpet included, keeps moss solid
+ * (buildWalkability is byte-unchanged 72 -> 77).
+ */
+const CARPET_DEBRIS_PROPS: ReadonlySet<string> = new Set([
+  "prop.stump", "prop.fallen_log", "prop.bone_pile", "prop.loot_pile",
+]);
+
+/** First upstream behavior whose worlds walk the carpet-debris species. */
+const CARPET_DEBRIS_BEHAVIOR = 77;
 
 const CORRIDOR_MATERIALS: ReadonlySet<string> = new Set(["terrain.packed_road", "terrain.cobble"]);
 
@@ -127,6 +151,12 @@ export class WorldModel {
   readonly hydrology: WorldHydrology;
 
   private readonly layers: Record<ChunkLayerName, Uint16Array>;
+  /**
+   * The blocking-species set this world's era prescribes: behavior >= 77
+   * walks the carpet-debris conversions, earlier eras block them.
+   * Membership-only reads — set iteration order never touches output.
+   */
+  private readonly blockingProps: ReadonlySet<string>;
   private readonly routeCrossingCells: Set<number>;
   private readonly streetFordCells: Set<number>;
   private readonly structureRects: Map<number, { readonly ox: number; readonly oy: number; readonly w: number }>;
@@ -150,6 +180,10 @@ export class WorldModel {
     this.landmarks = this.raw.landmarks;
     this.regions = this.raw.regions;
     this.hydrology = this.raw.hydrology;
+    this.blockingProps =
+      this.raw.generator.generatorBehaviorVersion >= CARPET_DEBRIS_BEHAVIOR
+        ? new Set([...BLOCKING_PROPS].filter((prop) => !CARPET_DEBRIS_PROPS.has(prop)))
+        : BLOCKING_PROPS;
 
     const { width, height, chunkWidth, chunkHeight } = this.raw.dimensions;
     this.layers = {} as Record<ChunkLayerName, Uint16Array>;
@@ -348,7 +382,7 @@ export class WorldModel {
       return pass.includes(cellIndex) ? "structure_pass" : "structure_block";
     }
     const prop = this.propAt(x, y);
-    if (prop !== null && BLOCKING_PROPS.has(prop)) return "prop_block";
+    if (prop !== null && this.blockingProps.has(prop)) return "prop_block";
     if (this.fenceAt(x, y) !== null) return "fence_block";
     if (this.trailAt(x, y)) return "trail_walk";
     if (this.pierAt(x, y) !== null) return "pier_walk";

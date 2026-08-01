@@ -179,10 +179,18 @@ ladder tables @ WorldForge `bbc10cdb`, 17 rungs including moss-on-rock
 and the WYSIWYG stamp, fixtures re-pinned, the released canonical
 `small-cold-coastal-pack-dusk@b65` and overworld
 `wildshot-overworld-pack-dusk@b72` imported parity-green — behavior
-14). Next: direct the dusk overworld (planning docs/20 step 1 — the
-game consumes that content pack as reference only, then the designer's
-feel verdict); the game-side `worldfiller_importer` (prepared in
-docs/IMPORTER_READINESS.md) comes after that verdict.
+14). On 2026-08-01 **behavior-77 prop walkability classes were
+adopted** (the sl-0041 || base re-pin ruling: the game plays b77, so
+the rehearsal directs over it): the four carpet-debris species walk on
+behavior-77+ worlds via an era-keyed blocking set (earlier worlds
+reproduce their grids bit-for-bit), dust-hollow + tiny-temperate
+re-pinned @ WorldForge `1a20bd2`, fen-hollow deliberately frozen at b72
+(its gate went unreachable in the b75 route re-plan — fixtures/README),
+and the dusk overworld import moved to `@b77` (derived flood 46493 =
+manifest) — behavior 15. Next: direct the dusk overworld (planning
+docs/20 step 1 — the game consumes that content pack as reference only,
+then the designer's feel verdict); the game-side `worldfiller_importer`
+(prepared in docs/IMPORTER_READINESS.md) comes after that verdict.
 
 ```sh
 # Node >= 24.15 required (matches the upstream toolchain pin)

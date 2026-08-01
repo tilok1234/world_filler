@@ -1,6 +1,6 @@
 {
   "baseArtifactFormat": 8,
-  "baseGenerationIdentitySha256": "773b747ebed21d6956fe340c7c68f0fbec6d853f8deecec411511d1f1c2055a2",
+  "baseGenerationIdentitySha256": "d71209d767cec278f027226ac9d11eb5ce07696590e652a19df054cbdcbdbe05",
   "decals": {
     "1": "cracks",
     "10": "waterfall",
@@ -100,7 +100,7 @@
     {
       "id": 0,
       "type": "poi.city_ruin",
-      "x": 13,
+      "x": 12,
       "y": 52
     },
     {
@@ -118,14 +118,14 @@
     {
       "id": 3,
       "type": "poi.pass_memorial",
-      "x": 25,
-      "y": 44
+      "x": 12,
+      "y": 21
     },
     {
       "id": 4,
       "type": "poi.pass_memorial",
-      "x": 11,
-      "y": 28
+      "x": 25,
+      "y": 44
     },
     {
       "id": 5,
@@ -147,7 +147,7 @@
     },
     {
       "id": 8,
-      "type": "poi.ruin",
+      "type": "poi.wayside_shrine",
       "x": 28,
       "y": 34
     },
@@ -183,26 +183,26 @@
     },
     {
       "id": 14,
+      "type": "poi.fishing_spot",
+      "x": 38,
+      "y": 13
+    },
+    {
+      "id": 15,
       "type": "poi.mine",
       "x": 50,
       "y": 36
     },
     {
-      "id": 15,
+      "id": 16,
       "type": "poi.abandoned_caravan",
       "x": 49,
       "y": 23
     },
     {
-      "id": 16,
-      "type": "poi.wayside_shrine",
-      "x": 38,
-      "y": 10
-    },
-    {
       "id": 17,
-      "type": "poi.abandoned_caravan",
-      "x": 25,
+      "type": "poi.mine",
+      "x": 20,
       "y": 18
     },
     {
@@ -215,7 +215,12 @@
   "roadTypes": {
     "1": "road",
     "2": "dirtpath",
-    "3": "ruinedroad"
+    "3": "ruinedroad",
+    "4": "street",
+    "5": "gravelway",
+    "6": "flagway",
+    "7": "corduroy",
+    "8": "threshold"
   },
   "routes": [
     {
@@ -239,7 +244,7 @@
       "fromY": 25,
       "id": 2,
       "routeClass": "trail",
-      "toX": 38,
+      "toX": 26,
       "toY": 25
     },
     {
@@ -247,7 +252,7 @@
       "fromY": 53,
       "id": 3,
       "routeClass": "trail",
-      "toX": 38,
+      "toX": 25,
       "toY": 41
     },
     {
@@ -255,7 +260,7 @@
       "fromY": 26,
       "id": 4,
       "routeClass": "trail",
-      "toX": 12,
+      "toX": 9,
       "toY": 7
     }
   ],
@@ -313,7 +318,7 @@
     "8": "tavern",
     "9": "smithy"
   },
-  "tileforgeAdapterVersion": 7,
+  "tileforgeAdapterVersion": 9,
   "wallTypes": {
     "1": "wall",
     "2": "palisade",

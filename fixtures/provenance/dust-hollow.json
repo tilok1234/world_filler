@@ -1,21 +1,21 @@
 {
-  "generatedDate": "2026-07-30",
+  "generatedDate": "2026-08-01",
   "identity": {
     "artifactFormat": 8,
-    "baseArtifactSha256": "bb46b42b5a0851e81257caf99a46ff8c7206b5001ed01899f68a05b161c0b941",
-    "behaviorVersion": 72,
-    "generationIdentitySha256": "773b747ebed21d6956fe340c7c68f0fbec6d853f8deecec411511d1f1c2055a2",
+    "baseArtifactSha256": "d07db6829535a0dd7b32d8ed5c8f43d95dfc99d2b52528674caf8d7973bbfa78",
+    "behaviorVersion": 77,
+    "generationIdentitySha256": "d71209d767cec278f027226ac9d11eb5ce07696590e652a19df054cbdcbdbe05",
     "packFormat": 1,
     "recipeCompilerVersion": 35,
     "recipeSha256": "ca40a6906cc79f9004a3cc79b0f7d816522e0d9ea9782b772cd61a60ba72d553",
     "seed": 20093,
-    "tileforgePackageId": "dusk-ae1eecb-seed103991"
+    "tileforgePackageId": "dusk-9b8b2a2-seed103991"
   },
   "pack": "dust-hollow",
   "provenanceFormat": 1,
   "source": {
     "command": "node dist/src/cli.js export-game-pack fixtures/recipes/dust-hollow.json --out <dir> --allow-dirty",
-    "commit": "bbc10cdb093bab2bff34188eac05cd5853989fe7",
+    "commit": "1a20bd2299287d4c56cd7a46e2e610b54194fcb6",
     "recipe": "fixtures/recipes/dust-hollow.json",
     "repository": "tilok1234/WorldForge",
     "toolchain": {

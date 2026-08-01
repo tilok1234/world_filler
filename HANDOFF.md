@@ -1,4 +1,4 @@
-# World Filler — handoff (2026-07-30, F0–F9 closed + publish gate & releases live + sl-0026 walkability-aware segmentation + b72 ADOPTED)
+# World Filler — handoff (2026-08-01, F0–F9 closed + b77 ADOPTED per the sl-0041 || re-pin — the dusk rehearsal directs over b77)
 
 HANDOFF.md is the tiebreaker over any machine-local assistant memory.
 Read `AGENTS.md` and the `README.md` reading list before changing anything.
@@ -27,27 +27,30 @@ review resolved, every visual verdict thread closed approved at behavior
 `freeze-review-resolution-tf6bkf` line stays archive-tagged, and porting
 its dual-verifier test battery onto this line is a recorded ask; the
 old area-share banding verdict is SUPERSEDED by rounds 1–4).
-**184 tests green** (`npm test`; count includes the ported archived-line
+**188 tests green** (`npm test`; count includes the ported archived-line
 battery, sl-0012, the 2026-07-30 publish/format-3 additions, the
-sl-0026 segmentation regressions, the b72 rung units, and the two
+sl-0026 segmentation regressions, the b72 + b77 rung units, and the two
 local-pack parity lanes — the dual-verifier Godot lane runs REAL on
 this machine).
-**Behavior-72 walkability is ADOPTED (designer-ratified, closing
-sl-0039; §1h)** — fixtures re-pinned at WorldForge `bbc10cdb`, canonical
-world = the imported `small-cold-coastal-pack-dusk@b65` release, the
-dusk overworld `@b72` sits parity-green in `outputs/local-packs/`.
+**Behavior-77 walkability is ADOPTED (2026-08-01, per the planning
+|| re-pin ruling on sl-0041; §1i)** — dust-hollow + tiny-temperate
+re-pinned at WorldForge `1a20bd2` (fen-hollow deliberately frozen at
+b72 — §1i), canonical world = the imported
+`small-cold-coastal-pack-dusk@b65` release (untouched), the dusk
+overworld `@b77` sits parity-green in `outputs/local-packs/`
+(derived flood 46493 = manifest).
 **Doc 18 items landed 2026-07-30 (§1f): export is now a publishing act**
 (gate + manifest sourceCommit + GitHub-release transport, pack format
 3), and the viewer adopted the refusing run decoder (designer ruling,
 Tier 1).
-Next milestone (planning docs/20, designer-sequenced): **direct the
-dusk overworld** — a recipe pinned to `wildshot-overworld-pack-dusk@b72`
-(generation identity in its manifest), the design/verdict loop over it,
-gated export; the game consumes that pack AS REFERENCE ONLY for the
+Next milestone (planning docs/20 step 1, base re-pinned b72→b77 by the
+|| ruling on sl-0041): **direct the dusk overworld** — a recipe pinned
+to `wildshot-overworld-pack-dusk@b77` (generationIdentitySha256
+`bd4b9317…`, in `outputs/local-packs/`), the design/verdict loop over
+it, gated export; the game consumes that pack AS REFERENCE ONLY for the
 hand-rehearsal, then the designer's feel verdict. The game-side
 importer (§2, docs/IMPORTER_READINESS.md) follows that verdict at its
-own planning session. NOT started — directing content is design work
-the user drives.
+own planning session. Directing content is design work the user drives.
 WorldForge checkout untouched throughout — verified clean after every
 milestone; it is READ-ONLY upstream, forever (AGENTS.md isolation
 contract; the user has re-confirmed this twice).
@@ -449,6 +452,58 @@ semantics changed, placement bytes identical.
   overworld is UNBLOCKED (a recipe for it wants a
   `base.generationIdentitySha256` pin + a design pass — not started).
 
+## 1i. b77 adoption EXECUTED (2026-08-01, the sl-0041 || base re-pin ruling)
+
+- **Why:** the sl-0041 rehearsal ask (written pre-b75) pinned dusk@b72;
+  WorldForge then shipped b75 (every route re-planned, street band,
+  no-diagonal ruling), b76 (road joints, render-only) and b77 (prop
+  walkability classes). The game intook b76 then b77 (sl-0064,
+  sl-0067). Planning re-pinned the rehearsal base to b77 — directing
+  over b72 would rehearse dead geometry and double-pay the designer's
+  rounds. This session concurred and executed the sl-0040-shape
+  adoption.
+- **Ladder (behavior 15):** upstream PROP_WALKABILITY (transcribed @
+  `1a20bd2`, upstream ruling sl-0063) — the four carpet-debris species
+  (stump, fallen_log, bone_pile, loot_pile) leave the blocking set on
+  worlds recorded at `generatorBehaviorVersion >= 77`; earlier-era
+  worlds reproduce their reference grids bit-for-bit (era-keyed
+  blocking set, membership-only reads). CANOPY is contract-not-code:
+  crowns live on a render-only overlay and never appear in the artifact
+  prop grid; trunks keep blocking. The moss rung is untouched — ANY
+  prop, carpet included, keeps moss solid (upstream buildWalkability is
+  byte-unchanged 72→77; verified in the b77 commit). Four new synthetic
+  units pin walk-at-77/block-at-72, carpet-never-forces-walking, solid +
+  canopy-trunk blocking, and the moss any-prop rule.
+- **Release verified per doc 18** before any use: zipSha256
+  `c9083012…` ✓, manifestSha256 `5166341a…` ✓, all 8 per-file hashes ✓,
+  tag targets sourceCommit `1a20bd22…` ✓, behavior 77, flood 46493,
+  spawn (109, 182), tileforge pin `dusk-9b8b2a2-seed103991` (the same
+  package the game bundles).
+- **Fixtures:** dust-hollow + tiny-temperate regenerated at `1a20bd2`
+  (scratch archive build; WorldForge checkout verified clean after).
+  **fen-hollow CANNOT re-pin and stays at b72/`bbc10cdb`:** the b75
+  route re-plan left its landmark gate at (11, 12) unreachable and
+  upstream's own export refuses the world ("generation FAILED");
+  fen-hollow is no longer in WorldForge's regen-verified fixture set
+  (only small-cold-coastal + tiny-temperate are). The mixed-era roster
+  is deliberate — fen is the frozen format-1 world and the pre-carpet
+  regression pin (fixtures/README.md has the full note). Coverage
+  re-recorded after review (dust prop_block 495→436 = exactly its 59
+  debris cells; trail_walk 120→86 = the b75 re-plan; moss unchanged).
+  Golden re-recorded via updateGolden — kernel.json byte-identical, all
+  payload diffs are exactly `directorBehaviorVersion` 14→15 (fen's
+  world bytes unchanged, so placements/territories are stable).
+  `prop.loot_pile` occurs in no committed fixture (1 cell in the whole
+  overworld) — synthetic units cover it.
+- **outputs/local-packs/**: `wildshot-overworld-pack-dusk` replaced
+  b72→b77 (derived flood 46493 = manifest, 101 moss cells, 3 crossing
+  cells); `small-cold-coastal` (b65) UNTOUCHED and still parity-green —
+  the era gate is what keeps both true at once.
+- **Parallel note (planning):** the designer's b77 navigation walk
+  (sl-0067) runs independently; if it fires another conversion round it
+  lands as its own small follow-up adoption — the rehearsal is NOT
+  serialized behind it.
+
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
 F8 shipped (§1b) and the first arc is closed, so the next milestone is
@@ -493,17 +548,17 @@ machine-local assistant memory is NOT required (this file is the
 tiebreaker over it, per line 3):
 
 1. Clone `tilok1234/world_filler`, branch `main`. Node >= 24.15.
-2. `npm install && npm test` — expect **182 green** on a clean clone
+2. `npm install && npm test` — expect **186 green** on a clean clone
    (the two local-pack parity lanes only run when `outputs/local-packs/`
    exists; the Godot lane self-skips without a binary; both are
    optional).
 3. To restore the full-scale lanes (optional): download releases
    `small-cold-coastal-pack-dusk@b65` and
-   `wildshot-overworld-pack-dusk@b72` from `tilok1234/WorldForge`,
+   `wildshot-overworld-pack-dusk@b77` from `tilok1234/WorldForge`,
    verify each zip's sha256 against its release notes, unzip into
    `outputs/local-packs/small-cold-coastal` and
    `outputs/local-packs/wildshot-overworld-pack-dusk` (fixtures/README
-   has the exact steps) — then `npm test` runs 184.
+   has the exact steps) — then `npm test` runs 188.
 4. `gh` auth (repo scope) is needed only for release downloads and for
    publish-gated `wf-fill export`; neither is needed to build, test, or
    direct content locally (`WORLD_FILLER_DEV_EXPORT=1` for dev export).
@@ -538,10 +593,12 @@ tiebreaker over it, per line 3):
   container (godotengine GitHub releases) — used for the GDScript
   consumption proof and the freeze-review refusal battery.
 - Upstream behavior bumps move walkable cells (flood history
-  33845→33893). The parity suite + pinned
+  33845→33893; dusk pack 45202→46493 at b77). The parity suite + pinned
   `fixtures/expected-coverage.json` are the tripwires; adopting a new
   upstream base = regenerate fixtures + re-record coverage + note it in
-  the commit, an explicit logged decision.
+  the commit, an explicit logged decision. The ladder is era-keyed on
+  each world's recorded generatorBehaviorVersion, so multi-era packs
+  coexist (b65 canonical + b77 fixtures both parity-green).
 
 ## 5. Standing user preferences (confirmed in-session)
 
@@ -562,20 +619,21 @@ tiebreaker over it, per line 3):
 
 ## 6. Versions
 
-director behavior **14** · rule packs: analysis 3, plan 5, placement 6,
+director behavior **15** · rule packs: analysis 3, plan 5, placement 6,
 territory 4, validate 3, export 3 · recipe format 1 · plan/report
 formats 1, placements format 2 · content pack format 3 current
 (format 2 + optional manifest sourceCommit from gated exports),
 formats 1–2 **frozen** (1 FINAL), readers accept {1, 2, 3} · supported
 upstream: artifact format 8, game pack 1, walkability 1 (ladder tables
-transcribed @ behavior 72, commit `bbc10cdb` — sl-0039 adoption).
+transcribed @ behavior 77, commit `1a20bd2` — sl-0041 re-pin adoption;
+era-keyed so behavior-65/72 worlds reproduce their grids).
 Bump doctrine in `src/core/version.ts` + AGENTS.md (append-only
 vocabularies; sequential bumps; stamp everything).
 
 ## 7. Commands
 
     export PATH=/opt/nvm/versions/node/v24.18.0/bin:$PATH
-    npm test            # build + 184 tests (182 on a clean clone — §3b)
+    npm test            # build + 188 tests (186 on a clean clone — §3b)
     node dist/src/cli.js help                  # all verbs
     node dist/src/cli.js validate fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
     node dist/src/cli.js export   fixtures/packs/fen-hollow fixtures/recipes/basic-direction.json
