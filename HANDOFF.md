@@ -541,11 +541,28 @@ designer's approval; publishes a release when it happens).
   this will be easier to work out from"** — zones are the working
   frame. New zones.png render; fine regions stay the solver unit.
 
-OPEN when resuming: round-4 danger verdict; placements/territories
-verdicts over the final geography; then lock/reroll/paint rounds; then
-the gated export (a release pinning b77). The game consumes that pack
-AS REFERENCE ONLY (docs/20 step 1) — it is the test slice's authoring
-reference, not an import.
+- **Round 6** ("this doesn't fit with our new zones at all"): behavior
+  19, plan 8 — danger.assignment "zonal": the spawn's zone is always
+  chapter one (a wilderness median mismeasures the safe-eaten home
+  zone — caught live when Green Country ranked 5-6), remaining zones
+  rank by weighted-median distance, bands split into contiguous
+  per-zone windows, each zone runs its own quantile ramp. Dusk at
+  bandCount 9: Green [1,2] → Dry Reach [3,4] → Wetlands [5,6] → Snow
+  Country [7,8].
+- **Round 7** ("reduce the safe zones on towns where we can"):
+  behavior 20 — safety.{city,town,outpost}RadiusPermille scale
+  sanctuaries, floored at each settlement's built-up radius; the
+  effective mask feeds every recipe-bearing phase + G1/G3 via one cli
+  helper (rule packs plan 9 / placement 7 / territory 5 / validate 4);
+  relief belts stay on recorded radius. Dusk at 800/600/500: band-0
+  22.6k → 17.2k cells, encounters 62, territories 94.
+
+OPEN when resuming: designer verdicts on the round-7 danger +
+placements maps and territories; SNOW COUNTRY still has no boss (road
+floor — designer may want per-zone boss allocation or an eased floor);
+then lock/reroll/paint rounds; then the gated export (a release
+pinning b77). The game consumes that pack AS REFERENCE ONLY (docs/20
+step 1) — it is the test slice's authoring reference, not an import.
 
 ## 2. Then: the game-side importer (PREPARED 2026-07-29, awaiting the user's plan)
 
